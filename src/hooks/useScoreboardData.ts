@@ -3,7 +3,7 @@
 
 import { useEffect, useCallback, useState } from 'react';
 import { useDatabase } from '@/firebase';
-import { ref, onValue, update, set, serverTimestamp, get } from 'firebase/database';
+import { ref, onValue, update, set, get } from 'firebase/database';
 
 const SCOREBOARD_PATH = 'scoreboard';
 const TEAM_A_COLOR = '#b72fce';
@@ -56,18 +56,21 @@ export function useScoreboardData() {
 
   useEffect(() => {
     if (!database) return;
-    setLoading(true);
 
     get(scoreboardRef).then(snapshot => {
       if (!snapshot.exists()) {
         set(scoreboardRef, defaultScoreboard);
       }
+      setLoading(false);
+    }).catch(err => {
+        console.error("Initial data check failed:", err);
+        setError(err);
+        setLoading(false);
     });
 
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        setScoreboard(data);
+        setScoreboard(snapshot.val());
       } else {
         setScoreboard(defaultScoreboard);
       }
@@ -91,6 +94,7 @@ export function useScoreboardData() {
         const remainingTime = Math.max(0, scoreboard.pauseTime - elapsed);
         
         // This is a local update for the UI, the DB is the source of truth
+        // We only update the local state to show the countdown, but don't write to DB here
         setScoreboard(prev => ({...prev, time: remainingTime}));
 
         if (remainingTime === 0) {
@@ -109,21 +113,30 @@ export function useScoreboardData() {
 
     if (data.isRunning === true && !scoreboard.isRunning) {
         // Starting the timer
-        const now = await get(ref(database, '.info/serverTimeOffset')).then(offset => Date.now() + offset.val());
+        const offsetRef = ref(database, '.info/serverTimeOffset');
+        const offsetSnapshot = await get(offsetRef);
+        const offset = offsetSnapshot.val() || 0;
+        const now = Date.now() + offset;
+
         const snapshot = await get(scoreboardRef);
         const currentData = snapshot.val() as Scoreboard;
+
         await update(scoreboardRef, { 
             isRunning: true, 
             startTime: now,
-            pauseTime: currentData.time // Make sure we start from the current time
+            pauseTime: currentData.time // Start countdown from current time value
         });
 
     } else if (data.isRunning === false && scoreboard.isRunning) {
         // Pausing the timer
+        const offsetRef = ref(database, '.info/serverTimeOffset');
+        const offsetSnapshot = await get(offsetRef);
+        const offset = offsetSnapshot.val() || 0;
+        const now = Date.now() + offset;
+        
         const snapshot = await get(scoreboardRef);
         const currentData = snapshot.val() as Scoreboard;
         
-        const now = await get(ref(database, '.info/serverTimeOffset')).then(offset => Date.now() + offset.val());
         const elapsed = Math.floor((now - currentData.startTime) / 1000);
         const newTime = Math.max(0, currentData.pauseTime - elapsed);
         
@@ -137,14 +150,14 @@ export function useScoreboardData() {
       // For other updates that don't affect the timer state
       await update(scoreboardRef, data);
     }
-  }, [database, scoreboard.isRunning]);
+  }, [database, scoreboard.isRunning, scoreboardRef]);
 
   const resetScoreboard = useCallback(() => {
     if (!database) return;
     if (confirm('Are you sure you want to reset all scoreboard data?')) {
         set(scoreboardRef, defaultScoreboard);
     }
-  }, [database]);
+  }, [database, scoreboardRef]);
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard };
 }
