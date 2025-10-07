@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser, useDatabase } from "@/firebase"; // Updated to useDatabase
-import { ref, get } from "firebase/database"; // Updated imports for RTDB
+import { useUser, useDatabase } from "@/firebase";
+import { ref, get } from "firebase/database";
 import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
@@ -14,27 +14,49 @@ import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
 export default function ControllerPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const database = useDatabase(); // Updated to useDatabase
+  const database = useDatabase();
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    // Jangan lakukan apa-apa sampai status auth selesai dimuat
+    if (isUserLoading) {
+      return;
+    }
+
+    // Jika tidak ada user setelah loading selesai, arahkan ke login
+    if (!user) {
       router.replace("/login");
       return;
     }
 
-    if (user && database) { // Check if database is initialized
+    // Jika ada user dan database, periksa status admin
+    if (user && database) {
       const checkAdmin = async () => {
-        const adminRef = ref(database, `roles_admin/${user.uid}`); // RTDB ref
-        const adminSnapshot = await get(adminRef); // RTDB get
-        if (!adminSnapshot.exists()) {
+        const adminRef = ref(database, `roles_admin/${user.uid}`);
+        try {
+          const adminSnapshot = await get(adminRef);
+          if (!adminSnapshot.exists()) {
+            // Jika bukan admin, arahkan ke login
+            router.replace("/login");
+          }
+        } catch (error) {
+          console.error("Error checking admin status:", error);
+          // Jika terjadi error, demi keamanan, arahkan ke login
           router.replace("/login");
+        } finally {
+          // Tandai bahwa pemeriksaan selesai
+          setIsCheckingAdmin(false);
         }
       };
       checkAdmin();
+    } else {
+        // Jika tidak ada database, tandai pemeriksaan selesai
+        setIsCheckingAdmin(false);
     }
   }, [user, isUserLoading, router, database]);
 
-  if (isUserLoading || !user) {
+  // Tampilkan loading selama status user atau admin sedang diperiksa
+  if (isUserLoading || isCheckingAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading & Verifying Access...</p>
