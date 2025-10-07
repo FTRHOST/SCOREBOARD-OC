@@ -1,12 +1,46 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useUser, useFirestore } from "@/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
 import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
 
 export default function ControllerPage() {
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+  const firestore = useFirestore();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace("/login");
+      return;
+    }
+
+    if (user) {
+      const checkAdmin = async () => {
+        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
+        const adminDoc = await getDoc(adminDocRef);
+        if (!adminDoc.exists()) {
+          router.replace("/login");
+        }
+      };
+      checkAdmin();
+    }
+  }, [user, isUserLoading, router, firestore]);
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading & Verifying Access...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <header className="text-center mb-8">
