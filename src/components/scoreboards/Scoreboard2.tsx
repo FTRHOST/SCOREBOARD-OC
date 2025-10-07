@@ -29,16 +29,16 @@ const Scoreboard2 = () => {
       setTimeout(() => setFlashB(false), 400);
     }
   }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
+  
+  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
-  if (loading || !scoreboard) {
+  if (loading) {
     return (
       <div className="bg-green-500 p-4 rounded-lg w-full max-w-2xl font-display text-white shadow-2xl scale-[0.7] sm:scale-100 flex items-center justify-center">
          <OsisCupLogo className="w-32 h-32 text-white/50 animate-pulse" />
       </div>
     );
   }
-
-  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');

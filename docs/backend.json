@@ -48,10 +48,7 @@
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": []
   },
   "firestore": {
     "structure": [
@@ -67,22 +64,6 @@
             {
               "name": "scoreboardId",
               "description": "Unique identifier for the scoreboard document. It should be 'main_scoreboard'."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "role",
-          "schema": {
-            "$ref": "#/backend/entities/user"
-          },
-          "description": "Collection to store admin user roles. If a document exists for a user ID, that user is considered an admin and can modify the scoreboard.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
             }
           ]
         }

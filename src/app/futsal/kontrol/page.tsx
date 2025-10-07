@@ -1,67 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useUser, useDatabase } from "@/firebase";
-import { ref, get } from "firebase/database";
 import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
 import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
 
 export default function ControllerPage() {
-  const { user, isUserLoading } = useUser();
-  const router = useRouter();
-  const database = useDatabase();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // Jangan lakukan pengecekan apapun sampai status auth selesai dimuat
-    if (isUserLoading) {
-      return;
-    }
-
-    // Jika tidak ada user setelah loading selesai, arahkan ke login
-    if (!user) {
-      router.replace("/login");
-      return;
-    }
-
-    // Jika ada user, periksa status admin di database
-    const adminRef = ref(database, `roles_admin/${user.uid}`);
-    get(adminRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        setIsAdmin(true);
-      } else {
-        // Jika tidak ada di daftar admin, arahkan ke login
-        router.replace("/login");
-        setIsAdmin(false);
-      }
-    }).catch(error => {
-      console.error("Error checking admin status:", error);
-      // Jika terjadi error, demi keamanan, arahkan ke login
-      router.replace("/login");
-      setIsAdmin(false);
-    });
-
-  }, [user, isUserLoading, router, database]);
-
-  // Tampilkan loading selama status user atau status admin sedang diverifikasi
-  if (isUserLoading || isAdmin === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading & Verifying Access...</p>
-      </div>
-    );
-  }
-
-  // Jika setelah verifikasi ternyata bukan admin, jangan render halaman
-  // (Meskipun sudah di-redirect, ini sebagai pengaman tambahan)
-  if (isAdmin === false) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <header className="text-center mb-8">

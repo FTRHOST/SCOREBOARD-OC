@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { useDatabase, useUser } from '@/firebase';
+import { useDatabase } from '@/firebase';
 import { ref, onValue, update, get, set } from 'firebase/database';
 
 const SCOREBOARD_PATH = 'scoreboard';
@@ -44,24 +44,29 @@ const defaultScoreboard: Scoreboard = {
 
 export function useScoreboardData() {
   const database = useDatabase();
-  const { user } = useUser();
-  const [scoreboard, setScoreboard] = useState<Scoreboard | null>(null);
+  const [scoreboard, setScoreboard] = useState<Scoreboard>(defaultScoreboard);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   const scoreboardRef = ref(database, SCOREBOARD_PATH);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Effect for fetching and subscribing to data
   useEffect(() => {
+    if (!database) return;
     setLoading(true);
+    
+    // Check if data exists. If not, initialize it.
+    get(scoreboardRef).then(snapshot => {
+      if (!snapshot.exists()) {
+        set(scoreboardRef, defaultScoreboard);
+      }
+    });
+
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       if (snapshot.exists()) {
         setScoreboard(snapshot.val());
       } else {
-        // If no data exists, admin should create it.
-        // For viewers, they'll just see a loading/empty state.
-        setScoreboard(null); 
+        setScoreboard(defaultScoreboard);
       }
       setLoading(false);
     }, (err) => {
@@ -71,69 +76,42 @@ export function useScoreboardData() {
     });
 
     return () => unsubscribe();
-  }, [database]); // Dependency on database instance
+  }, [database]);
 
-  // Effect to initialize data if it doesn't exist (only if admin)
   useEffect(() => {
-    if (!loading && !scoreboard && database && user) {
-        const adminRef = ref(database, `roles_admin/${user.uid}`);
-        get(adminRef).then(adminSnapshot => {
-            if (adminSnapshot.exists()) {
-                // Check again to avoid race conditions
-                get(scoreboardRef).then(scoreboardSnapshot => {
-                    if (!scoreboardSnapshot.exists()) {
-                        set(scoreboardRef, defaultScoreboard);
-                    }
-                });
-            }
-        });
-    }
-  }, [loading, scoreboard, database, user]);
-
-  // Timer logic - ONLY RUNS ON CONTROLLER (admin client)
-  useEffect(() => {
-    if (!scoreboard?.isRunning || !database || !user) {
+    if (!scoreboard?.isRunning) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
 
-    // Only allow the timer to run for admins.
-    const checkAdminAndRunTimer = async () => {
-        const adminRef = ref(database, `roles_admin/${user.uid}`);
-        const adminSnapshot = await get(adminRef);
-        if (!adminSnapshot.exists()) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            return;
-        }
+    if (timerRef.current) clearInterval(timerRef.current);
 
-        if (timerRef.current) clearInterval(timerRef.current);
-
-        timerRef.current = setInterval(async () => {
-          // Get latest data directly from DB to avoid stale state
-          const snapshot = await get(scoreboardRef);
-          if (snapshot.exists()) {
-              const currentData = snapshot.val() as Scoreboard;
-              if (currentData.time > 0 && currentData.isRunning) {
-                  update(ref(database, SCOREBOARD_PATH), { time: currentData.time - 1 });
-              } else if (currentData.isRunning) {
-                  update(ref(database, SCOREBOARD_PATH), { time: 0, isRunning: false });
-              }
+    // This timer logic will run in any client that has isRunning = true
+    // It's better to run it only in the controller page context, but for simplicity now it is here
+    timerRef.current = setInterval(async () => {
+      const snapshot = await get(scoreboardRef);
+      if (snapshot.exists()) {
+          const currentData = snapshot.val() as Scoreboard;
+          if (currentData.time > 0 && currentData.isRunning) {
+              update(ref(database, SCOREBOARD_PATH), { time: currentData.time - 1 });
+          } else if (currentData.isRunning) {
+              update(ref(database, SCOREBOARD_PATH), { isRunning: false });
           }
-        }, 1000);
-    }
-    
-    checkAdminAndRunTimer();
+      }
+    }, 1000);
     
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [scoreboard?.isRunning, database, user]);
+  }, [scoreboard?.isRunning, database]);
 
   const updateScoreboard = useCallback((data: Partial<Scoreboard>) => {
+    if (!database) return;
     update(scoreboardRef, data);
   }, [database]);
 
   const resetScoreboard = useCallback(() => {
+    if (!database) return;
     if (confirm('Are you sure you want to reset all scoreboard data?')) {
         set(scoreboardRef, defaultScoreboard);
     }

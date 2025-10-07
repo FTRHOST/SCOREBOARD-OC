@@ -4,7 +4,7 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { Database } from 'firebase/database'; // Import RTDB type
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 
@@ -79,28 +79,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
       return;
     }
-
-    setUserAuthState({ user: null, isUserLoading: true, userError: null });
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => { 
-        if (firebaseUser) {
-          setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-        } else {
-           // If no user, sign in anonymously for basic access
-           signInAnonymously(auth).catch(error => {
-               console.error("Anonymous sign-in failed:", error);
-               setUserAuthState({ user: null, isUserLoading: false, userError: error });
-           });
-        }
-      },
-      (error) => {
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
-      }
-    );
-    return () => unsubscribe();
+     // Since auth is removed, we just set loading to false.
+    setUserAuthState({ user: null, isUserLoading: false, userError: null });
   }, [auth]);
 
   // Memoize the context value
