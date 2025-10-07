@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -60,7 +60,8 @@ export function useScoreboardData() {
     if (!loading && !scoreboard && firestore && user) {
         // Check if user is an admin before creating the document
         // This is a client-side check. The real security is in firestore.rules
-        doc(firestore, `roles_admin/${user.uid}`).get().then(adminDoc => {
+        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
+        getDoc(adminDocRef).then(adminDoc => {
             if (adminDoc.exists()) {
                 const newScoreboardData = {
                     ...defaultScoreboard,
@@ -91,7 +92,8 @@ export function useScoreboardData() {
     // A simple way is to only run it for admins, assuming controllers are admins.
     const checkAdminAndRunTimer = async () => {
         if (!user) return;
-        const adminDoc = await doc(firestore, `roles_admin/${user.uid}`).get();
+        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
+        const adminDoc = await getDoc(adminDocRef);
         if (!adminDoc.exists()) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
@@ -102,7 +104,7 @@ export function useScoreboardData() {
 
         timerRef.current = setInterval(() => {
           // Use a function to get the latest time from the database to avoid stale state
-          doc(firestore, 'scoreboards', SCOREBOARD_ID).get().then(docSnap => {
+          getDoc(doc(firestore, 'scoreboards', SCOREBOARD_ID)).then(docSnap => {
             if (docSnap.exists()) {
               const currentTime = docSnap.data().time as number;
               const isStillRunning = docSnap.data().isRunning as boolean;
@@ -136,5 +138,3 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard };
 }
-
-    
