@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -32,15 +32,15 @@ export interface Scoreboard {
 }
 
 const defaultScoreboard: Omit<Scoreboard, 'id' | 'updatedAt'> = {
-  teamAName: '10.1',
-  teamBName: '10.2',
-  teamAScore: 1,
-  teamBScore: 1,
+  teamAName: 'Tim A',
+  teamBName: 'Tim B',
+  teamAScore: 0,
+  teamBScore: 0,
   teamAFouls: 0,
-  teamBFouls: 1,
+  teamBFouls: 0,
   time: INITIAL_TIME_SECONDS,
   initialTime: INITIAL_TIME_SECONDS,
-  half: 'First Half',
+  half: 'Babak 1',
   isRunning: false,
   teamAColor: TEAM_A_COLOR,
   teamBColor: TEAM_B_COLOR,
@@ -49,73 +49,84 @@ const defaultScoreboard: Omit<Scoreboard, 'id' | 'updatedAt'> = {
 
 export function useScoreboardData() {
   const firestore = useFirestore();
+  const { user } = useUser();
   const scoreboardRef = useMemoFirebase(() => doc(firestore, 'scoreboards', SCOREBOARD_ID), [firestore]);
 
   const { data: scoreboard, isLoading: loading, error } = useDoc<Scoreboard>(scoreboardRef);
-
-  const [localTime, setLocalTime] = useState(scoreboard?.time ?? INITIAL_TIME_SECONDS);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize doc if it doesn't exist
+  // Initialize doc if it doesn't exist (only if admin)
   useEffect(() => {
-    if (!loading && !scoreboard && firestore) {
-      const newScoreboardData = {
-        ...defaultScoreboard,
-        updatedAt: serverTimestamp(),
-      };
-      // Use setDoc with catch for error handling
-      setDoc(scoreboardRef, newScoreboardData).catch(e => {
-          const contextualError = new FirestorePermissionError({
-            path: scoreboardRef.path,
-            operation: 'create',
-            requestResourceData: newScoreboardData,
-          });
-          errorEmitter.emit('permission-error', contextualError);
-      });
-    }
-  }, [loading, scoreboard, firestore, scoreboardRef]);
-
-  // Timer logic
-  useEffect(() => {
-    if (scoreboard?.isRunning) {
-      setLocalTime(scoreboard.time);
-      timerRef.current = setInterval(() => {
-        setLocalTime(prevTime => {
-          const newTime = prevTime > 0 ? prevTime - 1 : 0;
-          if (newTime === 0) {
-             updateDocumentNonBlocking(scoreboardRef, { isRunning: false, time: 0 });
-          }
-          // Only update firestore every 5 seconds to reduce writes
-          if (newTime % 5 === 0) {
-            updateDocumentNonBlocking(scoreboardRef, { time: newTime });
-          }
-          return newTime;
+    if (!loading && !scoreboard && firestore && user) {
+        // Check if user is an admin before creating the document
+        // This is a client-side check. The real security is in firestore.rules
+        doc(firestore, `roles_admin/${user.uid}`).get().then(adminDoc => {
+            if (adminDoc.exists()) {
+                const newScoreboardData = {
+                    ...defaultScoreboard,
+                    updatedAt: serverTimestamp(),
+                };
+                setDoc(scoreboardRef, newScoreboardData).catch(e => {
+                    const contextualError = new FirestorePermissionError({
+                        path: scoreboardRef.path,
+                        operation: 'create',
+                        requestResourceData: newScoreboardData,
+                    });
+                    errorEmitter.emit('permission-error', contextualError);
+                });
+            }
         });
-      }, 1000);
-    } else {
-       if (timerRef.current) clearInterval(timerRef.current);
-       if (scoreboard?.time !== undefined) {
-         setLocalTime(scoreboard.time);
-       }
+    }
+  }, [loading, scoreboard, firestore, scoreboardRef, user]);
+
+  // Timer logic - ONLY RUNS ON CONTROLLER
+  useEffect(() => {
+    // Exit if not running, or if scoreboard data isn't loaded
+    if (!scoreboard?.isRunning || !scoreboardRef) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
     }
 
+    // Only allow the timer to run on one client to prevent conflicts.
+    // A simple way is to only run it for admins, assuming controllers are admins.
+    const checkAdminAndRunTimer = async () => {
+        if (!user) return;
+        const adminDoc = await doc(firestore, `roles_admin/${user.uid}`).get();
+        if (!adminDoc.exists()) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            return;
+        }
+
+        // We are an admin, start the timer interval
+        if (timerRef.current) clearInterval(timerRef.current); // Clear existing timers
+
+        timerRef.current = setInterval(() => {
+          // Use a function to get the latest time from the database to avoid stale state
+          doc(firestore, 'scoreboards', SCOREBOARD_ID).get().then(docSnap => {
+            if (docSnap.exists()) {
+              const currentTime = docSnap.data().time as number;
+              const isStillRunning = docSnap.data().isRunning as boolean;
+
+              if (currentTime > 0 && isStillRunning) {
+                updateDocumentNonBlocking(scoreboardRef, { time: currentTime - 1 });
+              } else if (isStillRunning) {
+                // Time is up, stop the timer
+                updateDocumentNonBlocking(scoreboardRef, { time: 0, isRunning: false });
+              }
+            }
+          });
+        }, 1000);
+    }
+    
+    checkAdminAndRunTimer();
+    
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [scoreboard?.isRunning, scoreboard?.time, scoreboardRef]);
-
-
-  const memoizedData = useMemo(() => {
-    if (!scoreboard) return null;
-    return {
-      ...scoreboard,
-      time: localTime, // Use local time for smooth countdown
-    };
-  }, [scoreboard, localTime]);
+    // Re-run this effect if the `isRunning` state changes or if the user/admin status changes.
+  }, [scoreboard?.isRunning, scoreboardRef, firestore, user]);
 
   const updateScoreboard = useCallback((data: Partial<Omit<Scoreboard, 'id'>>) => {
-    // serverTimestamp cannot be passed to the error handler as it's not serializable.
-    // We handle it separately.
     const dataWithTimestamp = {
         ...data,
         updatedAt: serverTimestamp()
@@ -123,6 +134,7 @@ export function useScoreboardData() {
     updateDocumentNonBlocking(scoreboardRef, dataWithTimestamp);
   }, [scoreboardRef]);
 
-
-  return { scoreboard: memoizedData, loading, error, updateScoreboard };
+  return { scoreboard, loading, error, updateScoreboard };
 }
+
+    

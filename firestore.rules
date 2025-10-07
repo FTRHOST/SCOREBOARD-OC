@@ -1,62 +1,64 @@
 /**
- * @fileoverview Firestore Security Rules for the Futsal Scoreboard application.
+ * @fileOverview Firestore Security Rules for the Futsal Scoreboard application.
  *
  * Core Philosophy:
- * This ruleset enforces an admin-only access model for modifying the main scoreboard data.
- * Only users who are registered as admins in the `roles_admin` collection can update the scoreboard.
- * Read access is public.
+ * This ruleset implements an admin-based access control model for a central scoreboard document.
+ * Only authenticated users with an admin role can modify the scoreboard data.
+ * Anonymous users are allowed.
  *
  * Data Structure:
- * - /scoreboards/{scoreboardId}: Contains the main scoreboard data. Only one document with ID 'main_scoreboard' is expected.
- * - /roles_admin/{userId}: A collection to store admin user roles. The presence of a document with a user ID in this collection grants admin access.
+ * - /scoreboards/{scoreboardId}: Contains the main scoreboard data. Only one document with ID 'main_scoreboard' exists.
+ * - /roles_admin/{userId}:  Documents in this collection indicate that a user is an admin.
  *
  * Key Security Decisions:
- * - Only authenticated admins can modify the scoreboard.
- * - Unauthenticated users can read scoreboard data.
- * - Scoreboard listing is public.
- * - The security model relies on the existence of documents in the `roles_admin` collection to grant admin privileges.
- * - To ensure Authorization Independence no `get()` calls are used, relying on the presence of a document in roles_admin.
+ * - Admin Role: The presence of a document in `/roles_admin/{userId}` grants admin privileges.
+ * - No User Listing: The `list` operation is denied on the `/roles_admin` collection to prevent unauthorized enumeration of admin users.
+ *
+ * Denormalization for Authorization:
+ * - Admin status is determined by the existence of a document in `/roles_admin/{userId}`, avoiding the need for `get()` calls to a separate user profile.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Rules for the main scoreboard document. Only admins can write.
+     * @description Rules for the main scoreboard document. Only admins can modify it.
      * @path /scoreboards/{scoreboardId}
-     * @allow get, list: Anyone can read the scoreboard.
-     * @allow create, update, delete: Only admins can modify the scoreboard.
-     * @deny create, update, delete: Non-admins cannot modify the scoreboard.
-     * @principle Enforces admin-only access for scoreboard writes.
+     * @allow (get) Public read access to the scoreboard.
+     * @allow (create, update, delete) Only admins can modify the scoreboard.
+     * @deny  (create, update, delete) Non-admins cannot modify the scoreboard.
+     * @principle Enforces admin-only writes for the scoreboard.
      */
     match /scoreboards/{scoreboardId} {
-      allow get, list: if true;
+      allow get: if true;
+      allow list: if false;
       allow create: if isAdmin();
       allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
     /**
-     * @description Rules for the admin roles collection.
+     * @description Rules for the roles_admin collection.  Presence of a document indicates admin status.
      * @path /roles_admin/{userId}
+     * @allow (get, create, update, delete) Only admins can modify role assignments.
+     * @deny (list) Prevents unauthorized listing of admin users.
+     * @principle Enforces admin-only management of admin roles.
      */
     match /roles_admin/{userId} {
-      allow get: if isSignedIn();
+      allow get: if isAdmin();
       allow list: if false;
-      allow create: if request.auth.uid == userId && isSignedIn();
-      allow update: if request.auth.uid == userId && isSignedIn();
-      allow delete: if request.auth.uid == userId && isSignedIn();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
-    // Helper function to check if the user is signed in
+    // Helper Functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Helper function to check if the user is an admin based on the existence of a document in the roles_admin collection.
     function isAdmin() {
-        return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
-
   }
 }

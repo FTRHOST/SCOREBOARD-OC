@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
 export default function Controller() {
@@ -22,7 +22,7 @@ export default function Controller() {
   }
   
   const {
-    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half
+    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor
   } = scoreboard || {};
 
   const handleUpdate = (field: string, value: any) => {
@@ -91,11 +91,15 @@ export default function Controller() {
       <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Team A Controls */}
         <div className="flex flex-col gap-4 p-4 rounded-lg border bg-card">
-          <h3 className="font-bold text-lg text-center" style={{ color: scoreboard?.teamAColor }}>Team A</h3>
+          <h3 className="font-bold text-lg text-center" style={{ color: teamAColor }}>Team A</h3>
           <div className="space-y-2">
             <Label htmlFor="teamAName">Team Name</Label>
             <Input id="teamAName" value={teamAName || ''} onChange={(e) => handleUpdate('teamAName', e.target.value)} />
           </div>
+           <div className="space-y-2">
+              <Label htmlFor="teamAColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
+              <Input id="teamAColor" type="color" value={teamAColor || '#b72fce'} onChange={(e) => handleUpdate('teamAColor', e.target.value)} className="h-10 p-1" />
+            </div>
           <div className="space-y-2">
             <Label>Score</Label>
             <div className="flex gap-2">
@@ -154,10 +158,14 @@ export default function Controller() {
 
         {/* Team B Controls */}
         <div className="flex flex-col gap-4 p-4 rounded-lg border bg-card">
-          <h3 className="font-bold text-lg text-center" style={{ color: scoreboard?.teamBColor }}>Team B</h3>
+          <h3 className="font-bold text-lg text-center" style={{ color: teamBColor }}>Team B</h3>
           <div className="space-y-2">
             <Label htmlFor="teamBName">Team Name</Label>
             <Input id="teamBName" value={teamBName || ''} onChange={(e) => handleUpdate('teamBName', e.target.value)} />
+          </div>
+          <div className="space-y-2">
+              <Label htmlFor="teamBColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
+              <Input id="teamBColor" type="color" value={teamBColor || '#ef7438'} onChange={(e) => handleUpdate('teamBColor', e.target.value)} className="h-10 p-1" />
           </div>
           <div className="space-y-2">
             <Label>Score</Label>
