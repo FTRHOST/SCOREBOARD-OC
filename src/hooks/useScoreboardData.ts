@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -103,21 +103,14 @@ export function useScoreboardData() {
     };
   }, [scoreboard, localTime]);
 
+  const updateScoreboard = useCallback((data: Partial<Omit<Scoreboard, 'id'>>) => {
+    const dataWithTimestamp = {
+        ...data,
+        updatedAt: serverTimestamp()
+    };
+    updateDocumentNonBlocking(scoreboardRef, dataWithTimestamp);
+  }, [scoreboardRef]);
 
-  return { scoreboard: memoizedData, loading, error };
+
+  return { scoreboard: memoizedData, loading, error, updateScoreboard };
 }
-
-export const updateScoreboard = (data: Partial<Omit<Scoreboard, 'id'>>) => {
-  // This function can be called from anywhere to update the scoreboard
-  // It assumes firestore is initialized.
-  const firestore = useFirestore();
-  const scoreboardRef = doc(firestore, 'scoreboards', SCOREBOARD_ID);
-  
-  const dataWithTimestamp = {
-      ...data,
-      updatedAt: serverTimestamp()
-  };
-
-  // Using non-blocking update for better UI responsiveness
-  updateDocumentNonBlocking(scoreboardRef, dataWithTimestamp);
-};

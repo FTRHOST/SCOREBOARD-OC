@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
-import { useScoreboardData, updateScoreboard } from "@/hooks/useScoreboardData";
+import { useScoreboardData } from "@/hooks/useScoreboardData";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X } from "lucide-reac
 import { useToast } from '@/hooks/use-toast';
 
 export default function Controller() {
-  const { scoreboard, loading } = useScoreboardData();
+  const { scoreboard, loading, updateScoreboard } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
   const [halfInput, setHalfInput] = useState('First Half');
@@ -28,9 +29,9 @@ export default function Controller() {
     teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc
   } = scoreboard;
 
-  const handleUpdate = async (field: string, value: any) => {
+  const handleUpdate = (field: string, value: any) => {
     try {
-      await updateScoreboard({ [field]: value });
+      updateScoreboard({ [field]: value });
     } catch (error) {
       console.error("Failed to update scoreboard:", error);
       toast({
