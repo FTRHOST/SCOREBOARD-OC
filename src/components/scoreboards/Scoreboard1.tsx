@@ -20,26 +20,20 @@ const Scoreboard1 = () => {
           <span className="text-6xl font-bold truncate px-4">{teamAName}</span>
         </div>
 
-        {/* Team A Score */}
-        <div className="bg-[#05183b] h-24 w-24 flex items-center justify-center">
-          <AnimatedNumber value={teamAScore} className="text-7xl font-bold" />
-        </div>
+        {/* Scores container */}
+        <div className="flex items-center justify-center bg-[#05183b] h-24">
+            {/* Team A Score */}
+            <div className="h-24 w-24 flex items-center justify-center">
+              <AnimatedNumber value={teamAScore} className="text-7xl font-bold" />
+            </div>
 
-        {/* Logo */}
-        <div className={cn(
-          "relative h-32 w-48 flex items-center justify-center z-10",
-          !logoSrc && "bg-[#05183b]"
-        )}>
-           {logoSrc ? (
-            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" />
-          ) : (
-            <OsisCupLogo className="w-36 h-36 text-white" />
-          )}
-        </div>
-        
-        {/* Team B Score */}
-        <div className="bg-[#05183b] h-24 w-24 flex items-center justify-center">
-          <AnimatedNumber value={teamBScore} className="text-7xl font-bold" />
+            {/* Separator / Placeholder for Logo */}
+            <div className="h-24 w-48" />
+
+            {/* Team B Score */}
+            <div className="h-24 w-24 flex items-center justify-center">
+              <AnimatedNumber value={teamBScore} className="text-7xl font-bold" />
+            </div>
         </div>
 
         {/* Team B Name */}
@@ -48,6 +42,15 @@ const Scoreboard1 = () => {
           style={{ backgroundColor: teamBColor }}
         >
           <span className="text-6xl font-bold truncate px-4">{teamBName}</span>
+        </div>
+
+        {/* Logo (Absolutely Positioned) */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-48 flex items-center justify-center z-10">
+           {logoSrc ? (
+            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" />
+          ) : (
+            <OsisCupLogo className="w-36 h-36 text-white" />
+          )}
         </div>
       </div>
       
