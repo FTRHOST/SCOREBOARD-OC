@@ -10,8 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Inter', 'sans-serif'],
-        headline: ['Inter', 'sans-serif'],
+        body: ['"Space Grotesk"', 'sans-serif'],
+        headline: ['"Space Grotesk"', 'sans-serif'],
+        display: ['"Paytone One"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
@@ -88,10 +89,20 @@ export default {
             height: '0',
           },
         },
+        'flip': {
+          'from': { transform: 'rotateX(0deg)' },
+          'to': { transform: 'rotateX(360deg)' },
+        },
+        'flash': {
+          '0%, 100%': { boxShadow: '0 0 0 0 transparent' },
+          '50%': { boxShadow: '0 0 10px 5px hsl(var(--accent) / 0.7)' },
+        }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'flip': 'flip 0.5s ease-in-out',
+        'flash': 'flash 0.4s ease-in-out',
       },
     },
   },
