@@ -15,10 +15,10 @@ export default function ControllerPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const database = useDatabase();
-  const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Jangan lakukan apa-apa sampai status auth selesai dimuat
+    // Jangan lakukan pengecekan apapun sampai status auth selesai dimuat
     if (isUserLoading) {
       return;
     }
@@ -29,39 +29,38 @@ export default function ControllerPage() {
       return;
     }
 
-    // Jika ada user dan database, periksa status admin
-    if (user && database) {
-      const checkAdmin = async () => {
-        const adminRef = ref(database, `roles_admin/${user.uid}`);
-        try {
-          const adminSnapshot = await get(adminRef);
-          if (!adminSnapshot.exists()) {
-            // Jika bukan admin, arahkan ke login
-            router.replace("/login");
-          }
-        } catch (error) {
-          console.error("Error checking admin status:", error);
-          // Jika terjadi error, demi keamanan, arahkan ke login
-          router.replace("/login");
-        } finally {
-          // Tandai bahwa pemeriksaan selesai
-          setIsCheckingAdmin(false);
-        }
-      };
-      checkAdmin();
-    } else {
-        // Jika tidak ada database, tandai pemeriksaan selesai
-        setIsCheckingAdmin(false);
-    }
+    // Jika ada user, periksa status admin di database
+    const adminRef = ref(database, `roles_admin/${user.uid}`);
+    get(adminRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        setIsAdmin(true);
+      } else {
+        // Jika tidak ada di daftar admin, arahkan ke login
+        router.replace("/login");
+        setIsAdmin(false);
+      }
+    }).catch(error => {
+      console.error("Error checking admin status:", error);
+      // Jika terjadi error, demi keamanan, arahkan ke login
+      router.replace("/login");
+      setIsAdmin(false);
+    });
+
   }, [user, isUserLoading, router, database]);
 
-  // Tampilkan loading selama status user atau admin sedang diperiksa
-  if (isUserLoading || isCheckingAdmin) {
+  // Tampilkan loading selama status user atau status admin sedang diverifikasi
+  if (isUserLoading || isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading & Verifying Access...</p>
       </div>
     );
+  }
+
+  // Jika setelah verifikasi ternyata bukan admin, jangan render halaman
+  // (Meskipun sudah di-redirect, ini sebagai pengaman tambahan)
+  if (isAdmin === false) {
+    return null;
   }
 
   return (
