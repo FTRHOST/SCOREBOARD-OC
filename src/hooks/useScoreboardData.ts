@@ -61,7 +61,15 @@ export function useScoreboardData() {
         ...defaultScoreboard,
         updatedAt: serverTimestamp(),
       };
-      setDoc(scoreboardRef, newScoreboardData).catch(e => console.error("Error creating scoreboard doc", e));
+      // Use setDoc with catch for error handling
+      setDoc(scoreboardRef, newScoreboardData).catch(e => {
+          const contextualError = new FirestorePermissionError({
+            path: scoreboardRef.path,
+            operation: 'create',
+            requestResourceData: newScoreboardData,
+          });
+          errorEmitter.emit('permission-error', contextualError);
+      });
     }
   }, [loading, scoreboard, firestore, scoreboardRef]);
 
@@ -73,11 +81,11 @@ export function useScoreboardData() {
         setLocalTime(prevTime => {
           const newTime = prevTime > 0 ? prevTime - 1 : 0;
           if (newTime === 0) {
-             updateDoc(scoreboardRef, { isRunning: false, time: 0 });
+             updateDocumentNonBlocking(scoreboardRef, { isRunning: false, time: 0 });
           }
           // Only update firestore every 5 seconds to reduce writes
           if (newTime % 5 === 0) {
-            updateDoc(scoreboardRef, { time: newTime });
+            updateDocumentNonBlocking(scoreboardRef, { time: newTime });
           }
           return newTime;
         });
@@ -104,6 +112,8 @@ export function useScoreboardData() {
   }, [scoreboard, localTime]);
 
   const updateScoreboard = useCallback((data: Partial<Omit<Scoreboard, 'id'>>) => {
+    // serverTimestamp cannot be passed to the error handler as it's not serializable.
+    // We handle it separately.
     const dataWithTimestamp = {
         ...data,
         updatedAt: serverTimestamp()
