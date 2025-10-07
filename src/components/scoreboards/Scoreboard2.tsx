@@ -5,9 +5,10 @@ import { useScoreboard } from "@/context/ScoreboardContext";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 
 const Scoreboard2 = () => {
-  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor } = useScoreboard();
+  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = useScoreboard();
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -39,7 +40,13 @@ const Scoreboard2 = () => {
     <div className="bg-green-500 p-4 rounded-lg w-full max-w-2xl font-display text-white shadow-2xl scale-[0.7] sm:scale-100">
       <div className="relative w-full h-auto flex flex-col items-center justify-center space-y-3">
         {/* Background Logo */}
-        <OsisCupLogo className="absolute inset-0 m-auto w-32 h-32 text-white/10" />
+        <div className="absolute inset-0 m-auto w-32 h-32 text-white/10">
+          {logoSrc ? (
+            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" className="opacity-10" />
+          ) : (
+            <OsisCupLogo className="w-full h-full" />
+          )}
+        </div>
 
         {/* Top Row: Team Names and Scores */}
         <div className="relative z-10 w-full flex items-center justify-between">

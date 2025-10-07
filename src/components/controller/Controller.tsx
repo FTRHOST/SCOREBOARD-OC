@@ -7,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2 } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, Upload, X } from "lucide-react";
 
 export default function Controller() {
   const {
     teamAName, teamBName, setTeamName,
     updateScore, updateFouls, resetFouls,
     setHalf, isRunning, startTimer, pauseTimer, resetTimer,
-    setInitialTime
+    setInitialTime, logoSrc, setLogoSrc
   } = useScoreboard();
 
   const [timeInput, setTimeInput] = useState('20');
@@ -24,6 +24,17 @@ export default function Controller() {
     const minutes = parseInt(timeInput, 10);
     if (!isNaN(minutes) && minutes > 0) {
       setInitialTime(minutes);
+    }
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoSrc(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -85,6 +96,16 @@ export default function Controller() {
               <Input id="halfSet" value={halfInput} onChange={(e) => setHalfInput(e.target.value)} placeholder="e.g., Babak 1" />
               <Button onClick={() => setHalf(halfInput)}>Set</Button>
             </div>
+          </div>
+          <Separator />
+           <div className="space-y-2">
+            <Label htmlFor="logoUpload">Upload Logo</Label>
+            <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+            {logoSrc && (
+                <Button variant="outline" size="sm" onClick={() => setLogoSrc(null)}>
+                    <X className="mr-2 h-4 w-4" /> Remove Logo
+                </Button>
+            )}
           </div>
         </div>
 

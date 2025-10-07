@@ -3,9 +3,10 @@
 import { useScoreboard } from "@/context/ScoreboardContext";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
+import Image from 'next/image';
 
 const Scoreboard1 = () => {
-  const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor } = useScoreboard();
+  const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = useScoreboard();
 
   return (
     <div className="bg-green-500 flex flex-col items-center justify-center p-4 font-display text-white w-full max-w-4xl scale-[0.7] sm:scale-100">
@@ -25,7 +26,11 @@ const Scoreboard1 = () => {
 
         {/* Logo */}
         <div className="relative bg-gray-900/80 h-32 w-48 flex items-center justify-center">
-           <OsisCupLogo className="w-36 h-36 text-white" />
+           {logoSrc ? (
+            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" />
+          ) : (
+            <OsisCupLogo className="w-36 h-36 text-white" />
+          )}
         </div>
         
         {/* Score B */}

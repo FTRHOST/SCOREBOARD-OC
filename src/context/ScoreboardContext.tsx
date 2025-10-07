@@ -18,6 +18,8 @@ interface ScoreboardState {
   isRunning: boolean;
   teamAColor: string;
   teamBColor: string;
+  logoSrc: string | null;
+  setLogoSrc: (src: string | null) => void;
   setTeamName: (team: 'A' | 'B', name: string) => void;
   updateScore: (team: 'A' | 'B', delta: number) => void;
   updateFouls: (team: 'A' | 'B') => void;
@@ -42,6 +44,7 @@ export const ScoreboardProvider = ({ children }: { children: ReactNode }) => {
   const [initialTimeValue, setInitialTimeValue] = useState(INITIAL_TIME);
   const [half, setHalf] = useState('First Half');
   const [isRunning, setIsRunning] = useState(false);
+  const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -123,6 +126,8 @@ export const ScoreboardProvider = ({ children }: { children: ReactNode }) => {
     isRunning,
     teamAColor: TEAM_A_COLOR,
     teamBColor: TEAM_B_COLOR,
+    logoSrc,
+    setLogoSrc,
     setTeamName,
     updateScore,
     updateFouls,
