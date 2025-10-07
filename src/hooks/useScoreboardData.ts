@@ -51,9 +51,9 @@ export function useScoreboardData() {
   const [scoreboard, setScoreboard] = useState<Scoreboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [, setTick] = useState(0); // State to force re-render every second for timer display
 
   const scoreboardRef = ref(database, SCOREBOARD_PATH);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // This effect subscribes to RTDB changes
   useEffect(() => {
@@ -63,7 +63,7 @@ export function useScoreboardData() {
       if (snapshot.exists()) {
         setScoreboard(snapshot.val());
       } else {
-        set(scoreboardRef, defaultScoreboard);
+        set(scoreboardRef, defaultScoreboard); // Initialize if not present
         setScoreboard(defaultScoreboard);
       }
       setLoading(false);
@@ -76,39 +76,31 @@ export function useScoreboardData() {
     return () => unsubscribe();
   }, [database]);
   
-  // This effect runs the master timer ONLY if it's the controlling client
+  // This effect runs the VISUAL timer on the client side based on server data
   useEffect(() => {
-    // Clear any existing interval
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-      timerIntervalRef.current = null;
-    }
-
+    let interval: NodeJS.Timeout | null = null;
     if (scoreboard?.isRunning) {
-      timerIntervalRef.current = setInterval(() => {
-        // This runs only on the controller client, pushing updates to all.
-        const now = Date.now();
-        const elapsed = Math.floor((now - scoreboard.startTime) / 1000);
-        const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
-
-        if (newTime !== scoreboard.time) {
-          update(scoreboardRef, { time: newTime });
-        }
-
-        if (newTime === 0) {
-          update(scoreboardRef, { isRunning: false, time: 0 });
-        }
+      interval = setInterval(() => {
+        // This just forces a re-render to update the displayed time
+        setTick(tick => tick + 1); 
       }, 1000);
     }
-
-    // Cleanup on unmount or when dependencies change
+    
     return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
+      if (interval) {
+        clearInterval(interval);
       }
     };
-    // This effect should only depend on isRunning, startTime, and pauseTime to avoid re-triggering unnecessarily
-  }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime, scoreboardRef, scoreboard?.time]);
+  }, [scoreboard?.isRunning]);
+  
+  const getDisplayTime = () => {
+    if (!scoreboard) return INITIAL_TIME_SECONDS;
+    if (scoreboard.isRunning) {
+        const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
+        return Math.max(0, scoreboard.pauseTime - elapsed);
+    }
+    return scoreboard.time;
+  }
 
   const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {
     if (!database || !scoreboard) return;
@@ -118,17 +110,21 @@ export function useScoreboardData() {
     // --- STARTING the timer ---
     if (data.isRunning === true && !scoreboard.isRunning) {
         updateData.startTime = Date.now();
-        updateData.pauseTime = scoreboard.time; // Start countdown from where it was
+        // Start countdown from where it was last paused or set.
+        // `scoreboard.time` holds the last valid state.
+        updateData.pauseTime = scoreboard.time;
     } 
     // --- PAUSING the timer ---
     else if (data.isRunning === false && scoreboard.isRunning) {
         const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
         const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
         updateData.time = newTime;
+        updateData.pauseTime = newTime; // Store the exact paused time
     } 
     // --- SETTING NEW TIME ---
     else if (typeof data.initialTime !== 'undefined') {
        updateData.time = data.initialTime;
+       updateData.pauseTime = data.initialTime; // Also update pauseTime
        updateData.isRunning = false; // Always stop timer when setting new time
     }
     
@@ -138,7 +134,6 @@ export function useScoreboardData() {
   const resetScoreboard = useCallback(() => {
     if (!database) return;
     if (window.confirm('Are you sure you want to reset all scoreboard data (scores, time, etc.)? The logo will not be changed.')) {
-        // Preserve logo and colors on reset
         const newScoreboardState = { 
             ...defaultScoreboard, 
             logoSrc: scoreboard?.logoSrc || null,
@@ -168,5 +163,12 @@ export function useScoreboardData() {
     update(scoreboardRef, swappedData);
   }, [database, scoreboard, scoreboardRef]);
 
-  return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams };
+  // Create a proxy/derived scoreboard object that shows the calculated time
+  const displayScoreboard = scoreboard ? {
+      ...scoreboard,
+      time: getDisplayTime()
+  } : null;
+
+
+  return { scoreboard: displayScoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams };
 }
