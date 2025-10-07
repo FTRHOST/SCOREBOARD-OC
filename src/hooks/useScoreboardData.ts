@@ -3,8 +3,10 @@
 
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const SCOREBOARD_ID = 'main_scoreboard';
 const TEAM_A_COLOR = '#b72fce';
