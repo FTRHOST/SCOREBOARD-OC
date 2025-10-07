@@ -120,6 +120,12 @@ export function useScoreboardData() {
         updateData.time = newTime;
         updateData.pauseTime = newTime; 
         updateData.startTime = 0; 
+    } else if (data.initialTime) {
+       // --- SETTING NEW TIME ---
+       updateData.time = data.initialTime;
+       updateData.pauseTime = data.initialTime;
+       updateData.startTime = 0;
+       updateData.isRunning = false;
     }
     
     await update(scoreboardRef, updateData);
@@ -154,5 +160,3 @@ export function useScoreboardData() {
 
   return { scoreboard: displayScoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams };
 }
-
-    
