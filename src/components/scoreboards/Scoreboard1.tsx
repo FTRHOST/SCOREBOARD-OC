@@ -9,9 +9,9 @@ const Scoreboard1 = () => {
   const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = useScoreboard();
 
   return (
-    <div className="bg-green-500 flex flex-col items-center justify-center p-4 font-display text-white w-full max-w-4xl scale-[0.7] sm:scale-100">
-      <div className="relative flex items-center justify-center w-full my-4">
-        {/* Team A */}
+    <div className="bg-[#00ff00] flex flex-col items-center justify-center p-4 font-display text-white w-full h-full">
+      <div className="relative flex items-center justify-center w-full my-4 scale-[0.7] sm:scale-90 md:scale-100 max-w-6xl">
+        {/* Team A Name */}
         <div 
           className="flex-1 flex items-center justify-center h-24"
           style={{ backgroundColor: teamAColor }}
@@ -19,13 +19,13 @@ const Scoreboard1 = () => {
           <span className="text-6xl font-bold truncate px-4">{teamAName}</span>
         </div>
 
-        {/* Score A */}
-        <div className="bg-gray-900/80 h-24 w-24 flex items-center justify-center">
+        {/* Team A Score */}
+        <div className="bg-[#05183b] h-24 w-24 flex items-center justify-center">
           <AnimatedNumber value={teamAScore} className="text-7xl font-bold" />
         </div>
 
         {/* Logo */}
-        <div className="relative bg-gray-900/80 h-32 w-48 flex items-center justify-center">
+        <div className="relative bg-[#05183b] h-32 w-48 flex items-center justify-center z-10">
            {logoSrc ? (
             <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" />
           ) : (
@@ -33,12 +33,12 @@ const Scoreboard1 = () => {
           )}
         </div>
         
-        {/* Score B */}
-        <div className="bg-gray-900/80 h-24 w-24 flex items-center justify-center">
+        {/* Team B Score */}
+        <div className="bg-[#05183b] h-24 w-24 flex items-center justify-center">
           <AnimatedNumber value={teamBScore} className="text-7xl font-bold" />
         </div>
 
-        {/* Team B */}
+        {/* Team B Name */}
         <div 
           className="flex-1 flex items-center justify-center h-24"
           style={{ backgroundColor: teamBColor }}
@@ -48,7 +48,7 @@ const Scoreboard1 = () => {
       </div>
       
       {/* Half Display */}
-      <div className="mt-2 px-8 py-2 bg-gray-900/80 rounded-md">
+      <div className="mt-4 px-8 py-2 bg-[#05183b] rounded-md">
         <span className="text-3xl">{half}</span>
       </div>
     </div>
