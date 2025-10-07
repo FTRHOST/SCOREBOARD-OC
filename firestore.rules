@@ -1,76 +1,60 @@
 /**
- * @file Firebase Security Rules for Futsal Scoreboard App
+ * @fileoverview Firestore Security Rules for the Futsal Scoreboard application.
  *
- * @core_philosophy This ruleset enforces a role-based access control model.
- * Only users who are designated as admins can modify the main scoreboard.
- * Read access to the scoreboard is public.
+ * Core Philosophy:
+ * This ruleset enforces a role-based access control model where only users with admin privileges (defined by their presence in the `roles_admin` collection) can modify the central scoreboard document.  Read access to the scoreboard is public.
  *
- * @data_structure The data is organized with a single `scoreboards` collection
- * containing a document with the fixed ID `main_scoreboard`.
- * Admin status is determined by the presence of a document in the `roles_admin`
- * collection, keyed by the user's UID.
+ * Data Structure:
+ * - `/scoreboards/{scoreboardId}`: Contains the real-time state of the scoreboard.  The `scoreboardId` is expected to be 'main_scoreboard'.
+ * - `/roles_admin/{userId}`:  A collection where the existence of a document for a given `userId` signifies that the user is an administrator.
  *
- * @key_security_decisions
- *  - Public read access to the main scoreboard document.
- *  - Write access to the main scoreboard restricted to admins only.
- *  - No user listing is permitted.
- *
- * @denormalization_for_authorization
- *  - Admin status is determined by the presence of a user ID in the `/roles_admin/{uid}` collection.
- *    This design avoids any `get()` calls, promoting Authorization Independence.
+ * Key Security Decisions:
+ * - Public read access for the scoreboard to allow all views to display the current state.
+ * - Strict admin-only write access to prevent unauthorized modification of the scoreboard.
+ * - No user listing is permitted.
+ * - Authorization Independence:  Admin status is determined solely by the presence of a document in the `/roles_admin/{userId}` collection, avoiding the need for `get()` calls in the scoreboard rules.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Grants public read access to the main scoreboard. Only admins can write.
+     * @description Rules for the central scoreboard document.
      * @path /scoreboards/{scoreboardId}
-     * @allow (get, list): Any user can read the scoreboard data.
-     * @allow (create, update, delete): Only users with admin role can modify the scoreboard.
-     * @deny (create, update, delete): Non-admin users cannot modify the scoreboard.
-     * @principle Public read, role-based writes
+     * @allow get, list: Anyone can read the scoreboard.
+     * @allow create, update, delete: Only admins can modify the scoreboard.
+     * @deny create, update, delete: Non-admins cannot modify the scoreboard.
+     * @principle Role-based access control. Public read, admin-only write.
      */
     match /scoreboards/{scoreboardId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isAdmin();
-      allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
     /**
-     * @description Determines admin status based on the existence of a document in this collection.
+     * @description Rules for the admin role collection.
      * @path /roles_admin/{userId}
-     * @allow (create): A user can create their own admin role document (self-assignment). This is only viable if this collection is managed by trusted code.
-     * @allow (get): Any user can check if a role exists.
-     * @allow (update, delete): Only the user themselves can modify their admin role document.
-     * @deny (create): Creating an admin role for another user is disallowed.
-     * @deny (list): Listing of admin roles is disallowed.
-     * @principle Role-based access control; restricted admin role management.
+     * @allow get: Any signed-in user can check if they are an admin.
+     * @allow create: Only a server or trusted function should be able to assign admin roles.
+     * @allow update: No updates allowed
+     * @allow delete: Only a server or trusted function should be able to remove admin roles.
+     * @deny list: Listing admin roles is not permitted.
+     * @deny create: if false;
+     * @principle Role definition through document existence.
      */
     match /roles_admin/{userId} {
-        allow get: if true; // Anyone can check for admin status.
-        allow list: if false;
-        allow create: if request.auth.uid == userId;
-        allow update: if request.auth.uid == userId && isSignedIn();
-        allow delete: if request.auth.uid == userId && isSignedIn();
+      allow get: if isSignedIn();
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+      allow list: if false;
     }
 
-    // ---- Helper Functions ----
-
-    /**
-     * @description Checks if the user is signed in.
-     * @return True if the user is signed in; false otherwise.
-     */
+    // Helper Functions
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * @description Checks if the user is an admin by verifying their UID exists as a document in the /roles_admin collection.
-     * @return True if the user is an admin; false otherwise.
-     */
     function isAdmin() {
       return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
