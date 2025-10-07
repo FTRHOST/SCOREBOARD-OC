@@ -1,20 +1,16 @@
 
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
-import { useFirestore, useDoc, useMemoFirebase, useUser } from '@/firebase';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { useDatabase, useUser } from '@/firebase';
+import { ref, onValue, update, get, set } from 'firebase/database';
 
-const SCOREBOARD_ID = 'main_scoreboard';
+const SCOREBOARD_PATH = 'scoreboard';
 const TEAM_A_COLOR = '#b72fce';
 const TEAM_B_COLOR = '#ef7438';
 const INITIAL_TIME_SECONDS = 20 * 60;
 
 export interface Scoreboard {
-  id: string;
   teamAName: string;
   teamBName: string;
   teamAScore: number;
@@ -28,10 +24,9 @@ export interface Scoreboard {
   teamAColor: string;
   teamBColor: string;
   logoSrc: string | null;
-  updatedAt: any;
 }
 
-const defaultScoreboard: Omit<Scoreboard, 'id' | 'updatedAt'> = {
+const defaultScoreboard: Scoreboard = {
   teamAName: 'Tim A',
   teamBName: 'Tim B',
   teamAScore: 0,
@@ -48,75 +43,82 @@ const defaultScoreboard: Omit<Scoreboard, 'id' | 'updatedAt'> = {
 };
 
 export function useScoreboardData() {
-  const firestore = useFirestore();
+  const database = useDatabase();
   const { user } = useUser();
-  const scoreboardRef = useMemoFirebase(() => doc(firestore, 'scoreboards', SCOREBOARD_ID), [firestore]);
+  const [scoreboard, setScoreboard] = useState<Scoreboard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { data: scoreboard, isLoading: loading, error } = useDoc<Scoreboard>(scoreboardRef);
+  const scoreboardRef = ref(database, SCOREBOARD_PATH);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize doc if it doesn't exist (only if admin)
+  // Effect for fetching and subscribing to data
   useEffect(() => {
-    if (!loading && !scoreboard && firestore && user) {
-        // Check if user is an admin before creating the document
-        // This is a client-side check. The real security is in firestore.rules
-        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
-        getDoc(adminDocRef).then(adminDoc => {
-            if (adminDoc.exists()) {
-                const newScoreboardData = {
-                    ...defaultScoreboard,
-                    updatedAt: serverTimestamp(),
-                };
-                setDoc(scoreboardRef, newScoreboardData).catch(e => {
-                    const contextualError = new FirestorePermissionError({
-                        path: scoreboardRef.path,
-                        operation: 'create',
-                        requestResourceData: newScoreboardData,
-                    });
-                    errorEmitter.emit('permission-error', contextualError);
+    setLoading(true);
+    const unsubscribe = onValue(scoreboardRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setScoreboard(snapshot.val());
+      } else {
+        // If no data exists, admin should create it.
+        // For viewers, they'll just see a loading/empty state.
+        setScoreboard(null); 
+      }
+      setLoading(false);
+    }, (err) => {
+      console.error("RTDB read failed:", err);
+      setError(err);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [database]); // Dependency on database instance
+
+  // Effect to initialize data if it doesn't exist (only if admin)
+  useEffect(() => {
+    if (!loading && !scoreboard && database && user) {
+        const adminRef = ref(database, `roles_admin/${user.uid}`);
+        get(adminRef).then(adminSnapshot => {
+            if (adminSnapshot.exists()) {
+                // Check again to avoid race conditions
+                get(scoreboardRef).then(scoreboardSnapshot => {
+                    if (!scoreboardSnapshot.exists()) {
+                        set(scoreboardRef, defaultScoreboard);
+                    }
                 });
             }
         });
     }
-  }, [loading, scoreboard, firestore, scoreboardRef, user]);
+  }, [loading, scoreboard, database, user]);
 
-  // Timer logic - ONLY RUNS ON CONTROLLER
+  // Timer logic - ONLY RUNS ON CONTROLLER (admin client)
   useEffect(() => {
-    // Exit if not running, or if scoreboard data isn't loaded
-    if (!scoreboard?.isRunning || !scoreboardRef) {
+    if (!scoreboard?.isRunning || !database || !user) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
 
-    // Only allow the timer to run on one client to prevent conflicts.
-    // A simple way is to only run it for admins, assuming controllers are admins.
+    // Only allow the timer to run for admins.
     const checkAdminAndRunTimer = async () => {
-        if (!user) return;
-        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
-        const adminDoc = await getDoc(adminDocRef);
-        if (!adminDoc.exists()) {
+        const adminRef = ref(database, `roles_admin/${user.uid}`);
+        const adminSnapshot = await get(adminRef);
+        if (!adminSnapshot.exists()) {
             if (timerRef.current) clearInterval(timerRef.current);
             return;
         }
 
-        // We are an admin, start the timer interval
-        if (timerRef.current) clearInterval(timerRef.current); // Clear existing timers
+        if (timerRef.current) clearInterval(timerRef.current);
 
-        timerRef.current = setInterval(() => {
-          // Use a function to get the latest time from the database to avoid stale state
-          getDoc(doc(firestore, 'scoreboards', SCOREBOARD_ID)).then(docSnap => {
-            if (docSnap.exists()) {
-              const currentTime = docSnap.data().time as number;
-              const isStillRunning = docSnap.data().isRunning as boolean;
-
-              if (currentTime > 0 && isStillRunning) {
-                updateDocumentNonBlocking(scoreboardRef, { time: currentTime - 1 });
-              } else if (isStillRunning) {
-                // Time is up, stop the timer
-                updateDocumentNonBlocking(scoreboardRef, { time: 0, isRunning: false });
+        timerRef.current = setInterval(async () => {
+          // Get latest data directly from DB to avoid stale state
+          const snapshot = await get(scoreboardRef);
+          if (snapshot.exists()) {
+              const currentData = snapshot.val() as Scoreboard;
+              if (currentData.time > 0 && currentData.isRunning) {
+                  update(ref(database, SCOREBOARD_PATH), { time: currentData.time - 1 });
+              } else if (currentData.isRunning) {
+                  update(ref(database, SCOREBOARD_PATH), { time: 0, isRunning: false });
               }
-            }
-          });
+          }
         }, 1000);
     }
     
@@ -125,16 +127,17 @@ export function useScoreboardData() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-    // Re-run this effect if the `isRunning` state changes or if the user/admin status changes.
-  }, [scoreboard?.isRunning, scoreboardRef, firestore, user]);
+  }, [scoreboard?.isRunning, database, user]);
 
-  const updateScoreboard = useCallback((data: Partial<Omit<Scoreboard, 'id'>>) => {
-    const dataWithTimestamp = {
-        ...data,
-        updatedAt: serverTimestamp()
-    };
-    updateDocumentNonBlocking(scoreboardRef, dataWithTimestamp);
-  }, [scoreboardRef]);
+  const updateScoreboard = useCallback((data: Partial<Scoreboard>) => {
+    update(scoreboardRef, data);
+  }, [database]);
 
-  return { scoreboard, loading, error, updateScoreboard };
+  const resetScoreboard = useCallback(() => {
+    if (confirm('Are you sure you want to reset all scoreboard data?')) {
+        set(scoreboardRef, defaultScoreboard);
+    }
+  }, [database]);
+
+  return { scoreboard, loading, error, updateScoreboard, resetScoreboard };
 }

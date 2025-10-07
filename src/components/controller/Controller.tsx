@@ -12,7 +12,7 @@ import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette } from "lu
 import { useToast } from '@/hooks/use-toast';
 
 export default function Controller() {
-  const { scoreboard, loading, updateScoreboard } = useScoreboardData();
+  const { scoreboard, loading, updateScoreboard, resetScoreboard } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
   const [halfInput, setHalfInput] = useState('First Half');
@@ -154,6 +154,13 @@ export default function Controller() {
                 </Button>
             )}
           </div>
+          <Separator />
+          <div className="space-y-2">
+            <Label>Reset All Data</Label>
+             <Button variant="destructive" onClick={resetScoreboard}>
+              <RotateCcw className="mr-2 h-4 w-4" /> Reset All
+            </Button>
+          </div>
         </div>
 
         {/* Team B Controls */}
@@ -186,5 +193,3 @@ export default function Controller() {
     </Card>
   );
 }
-
-    

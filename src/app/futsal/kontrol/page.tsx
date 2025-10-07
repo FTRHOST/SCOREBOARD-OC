@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useUser, useFirestore } from "@/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { useUser, useDatabase } from "@/firebase"; // Updated to useDatabase
+import { ref, get } from "firebase/database"; // Updated imports for RTDB
 import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
@@ -13,7 +14,7 @@ import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
 export default function ControllerPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const firestore = useFirestore();
+  const database = useDatabase(); // Updated to useDatabase
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -21,17 +22,17 @@ export default function ControllerPage() {
       return;
     }
 
-    if (user) {
+    if (user && database) { // Check if database is initialized
       const checkAdmin = async () => {
-        const adminDocRef = doc(firestore, `roles_admin/${user.uid}`);
-        const adminDoc = await getDoc(adminDocRef);
-        if (!adminDoc.exists()) {
+        const adminRef = ref(database, `roles_admin/${user.uid}`); // RTDB ref
+        const adminSnapshot = await get(adminRef); // RTDB get
+        if (!adminSnapshot.exists()) {
           router.replace("/login");
         }
       };
       checkAdmin();
     }
-  }, [user, isUserLoading, router, firestore]);
+  }, [user, isUserLoading, router, database]);
 
   if (isUserLoading || !user) {
     return (
