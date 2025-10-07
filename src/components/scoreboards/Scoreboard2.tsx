@@ -1,40 +1,50 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useScoreboard } from "@/context/ScoreboardContext";
+import { useScoreboardData } from "@/hooks/useScoreboardData";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
 
 const Scoreboard2 = () => {
-  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = useScoreboard();
+  const { scoreboard, loading } = useScoreboardData();
+  
+  const [flashA, setFlashA] = useState(false);
+  const [flashB, setFlashB] = useState(false);
+  
+  const prevFoulsA = usePrevious(scoreboard?.teamAFouls);
+  const prevFoulsB = usePrevious(scoreboard?.teamBFouls);
+
+  useEffect(() => {
+    if (scoreboard && prevFoulsA !== undefined && scoreboard.teamAFouls > prevFoulsA) {
+      setFlashA(true);
+      setTimeout(() => setFlashA(false), 400);
+    }
+  }, [scoreboard?.teamAFouls, prevFoulsA, scoreboard]);
+
+  useEffect(() => {
+    if (scoreboard && prevFoulsB !== undefined && scoreboard.teamBFouls > prevFoulsB) {
+      setFlashB(true);
+      setTimeout(() => setFlashB(false), 400);
+    }
+  }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
+
+  if (loading || !scoreboard) {
+    return (
+      <div className="bg-green-500 p-4 rounded-lg w-full max-w-2xl font-display text-white shadow-2xl scale-[0.7] sm:scale-100 flex items-center justify-center">
+         <OsisCupLogo className="w-32 h-32 text-white/50 animate-pulse" />
+      </div>
+    );
+  }
+
+  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
   
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
-
-  const [flashA, setFlashA] = useState(false);
-  const [flashB, setFlashB] = useState(false);
-  const prevFoulsA = usePrevious(teamAFouls);
-  const prevFoulsB = usePrevious(teamBFouls);
-
-  useEffect(() => {
-    if (prevFoulsA !== undefined && teamAFouls > prevFoulsA) {
-      setFlashA(true);
-      setTimeout(() => setFlashA(false), 400);
-    }
-  }, [teamAFouls, prevFoulsA]);
-
-  useEffect(() => {
-    if (prevFoulsB !== undefined && teamBFouls > prevFoulsB) {
-      setFlashB(true);
-      setTimeout(() => setFlashB(false), 400);
-    }
-  }, [teamBFouls, prevFoulsB]);
-
 
   return (
     <div className="bg-green-500 p-4 rounded-lg w-full max-w-2xl font-display text-white shadow-2xl scale-[0.7] sm:scale-100">
