@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useDatabase } from '@/firebase';
-import { ref, onValue, update, get, set } from 'firebase/database';
+import { ref, onValue, update, set, serverTimestamp, get } from 'firebase/database';
 
 const SCOREBOARD_PATH = 'scoreboard';
 const TEAM_A_COLOR = '#b72fce';
@@ -24,6 +24,8 @@ export interface Scoreboard {
   teamAColor: string;
   teamBColor: string;
   logoSrc: string | null;
+  startTime: number; // Timestamp when the timer started
+  pauseTime: number; // The time remaining when paused
 }
 
 const defaultScoreboard: Scoreboard = {
@@ -40,6 +42,8 @@ const defaultScoreboard: Scoreboard = {
   teamAColor: TEAM_A_COLOR,
   teamBColor: TEAM_B_COLOR,
   logoSrc: null,
+  startTime: 0,
+  pauseTime: INITIAL_TIME_SECONDS,
 };
 
 export function useScoreboardData() {
@@ -49,13 +53,11 @@ export function useScoreboardData() {
   const [error, setError] = useState<Error | null>(null);
 
   const scoreboardRef = ref(database, SCOREBOARD_PATH);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!database) return;
     setLoading(true);
-    
-    // Check if data exists. If not, initialize it.
+
     get(scoreboardRef).then(snapshot => {
       if (!snapshot.exists()) {
         set(scoreboardRef, defaultScoreboard);
@@ -64,7 +66,8 @@ export function useScoreboardData() {
 
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       if (snapshot.exists()) {
-        setScoreboard(snapshot.val());
+        const data = snapshot.val();
+        setScoreboard(data);
       } else {
         setScoreboard(defaultScoreboard);
       }
@@ -77,38 +80,64 @@ export function useScoreboardData() {
 
     return () => unsubscribe();
   }, [database]);
-
+  
   useEffect(() => {
-    if (!scoreboard?.isRunning) {
-      if (timerRef.current) clearInterval(timerRef.current);
-      return;
+    let timerInterval: NodeJS.Timeout | null = null;
+    
+    if (scoreboard.isRunning && scoreboard.startTime > 0) {
+      timerInterval = setInterval(() => {
+        const now = Date.now();
+        const elapsed = Math.floor((now - scoreboard.startTime) / 1000);
+        const remainingTime = Math.max(0, scoreboard.pauseTime - elapsed);
+        
+        // This is a local update for the UI, the DB is the source of truth
+        setScoreboard(prev => ({...prev, time: remainingTime}));
+
+        if (remainingTime === 0) {
+            update(scoreboardRef, { isRunning: false });
+        }
+      }, 500); // Update UI every 500ms for smoother countdown
     }
 
-    if (timerRef.current) clearInterval(timerRef.current);
-
-    // This timer logic will run in any client that has isRunning = true
-    // It's better to run it only in the controller page context, but for simplicity now it is here
-    timerRef.current = setInterval(async () => {
-      const snapshot = await get(scoreboardRef);
-      if (snapshot.exists()) {
-          const currentData = snapshot.val() as Scoreboard;
-          if (currentData.time > 0 && currentData.isRunning) {
-              update(ref(database, SCOREBOARD_PATH), { time: currentData.time - 1 });
-          } else if (currentData.isRunning) {
-              update(ref(database, SCOREBOARD_PATH), { isRunning: false });
-          }
-      }
-    }, 1000);
-    
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerInterval) clearInterval(timerInterval);
     };
-  }, [scoreboard?.isRunning, database]);
+  }, [scoreboard.isRunning, scoreboard.startTime, scoreboard.pauseTime, scoreboardRef]);
 
-  const updateScoreboard = useCallback((data: Partial<Scoreboard>) => {
+  const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {
     if (!database) return;
-    update(scoreboardRef, data);
-  }, [database]);
+
+    if (data.isRunning === true && !scoreboard.isRunning) {
+        // Starting the timer
+        const now = await get(ref(database, '.info/serverTimeOffset')).then(offset => Date.now() + offset.val());
+        const snapshot = await get(scoreboardRef);
+        const currentData = snapshot.val() as Scoreboard;
+        await update(scoreboardRef, { 
+            isRunning: true, 
+            startTime: now,
+            pauseTime: currentData.time // Make sure we start from the current time
+        });
+
+    } else if (data.isRunning === false && scoreboard.isRunning) {
+        // Pausing the timer
+        const snapshot = await get(scoreboardRef);
+        const currentData = snapshot.val() as Scoreboard;
+        
+        const now = await get(ref(database, '.info/serverTimeOffset')).then(offset => Date.now() + offset.val());
+        const elapsed = Math.floor((now - currentData.startTime) / 1000);
+        const newTime = Math.max(0, currentData.pauseTime - elapsed);
+        
+        await update(scoreboardRef, { 
+            isRunning: false, 
+            time: newTime,
+            pauseTime: newTime // Save the remaining time
+        });
+
+    } else {
+      // For other updates that don't affect the timer state
+      await update(scoreboardRef, data);
+    }
+  }, [database, scoreboard.isRunning]);
 
   const resetScoreboard = useCallback(() => {
     if (!database) return;
