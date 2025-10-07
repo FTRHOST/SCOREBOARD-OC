@@ -1,0 +1,93 @@
+{
+  "entities": {
+    "Scoreboard": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Scoreboard",
+      "type": "object",
+      "description": "Represents the overall state of the futsal scoreboard, synchronized across all views.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Scoreboard entity."
+        },
+        "teamAScore": {
+          "type": "number",
+          "description": "Score of Team A."
+        },
+        "teamBScore": {
+          "type": "number",
+          "description": "Score of Team B."
+        },
+        "gameTime": {
+          "type": "string",
+          "description": "Current game time in MM:SS format.",
+          "format": "date-time"
+        },
+        "currentHalf": {
+          "type": "string",
+          "description": "Current half of the game (e.g., '1st Half', '2nd Half', 'Extra Time')."
+        },
+        "teamAFouls": {
+          "type": "number",
+          "description": "Number of fouls for Team A."
+        },
+        "teamBFouls": {
+          "type": "number",
+          "description": "Number of fouls for Team B."
+        }
+      },
+      "required": [
+        "id",
+        "teamAScore",
+        "teamBScore",
+        "gameTime",
+        "currentHalf",
+        "teamAFouls",
+        "teamBFouls"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/scoreboards/{scoreboardId}",
+        "definition": {
+          "entityName": "Scoreboard",
+          "schema": {
+            "$ref": "#/backend/entities/Scoreboard"
+          },
+          "description": "Represents the central futsal scoreboard state. Only admins can modify this data. The scoreboardId is 'main_scoreboard'.",
+          "params": [
+            {
+              "name": "scoreboardId",
+              "description": "Unique identifier for the scoreboard document. It should be 'main_scoreboard'."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "role",
+          "schema": {
+            "$ref": "#/backend/entities/user"
+          },
+          "description": "Collection to store admin user roles. If a document exists for a user ID, that user is considered an admin and can modify the scoreboard.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "To support the real-time nature of the futsal scoreboard application, I propose storing the scoreboard state in a central Firestore document. This ensures that all three scoreboard views are synchronized and updated instantly whenever the controller modifies the data. Since there's only one scoreboard to manage, a single document is sufficient. To simplify the data model and security rules, and given the single scoreboard instance, a single collection called `scoreboards` is optimal, containing one document with a known ID, `main_scoreboard`. This approach avoids the need for complex queries or collection groups. To ensure that unauthorized users cannot modify the scoreboard, access control is based on the `request.auth.uid` and the presence of the user's ID in an admin role collection. This admin role ensures that only authorized users have access to change any parameter of the scoreboard. This admin role is controlled by the collection `roles_admin`.\n\nThis design achieves Authorization Independence by avoiding any `get()` calls in the rules. The presence of a user ID in the `/roles_admin/{uid}` collection grants them administrative access to the scoreboard. Because `list` operations are not required for scoreboards, the design is significantly simplified.\n"
+  }
+}
