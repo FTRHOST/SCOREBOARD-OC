@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, AuthErrorCodes } from 'firebase/auth';
 import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,11 +24,22 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push('/futsal/kontrol');
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (error: any) {
+      let title = 'Login Gagal';
+      let description = 'Terjadi kesalahan. Silakan coba lagi.';
+
+      // Berikan pesan yang lebih spesifik berdasarkan kode error
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        title = 'Kredensial Tidak Valid';
+        description = 'Email atau password yang Anda masukkan salah. Periksa kembali dan coba lagi.';
+      } else if (error.code === AuthErrorCodes.INVALID_EMAIL) {
+        title = 'Format Email Salah';
+        description = 'Format email yang Anda masukkan tidak valid.';
+      }
+
       toast({
-        title: 'Login Gagal',
-        description: 'Email atau password salah. Silakan coba lagi.',
+        title: title,
+        description: description,
         variant: 'destructive',
       });
     } finally {
