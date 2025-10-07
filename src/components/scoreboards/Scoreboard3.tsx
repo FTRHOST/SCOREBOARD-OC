@@ -48,6 +48,7 @@ const Scoreboard3 = () => {
   };
 
   const getShortHalf = (fullHalf: string) => {
+    if (!fullHalf) return '';
     const words = fullHalf.toLowerCase().split(' ');
     if (words.includes('1') || words.includes('first')) return '1st';
     if (words.includes('2') || words.includes('second')) return '2nd';
