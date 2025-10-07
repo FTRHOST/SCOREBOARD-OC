@@ -8,8 +8,6 @@ import Image from 'next/image';
 const Scoreboard1 = () => {
   const { scoreboard, loading } = useScoreboardData();
 
-  const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
-
   if (loading) {
     return (
       <div className="bg-[#00ff00] flex flex-col items-center justify-center p-4 font-display text-white w-full h-full">
@@ -18,6 +16,8 @@ const Scoreboard1 = () => {
       </div>
     );
   }
+
+  const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   return (
     <div className="bg-[#00ff00] flex flex-col items-center justify-center p-4 font-display text-white w-full h-full">

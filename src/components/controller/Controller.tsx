@@ -23,7 +23,7 @@ export default function Controller() {
   
   const {
     teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor
-  } = scoreboard || {};
+  } = scoreboard;
 
   const handleUpdate = (field: string, value: any) => {
     try {
