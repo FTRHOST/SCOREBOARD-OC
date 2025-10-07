@@ -35,11 +35,16 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  // Pass the databaseURL to getDatabase if it exists in the config
+  const db = firebaseConfig.databaseURL 
+    ? getDatabase(firebaseApp, firebaseConfig.databaseURL) 
+    : getDatabase(firebaseApp);
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp),
-    database: getDatabase(firebaseApp), // Add Realtime Database instance
+    database: db,
   };
 }
 
