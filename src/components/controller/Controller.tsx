@@ -8,11 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 
 export default function Controller() {
-  const { scoreboard, loading, updateScoreboard, resetScoreboard } = useScoreboardData();
+  const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
   const [halfInput, setHalfInput] = useState('First Half');
@@ -21,6 +21,10 @@ export default function Controller() {
     return <div>Loading Controller...</div>;
   }
   
+  if (!scoreboard) {
+    return <div>Scoreboard data not available.</div>;
+  }
+
   const {
     teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor
   } = scoreboard;
@@ -44,9 +48,10 @@ export default function Controller() {
     handleUpdate(team === 'A' ? 'teamAScore' : 'teamBScore', newScore);
   };
   
-  const updateFouls = (team: 'A' | 'B') => {
+  const updateFouls = (team: 'A' | 'B', delta: number) => {
     const currentFouls = team === 'A' ? teamAFouls : teamBFouls;
-    handleUpdate(team === 'A' ? 'teamAFouls' : 'teamBFouls', (currentFouls || 0) + 1);
+    const newFouls = Math.max(0, (currentFouls || 0) + delta);
+    handleUpdate(team === 'A' ? 'teamAFouls' : 'teamBFouls', newFouls);
   };
 
   const resetFouls = (team: 'A' | 'B') => {
@@ -55,7 +60,7 @@ export default function Controller() {
 
   const handleTimeSet = () => {
     const minutes = parseInt(timeInput, 10);
-    if (!isNaN(minutes) && minutes > 0) {
+    if (!isNaN(minutes) && minutes >= 0) {
       handleUpdate('initialTime', minutes * 60);
       handleUpdate('time', minutes * 60);
       handleUpdate('isRunning', false);
@@ -78,6 +83,12 @@ export default function Controller() {
         handleUpdate('logoSrc', result);
       };
       reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleSwapTeams = () => {
+    if (window.confirm('Are you sure you want to swap the teams? This will swap names, scores, fouls, and colors.')) {
+        swapTeams();
     }
   };
 
@@ -110,8 +121,9 @@ export default function Controller() {
           <div className="space-y-2">
             <Label>Fouls</Label>
             <div className="flex gap-2">
-              <Button size="icon" variant="destructive" onClick={() => updateFouls('A')}><Zap /></Button>
-              <Button size="icon" variant="outline" onClick={() => resetFouls('A')}><Trash2 /></Button>
+              <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
+              <Button size="icon" variant="outline" onClick={() => updateFouls('A', -1)}><Minus /></Button>
+              <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
             </div>
           </div>
         </div>
@@ -140,8 +152,7 @@ export default function Controller() {
            <div className="space-y-2">
             <Label htmlFor="halfSet">Set Half Text</Label>
             <div className="flex gap-2">
-              <Input id="halfSet" value={halfInput} onChange={(e) => setHalfInput(e.target.value)} placeholder="e.g., Babak 1" />
-              <Button onClick={() => handleUpdate('half', halfInput)}>Set</Button>
+              <Input id="halfSet" value={half} onChange={(e) => handleUpdate('half', e.target.value)} placeholder="e.g., Babak 1" />
             </div>
           </div>
           <Separator />
@@ -155,11 +166,16 @@ export default function Controller() {
             )}
           </div>
           <Separator />
-          <div className="space-y-2">
-            <Label>Reset All Data</Label>
-             <Button variant="destructive" onClick={resetScoreboard}>
-              <RotateCcw className="mr-2 h-4 w-4" /> Reset All
-            </Button>
+          <div className='flex flex-col gap-2'>
+            <Label>Actions</Label>
+            <div className="flex gap-2">
+                <Button variant="outline" onClick={handleSwapTeams} className="flex-1">
+                  <RefreshCw className="mr-2 h-4 w-4" /> Swap Teams
+                </Button>
+                 <Button variant="destructive" onClick={resetScoreboard}>
+                  <RotateCcw className="mr-2 h-4 w-4" /> Reset All
+                </Button>
+            </div>
           </div>
         </div>
 
@@ -184,8 +200,9 @@ export default function Controller() {
           <div className="space-y-2">
             <Label>Fouls</Label>
             <div className="flex gap-2">
-              <Button size="icon" variant="destructive" onClick={() => updateFouls('B')}><Zap /></Button>
-              <Button size="icon" variant="outline" onClick={() => resetFouls('B')}><Trash2 /></Button>
+              <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
+              <Button size="icon" variant="outline" onClick={() => updateFouls('B', -1)}><Minus /></Button>
+              <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
             </div>
           </div>
         </div>
@@ -193,3 +210,5 @@ export default function Controller() {
     </Card>
   );
 }
+
+    

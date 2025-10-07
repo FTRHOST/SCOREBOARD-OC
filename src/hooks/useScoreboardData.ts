@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useEffect, useCallback, useState } from 'react';
 import { useDatabase } from '@/firebase';
-import { ref, onValue, update, set, get, serverTimestamp } from 'firebase/database';
+import { ref, onValue, update, set } from 'firebase/database';
 
 const SCOREBOARD_PATH = 'scoreboard';
 const TEAM_A_COLOR = '#b72fce';
@@ -23,8 +24,8 @@ export interface Scoreboard {
   teamAColor: string;
   teamBColor: string;
   logoSrc: string | null;
-  startTime: number; // Timestamp when the timer started
-  pauseTime: number; // The time remaining when paused
+  startTime: number; 
+  pauseTime: number;
 }
 
 const defaultScoreboard: Scoreboard = {
@@ -63,7 +64,6 @@ export function useScoreboardData() {
         setScoreboard(data);
         setLocalTime(data.time); 
       } else {
-        // If no data exists, set default and create it.
         set(scoreboardRef, defaultScoreboard);
         setScoreboard(defaultScoreboard);
         setLocalTime(defaultScoreboard.time);
@@ -93,52 +93,66 @@ export function useScoreboardData() {
             update(scoreboardRef, { isRunning: false, time: 0 });
         }
       }, 250); 
+    } else if (scoreboard) {
+        setLocalTime(scoreboard.time);
     }
 
     return () => {
       if (timerInterval) clearInterval(timerInterval);
     };
-  }, [scoreboard, scoreboardRef]);
+  }, [scoreboard]);
 
   const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {
     if (!database || !scoreboard) return;
     
-    // Get the current server time for accurate calculations
     const now = Date.now();
+    let updateData: Partial<Scoreboard> = { ...data };
 
     if (data.isRunning === true && !scoreboard.isRunning) {
         // --- STARTING the timer ---
-        await update(scoreboardRef, { 
-            ...data,
-            startTime: now,
-            pauseTime: scoreboard.time, // Start countdown from the current time value
-        });
+        updateData.startTime = now;
+        updateData.pauseTime = scoreboard.time; // Start countdown from where it was
     } else if (data.isRunning === false && scoreboard.isRunning) {
         // --- PAUSING the timer ---
         const elapsed = Math.floor((now - scoreboard.startTime) / 1000);
         const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
         
-        await update(scoreboardRef, { 
-            ...data, 
-            time: newTime,
-            pauseTime: newTime, 
-            startTime: 0 
-        });
-    } else {
-      // For other updates that don't affect the timer state
-      await update(scoreboardRef, data);
+        updateData.time = newTime;
+        updateData.pauseTime = newTime; 
+        updateData.startTime = 0; 
     }
+    
+    await update(scoreboardRef, updateData);
   }, [database, scoreboard, scoreboardRef]);
 
   const resetScoreboard = useCallback(() => {
     if (!database) return;
-    if (window.confirm('Are you sure you want to reset all scoreboard data?')) {
-        set(scoreboardRef, defaultScoreboard);
+    if (window.confirm('Are you sure you want to reset all scoreboard data (scores, time, etc.)? The logo will not be changed.')) {
+        const newScoreboardState = { ...defaultScoreboard, logoSrc: scoreboard?.logoSrc || null };
+        set(scoreboardRef, newScoreboardState);
     }
-  }, [database, scoreboardRef]);
+  }, [database, scoreboardRef, scoreboard?.logoSrc]);
 
-  // Return a consistent scoreboard object for the UI
+  const swapTeams = useCallback(() => {
+    if (!database || !scoreboard) return;
+
+    const swappedData = {
+        teamAName: scoreboard.teamBName,
+        teamBName: scoreboard.teamAName,
+        teamAScore: scoreboard.teamBScore,
+        teamBScore: scoreboard.teamAScore,
+        teamAFouls: scoreboard.teamBFouls,
+        teamBFouls: scoreboard.teamAFouls,
+        teamAColor: scoreboard.teamBColor,
+        teamBColor: scoreboard.teamAColor,
+    };
+
+    update(scoreboardRef, swappedData);
+  }, [database, scoreboard, scoreboardRef]);
+
   const displayScoreboard = scoreboard ? { ...scoreboard, time: localTime ?? scoreboard.time } : null;
 
-  return { scoreboard: displayScoreboard, loading, error, updateScoreboard, resetScoreboard };
+  return { scoreboard: displayScoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams };
 }
+
+    
