@@ -11,7 +11,7 @@ const Scoreboard1 = () => {
 
   if (loading) {
     return (
-       <div className="w-full max-w-6xl aspect-[1048/227] flex items-center justify-center text-white font-display">
+       <div className="w-[1048px] h-[227px] flex items-center justify-center text-white font-display">
         Loading Scoreboard...
       </div>
     );
@@ -19,7 +19,7 @@ const Scoreboard1 = () => {
   
   if (!scoreboard) {
     return (
-      <div className="w-full max-w-6xl aspect-[1048/227] flex items-center justify-center text-white font-display">
+      <div className="w-[1048px] h-[227px] flex items-center justify-center text-white font-display">
         Scoreboard data not available.
       </div>
     );
@@ -28,58 +28,54 @@ const Scoreboard1 = () => {
   const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   return (
-    <div className="w-full max-w-6xl mx-auto aspect-[1048/227] relative font-display text-white">
-      {/* Layer 1: Backgrounds */}
-      <div className="absolute inset-0">
-        {/* Team A Name BG */}
-        <div style={{ backgroundColor: teamAColor }} className="absolute top-[41px] left-0 w-[320px] h-[105px]" />
-        {/* Scoreboard BG */}
-        <div className="absolute top-[41px] left-1/2 -translate-x-1/2 bg-[#05183b] w-[408px] h-[105px]" />
-        {/* Team B Name BG */}
-        <div style={{ backgroundColor: teamBColor }} className="absolute top-[41px] right-0 w-[320px] h-[105px]" />
-        {/* Half BG */}
-        <div className="absolute top-[179px] left-1/2 -translate-x-1/2 bg-[#05183b] w-[233px] h-[48px]" />
+    <div className="w-[1048px] h-[227px] relative font-display text-white">
+      {/* Backgrounds */}
+      <div 
+        className="w-80 h-[105px] left-0 top-[41px] absolute"
+        style={{ backgroundColor: teamAColor || '#B62FCE' }}
+      />
+      <div 
+        className="w-80 h-[105px] left-[728px] top-[41px] absolute"
+        style={{ backgroundColor: teamBColor || '#EF7438' }}
+      />
+      <div className="w-[408px] h-[105px] left-[320px] top-[41px] absolute bg-[#05183B]" />
+      <div className="w-[233px] h-12 left-[405px] top-[179px] absolute bg-[#05183B]" />
+
+      {/* Team Names */}
+      <div className="w-80 h-[103px] left-0 top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">
+        {teamAName}
+      </div>
+      <div className="w-80 h-[103px] left-[728px] top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">
+        {teamBName}
       </div>
 
-      {/* Layer 2: Text Content (Scores, Names, Half) */}
-      <div className="absolute inset-0">
-        {/* Team A Name */}
-        <div className="absolute top-[41px] left-0 w-[320px] h-[103px] flex items-center justify-center text-[82px] truncate px-2">
-          {teamAName}
-        </div>
-        {/* Team B Name */}
-        <div className="absolute top-[41px] right-0 w-[320px] h-[103px] flex items-center justify-center text-[82px] truncate px-2">
-          {teamBName}
-        </div>
-        {/* Scores */}
-        <div className="absolute top-[41px] left-1/2 -translate-x-1/2 w-[408px] h-[105px] flex items-center justify-between text-[96px] px-[31px]">
-          <div className="absolute top-[-21px] left-[31px]">
-             <AnimatedNumber value={teamAScore} />
-          </div>
-           <div className="absolute top-[-21px] right-[31px]">
-             <AnimatedNumber value={teamBScore} />
-          </div>
-        </div>
-        {/* Half Text */}
-        <div className="absolute top-[179px] left-1/2 -translate-x-1/2 w-[233px] h-[48px] flex items-center justify-center text-[34px]">
-          {half}
-        </div>
+      {/* Scores */}
+      <div className="left-[351px] top-[20px] absolute text-white text-8xl">
+        <AnimatedNumber value={teamAScore} />
+      </div>
+      <div className="left-[652px] top-[20px] absolute text-white text-8xl">
+        <AnimatedNumber value={teamBScore} />
       </div>
       
-      {/* Layer 3: Logo (On Top) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[238px] h-[188px] flex items-center justify-center">
-         <div className="relative w-full h-full">
-           {logoSrc ? (
+      {/* Half */}
+      <div className="w-[233px] h-12 left-[405px] top-[179px] absolute flex items-center justify-center text-white text-4xl">
+        {half}
+      </div>
+
+      {/* Logo */}
+      <div className="w-[238px] h-[188px] left-[405px] top-0 absolute">
+         {logoSrc ? (
+            <div className="relative w-full h-full">
               <Image 
                 src={logoSrc} 
                 alt="Uploaded Logo" 
                 fill
                 style={{objectFit: "contain"}}
               />
-            ) : (
-              <OsisCupLogo className="w-full h-full text-white" />
-            )}
-        </div>
+            </div>
+          ) : (
+            <OsisCupLogo className="w-full h-full text-white" />
+          )}
       </div>
     </div>
   );
