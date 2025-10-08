@@ -206,9 +206,11 @@ export default function Controller() {
           </div>
           <div className="space-y-2">
             <Label>Fouls</Label>
-            <div className="flex gap-2">
-              <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
+            <div className="flex items-center gap-2">
               <Button size="icon" variant="outline" onClick={() => updateFouls('A', -1)}><Minus /></Button>
+              <Input value={teamAFouls} className="text-center font-bold w-12" readOnly />
+              <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
+              <div className="flex-grow" />
               <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
             </div>
           </div>
@@ -323,9 +325,11 @@ export default function Controller() {
           </div>
           <div className="space-y-2">
             <Label>Fouls</Label>
-            <div className="flex gap-2">
-              <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
+            <div className="flex items-center gap-2">
               <Button size="icon" variant="outline" onClick={() => updateFouls('B', -1)}><Minus /></Button>
+              <Input value={teamBFouls} className="text-center font-bold w-12" readOnly />
+              <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
+              <div className="flex-grow" />
               <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
             </div>
           </div>
