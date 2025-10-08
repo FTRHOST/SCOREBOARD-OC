@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Trash2, X, Palette, RefreshCw } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Trash2, X, Palette, RefreshCw, Sparkles } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -89,8 +89,8 @@ export default function Controller() {
     swapTeams();
   };
   
-  const CustomColorPopover = () => {
-    const [customColor, setCustomColor] = useState('#FFFFFF');
+  const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
+    const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -107,7 +107,7 @@ export default function Controller() {
               className="w-24"
               placeholder="#RRGGBB"
             />
-            <Button onClick={() => addColorSuggestion(customColor)} size="sm">Add</Button>
+            <Button onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', customColor)} size="sm">Set</Button>
           </div>
         </PopoverContent>
       </Popover>
@@ -142,7 +142,7 @@ export default function Controller() {
                 </Button>
             </div>
           ))}
-          <CustomColorPopover />
+          <CustomColorPopover team={team} />
         </div>
       </div>
   );
@@ -214,7 +214,7 @@ export default function Controller() {
             <Separator />
             <div className='flex flex-col gap-2'>
               <Label>Actions</Label>
-              <div className="flex gap-2 w-full">
+              <div className="flex flex-col sm:flex-row gap-2 w-full">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" className="flex-1">

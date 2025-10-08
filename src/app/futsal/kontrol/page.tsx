@@ -81,12 +81,12 @@ export default function ControllerPage() {
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                <CardTitle className="text-2xl font-bold font-headline">
                 Scoreboard Preview
                </CardTitle>
                 <Link href={`/futsal/${selectedScoreboard}`} target="_blank" passHref>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Open in New Tab
                     </Button>
@@ -131,7 +131,7 @@ export default function ControllerPage() {
             
             <div className="space-y-2 w-full">
               <Label htmlFor="logoUpload">Upload Logo</Label>
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-col sm:flex-row gap-2 items-center">
                 <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
                 {logoSrc && (
                     <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
@@ -143,7 +143,7 @@ export default function ControllerPage() {
 
             <div className="space-y-2 w-full">
               <Label>Animation Controls</Label>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                  <Button variant="outline" onClick={handleAnimate}>
                     <Sparkles className="mr-2 h-4 w-4" /> Animate Model 1
                   </Button>
