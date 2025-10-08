@@ -8,9 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw, Sparkles } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,9 +89,26 @@ export default function Controller() {
     swapTeams();
   };
   
-  const CustomColorPopover = ({ onColorChange }: { onColorChange: (newColor: string) => void }) => {
-    const [customColor, setCustomColor] = useState('#FFFFFF');
+  const handleAnimate = () => {
+    if (!scoreboard) return;
+    
+    // Animate scores
+    const originalScores = { teamAScore: scoreboard.teamAScore, teamBScore: scoreboard.teamBScore };
+    updateScoreboard({ teamAScore: originalScores.teamAScore + 1, teamBScore: originalScores.teamBScore + 1 });
+    
+    // Animate fouls
+    const originalFouls = { teamAFouls: scoreboard.teamAFouls, teamBFouls: scoreboard.teamBFouls };
+    updateScoreboard({ teamAFouls: originalFouls.teamAFouls + 1, teamBFouls: originalFouls.teamBFouls + 1 });
 
+    // Revert back after a short delay
+    setTimeout(() => {
+      updateScoreboard(originalScores);
+      updateScoreboard(originalFouls);
+    }, 500);
+  };
+
+  const CustomColorPopover = () => {
+    const [customColor, setCustomColor] = useState('#FFFFFF');
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -109,7 +125,7 @@ export default function Controller() {
               className="w-24"
               placeholder="#RRGGBB"
             />
-            <Button onClick={() => addColorSuggestion(customColor)} size="sm">Set</Button>
+            <Button onClick={() => addColorSuggestion(customColor)} size="sm">Add</Button>
           </div>
         </PopoverContent>
       </Popover>
@@ -125,7 +141,7 @@ export default function Controller() {
         />
 
         <div className="flex flex-wrap items-center gap-2">
-          {colorSuggestions?.map((color) => (
+          {(colorSuggestions || []).map((color) => (
             <div key={color} className="relative group">
               <Button
                 variant="outline"
@@ -144,7 +160,7 @@ export default function Controller() {
                 </Button>
             </div>
           ))}
-          <CustomColorPopover onColorChange={(newColor) => addColorSuggestion(newColor)} />
+          <CustomColorPopover />
         </div>
       </div>
   );
@@ -256,6 +272,9 @@ export default function Controller() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
+              <Button variant="outline" onClick={handleAnimate}>
+                <Sparkles className="mr-2 h-4 w-4" /> Animate Scoreboard
+              </Button>
             </div>
           </div>
 
@@ -291,5 +310,3 @@ export default function Controller() {
     </Card>
   );
 }
-
-    
