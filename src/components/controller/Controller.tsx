@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Trash2, X, Palette, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -89,16 +89,6 @@ export default function Controller() {
     swapTeams();
   };
   
-  const handleAnimate = () => {
-    if (!scoreboard) return;
-    
-    // Trigger animation state without changing data
-    updateScoreboard({ animationTrigger: Date.now() });
-
-    // The actual animation should be handled in the scoreboard components
-    // based on this trigger. For now, this just updates a value.
-  };
-
   const CustomColorPopover = () => {
     const [customColor, setCustomColor] = useState('#FFFFFF');
     return (
@@ -264,9 +254,6 @@ export default function Controller() {
                   </AlertDialogContent>
                 </AlertDialog>
               </div>
-              <Button variant="outline" onClick={handleAnimate}>
-                <Sparkles className="mr-2 h-4 w-4" /> Animate Scoreboard
-              </Button>
             </div>
           </div>
 

@@ -16,7 +16,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Sparkles } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
@@ -47,6 +47,20 @@ export default function ControllerPage() {
     if (updateScoreboard) {
       updateScoreboard({ logoSrc: null });
     }
+  };
+
+  const handleAnimate = () => {
+    if (!scoreboard || !updateScoreboard) return;
+
+    // A simple way to trigger animations: quickly change and revert data
+    const originalScoreA = scoreboard.teamAScore;
+    const originalFoulsA = scoreboard.teamAFouls;
+
+    updateScoreboard({ teamAScore: originalScoreA + 1, teamAFouls: originalFoulsA + 1 });
+
+    setTimeout(() => {
+      updateScoreboard({ teamAScore: originalScoreA, teamAFouls: originalFoulsA });
+    }, 500); // Revert after animation duration
   };
 
   const renderScoreboard = () => {
@@ -124,6 +138,21 @@ export default function ControllerPage() {
                         <X className="mr-2 h-4 w-4" /> Remove Logo
                     </Button>
                 )}
+              </div>
+            </div>
+
+            <div className="space-y-2 w-full">
+              <Label>Animation Controls</Label>
+              <div className="flex gap-2">
+                 <Button variant="outline" onClick={handleAnimate}>
+                    <Sparkles className="mr-2 h-4 w-4" /> Animate Model 1
+                  </Button>
+                  <Button variant="outline" onClick={handleAnimate}>
+                    <Sparkles className="mr-2 h-4 w-4" /> Animate Model 2
+                  </Button>
+                  <Button variant="outline" onClick={handleAnimate}>
+                    <Sparkles className="mr-2 h-4 w-4" /> Animate Model 3
+                  </Button>
               </div>
             </div>
 
