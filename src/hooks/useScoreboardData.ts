@@ -143,10 +143,20 @@ export function useScoreboardData() {
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       let data: Scoreboard;
       if (snapshot.exists()) {
-        data = snapshot.val();
-        // Ensure layout and colorSuggestions exist and merge defaults
-        data.layout = { ...defaultLayout, ...(data.layout || {}) };
-        data.colorSuggestions = data.colorSuggestions || INITIAL_COLOR_SUGGESTIONS;
+        const val = snapshot.val();
+        // Deep merge layout
+        const mergedLayout = { ...defaultLayout };
+        for (const modelKey in defaultLayout) {
+          // @ts-ignore
+          mergedLayout[modelKey] = { ...defaultLayout[modelKey], ...(val.layout?.[modelKey] || {}) };
+        }
+        
+        data = { ...val, layout: mergedLayout };
+        
+        // Ensure colorSuggestions exist
+        if (!data.colorSuggestions) {
+          data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
+        }
       } else {
         data = defaultScoreboard;
         set(scoreboardRef, data); // Initialize if not present

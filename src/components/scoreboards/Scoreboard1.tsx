@@ -55,7 +55,7 @@ const Scoreboard1 = () => {
       {/* Backgrounds */}
       <div style={{ position: 'absolute', left: `${layout.model1_teamAName.x}px`, top: `${layout.model1_teamAName.y}px`, width: `${layout.model1_teamAName.width}px`, height: `${layout.model1_teamAName.height}px`, backgroundColor: teamAColor || '#B62FCE' }} />
       <div style={{ position: 'absolute', left: `${layout.model1_teamBName.x}px`, top: `${layout.model1_teamBName.y}px`, width: `${layout.model1_teamBName.width}px`, height: `${layout.model1_teamBName.height}px`, backgroundColor: teamBColor || '#EF7438' }} />
-      <div style={{ position: 'absolute', left: `${layout.model1_teamAScore.x - (layout.model1_teamAScore.width / 2)}px`, top: `${layout.model1_teamAScore.y}px`, width: `${(layout.model1_teamAScore.width * 2) + layout.model1_logo.width}px`, height: `${layout.model1_teamAScore.height}px`, backgroundColor: '#05183B' }} />
+      <div style={{ position: 'absolute', left: '320px', top: '41px', width: '408px', height: '105px', backgroundColor: '#05183B' }} />
       <div style={{ position: 'absolute', left: `${layout.model1_half.x}px`, top: `${layout.model1_half.y}px`, width: `${layout.model1_half.width}px`, height: `${layout.model1_half.height}px`, backgroundColor: '#05183B' }} />
 
       {/* Team Names */}
