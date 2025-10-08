@@ -11,9 +11,8 @@ const Scoreboard1 = () => {
 
   if (loading || !scoreboard) {
     return (
-      <div className="w-full h-[227px] flex flex-col items-center justify-center p-4 font-display text-white bg-black/50">
-        <OsisCupLogo className="w-36 h-36 text-white animate-pulse" />
-        <div className="mt-4 text-3xl">Loading Scoreboard...</div>
+      <div className="w-full max-w-6xl aspect-[1048/227] flex items-center justify-center bg-gray-800 text-white font-display">
+        Loading Scoreboard...
       </div>
     );
   }
@@ -21,55 +20,54 @@ const Scoreboard1 = () => {
   const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   return (
-    <div className="w-full relative h-[227px] text-center text-[96px] text-white font-display bg-[#00ff00]">
-
-      {/* Nama Tim Container */}
-      <div className="absolute top-[41px] left-0 w-[1048px] h-[105px] text-[82px]">
-        {/* Nama Tim B */}
-        <div className="absolute top-0 left-[728px] w-[320px] h-[105px] flex items-center justify-center" style={{ backgroundColor: teamBColor }}>
-          <span className="truncate px-2">{teamBName}</span>
-        </div>
-        {/* Nama Tim A */}
-        <div className="absolute top-0 left-0 w-[320px] h-[105px] flex items-center justify-center" style={{ backgroundColor: teamAColor }}>
-          <span className="truncate px-2">{teamAName}</span>
-        </div>
+    <div className="w-full max-w-6xl aspect-[1048/227] relative font-display text-white bg-transparent">
+      {/* Team Names Background */}
+      <div className="absolute top-[41px] w-full h-[105px] flex justify-between">
+        <div style={{ backgroundColor: teamAColor }} className="w-[30.5%] h-full"></div>
+        <div style={{ backgroundColor: teamBColor }} className="w-[30.5%] h-full"></div>
       </div>
+      
+      {/* Central Scoreboard Background */}
+      <div className="absolute top-[41px] left-1/2 -translate-x-1/2 w-[39%] h-[105px] bg-[#05183b]"></div>
 
-      {/* Skor Container */}
-      <div className="absolute top-[41px] left-1/2 -translate-x-1/2 w-[408px] h-[105px]">
-        <div className="absolute inset-0 bg-[#05183b]"></div>
-        {/* Skor A */}
-        <div className="absolute top-[-21px] left-[31px]">
-          <AnimatedNumber value={teamAScore} />
+      {/* Half Background */}
+      <div className="absolute top-[179px] left-1/2 -translate-x-1/2 w-[22.2%] h-[48px] bg-[#05183b]"></div>
+      
+      {/* Content Layer */}
+      <div className="absolute inset-0">
+        {/* Team Names Text */}
+        <div className="absolute top-[41px] w-full h-[105px] flex justify-between items-center text-[82px] px-[1.5%]">
+            <div className="w-[30.5%] text-center truncate">{teamAName}</div>
+            <div className="w-[30.5%] text-center truncate">{teamBName}</div>
         </div>
-        {/* Skor B */}
-        <div className="absolute top-[-21px] left-[332px]">
+
+        {/* Scores */}
+        <div className="absolute top-[20px] left-1/2 -translate-x-1/2 w-[39%] h-[105px] flex justify-between items-center text-[96px] px-[2.5%]">
+          <AnimatedNumber value={teamAScore} />
           <AnimatedNumber value={teamBScore} />
         </div>
-      </div>
-      
-      {/* Half Container */}
-      <div className="absolute top-[179px] left-1/2 -translate-x-1/2 w-[233px] h-[48px] text-[34px]">
-          <div className="absolute left-0 top-0 bg-[#05183b] w-[233px] h-[48px]"></div>
-          <div className="absolute top-0 left-0 w-[233px] h-[48px] flex items-center justify-center">
-              {half}
-          </div>
-      </div>
-      
-      {/* Logo */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[238px] h-[188px]">
-         {logoSrc ? (
-            <Image 
-              src={logoSrc} 
-              alt="Uploaded Logo" 
-              fill
-              style={{objectFit: 'contain'}}
-            />
-          ) : (
-            <OsisCupLogo className="w-full h-full text-white" />
-          )}
-      </div>
 
+        {/* Half Text */}
+        <div className="absolute top-[179px] left-1/2 -translate-x-1/2 w-[22.2%] h-[48px] flex items-center justify-center text-[34px]">
+          {half}
+        </div>
+        
+        {/* Logo */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[22.7%] h-[82.8%]">
+          <div className="relative w-full h-full">
+            {logoSrc ? (
+              <Image 
+                src={logoSrc} 
+                alt="Uploaded Logo" 
+                layout="fill"
+                objectFit="contain"
+              />
+            ) : (
+              <OsisCupLogo className="w-full h-full text-white" />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
