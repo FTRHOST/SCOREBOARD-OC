@@ -76,18 +76,18 @@ const Scoreboard2 = () => {
         <div className="w-80 h-[103px] left-[728px] top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamBName}</div>
         
         {/* Skor Text */}
-        <div className="left-[351px] top-[-21px] absolute text-white text-[96px] mt-[18px]">
+        <div className="left-[320px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
              <AnimatedNumber value={teamAScore} />
         </div>
-        <div className="left-[652px] top-[-21px] absolute text-white text-[96px] mt-[18px]">
+        <div className="left-[584px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
             <AnimatedNumber value={teamBScore} />
         </div>
 
         {/* Fouls Text */}
-        <div className="left-[328px] top-[132px] absolute text-white text-8xl">
+        <div className="left-[320px] top-[153px] absolute w-[72px] h-[79px] flex items-center justify-center text-white text-8xl">
             <AnimatedNumber value={teamAFouls} />
         </div>
-        <div className="left-[673px] top-[129px] absolute text-white text-8xl">
+        <div className="left-[656px] top-[153px] absolute w-[72px] h-[79px] flex items-center justify-center text-white text-8xl">
             <AnimatedNumber value={teamBFouls} />
         </div>
 
@@ -124,5 +124,3 @@ function usePrevious<T>(value: T): T | undefined {
 }
 
 export default Scoreboard2;
-
-    
