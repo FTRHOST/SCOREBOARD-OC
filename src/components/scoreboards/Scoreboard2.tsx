@@ -74,7 +74,7 @@ const Scoreboard2 = () => {
         <div className="w-80 h-[103px] left-[728px] top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamBName}</div>
         
         {/* Skor */}
-        <div className="left-[320px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
+        <div className="left-[249px] top-[41px] absolute h-[105px] w-[160px] flex items-center justify-center text-white text-[96px]">
              <AnimatedNumber value={teamAScore} />
         </div>
         <div className="left-[584px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
@@ -94,7 +94,7 @@ const Scoreboard2 = () => {
         <div className="w-[233px] h-[48px] left-[407px] top-[243px] absolute flex items-center justify-center text-4xl">{half}</div>
         
         {/* Logo */}
-        <div className="w-[238px] h-[188px] left-[405px] top-0 absolute flex items-center justify-center">
+        <div className="w-[238px] h-[188px] left-[400px] top-0 absolute flex items-center justify-center">
             {logoSrc ? (
                 <div className="relative w-full h-full">
                     <Image 
