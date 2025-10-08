@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
@@ -21,13 +21,19 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
 import { Input } from "@/components/ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 
 export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
   const [zoomLevel, setZoomLevel] = useState(100);
   const { scoreboard, updateScoreboard } = useScoreboardData();
-  const logoSrc = scoreboard?.logoSrc; // Handle potential null scoreboard
+  const logoSrc = scoreboard?.logoSrc; 
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setZoomLevel(isMobile ? 30 : 85);
+  }, [isMobile]);
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -122,7 +128,7 @@ export default function ControllerPage() {
                     />
                     <ZoomIn />
                     <span className="text-sm font-medium w-16 text-center">{zoomLevel}%</span>
-                    <Button variant="outline" size="icon" onClick={() => setZoomLevel(100)} className="h-8 w-8">
+                    <Button variant="outline" size="icon" onClick={() => setZoomLevel(isMobile ? 30 : 85)} className="h-8 w-8">
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   </div>
