@@ -58,11 +58,9 @@ const Scoreboard2 = () => {
 
   return (
     <div className="w-[1048px] h-[291px] relative font-display text-white">
-        {/* Nama Tim Backgrounds */}
+        {/* Latar Belakang */}
         <div className="w-80 h-[105px] left-0 top-[41px] absolute" style={{backgroundColor: teamAColor || '#B62FCE'}} />
         <div className="w-80 h-[105px] left-[728px] top-[41px] absolute" style={{backgroundColor: teamBColor || '#EF7438'}} />
-
-        {/* Tengah Background */}
         <div className="w-[408px] h-[105px] left-[320px] top-[41px] absolute bg-[#05183B]" />
         <div className="w-[233px] h-[79px] left-[407px] top-[153px] absolute bg-[#05183B]" />
         <div className="w-[233px] h-[48px] left-[407px] top-[243px] absolute bg-[#05183B]" />
@@ -71,11 +69,11 @@ const Scoreboard2 = () => {
         <div className={cn("w-[72px] h-[79px] left-[320px] top-[153px] absolute", flashA && "animate-flash")} style={{backgroundColor: teamAColor || '#B62FCE'}} />
         <div className={cn("w-[72px] h-[79px] left-[656px] top-[153px] absolute", flashB && "animate-flash")} style={{backgroundColor: teamBColor || '#EF7438'}}/>
 
-        {/* Nama Tim Text */}
+        {/* Teks */}
         <div className="w-80 h-[103px] left-0 top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamAName}</div>
         <div className="w-80 h-[103px] left-[728px] top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamBName}</div>
         
-        {/* Skor Text */}
+        {/* Skor */}
         <div className="left-[320px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
              <AnimatedNumber value={teamAScore} />
         </div>
@@ -83,7 +81,7 @@ const Scoreboard2 = () => {
             <AnimatedNumber value={teamBScore} />
         </div>
 
-        {/* Fouls Text */}
+        {/* Fouls */}
         <div className="left-[320px] top-[153px] absolute w-[72px] h-[79px] flex items-center justify-center text-white text-8xl">
             <AnimatedNumber value={teamAFouls} />
         </div>
@@ -91,7 +89,7 @@ const Scoreboard2 = () => {
             <AnimatedNumber value={teamBFouls} />
         </div>
 
-        {/* Waktu & Babak Text */}
+        {/* Waktu & Babak */}
         <div className="w-[233px] h-[79px] left-[407px] top-[153px] absolute flex items-center justify-center text-6xl">{formatTime(time)}</div>
         <div className="w-[233px] h-[48px] left-[407px] top-[243px] absolute flex items-center justify-center text-4xl">{half}</div>
         
