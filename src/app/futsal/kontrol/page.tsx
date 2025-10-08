@@ -27,7 +27,7 @@ export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
   const [zoomLevel, setZoomLevel] = useState(100);
   const { scoreboard, updateScoreboard } = useScoreboardData();
-  const { logoSrc } = scoreboard || {};
+  const logoSrc = scoreboard?.logoSrc; // Handle potential null scoreboard
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -64,15 +64,6 @@ export default function ControllerPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
-      <header className="text-center mb-8">
-        <h1 className="text-4xl md:text-5xl font-bold text-primary font-headline">
-          Futsal Scoreboard Pro
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Central controller for all your futsal match needs.
-        </p>
-      </header>
-      
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
@@ -154,4 +145,3 @@ export default function ControllerPage() {
     </div>
   );
 }
-
