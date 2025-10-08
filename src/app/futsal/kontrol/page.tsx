@@ -6,6 +6,7 @@ import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
 import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
+import LayoutEditor from "@/components/controller/LayoutEditor";
 import {
   Select,
   SelectContent,
@@ -74,7 +75,7 @@ export default function ControllerPage() {
       case "1":
         return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
       case "2":
-        return <div className="w-[672px] h-[356px]"><Scoreboard2 /></div>;
+        return <div className="w-[1048px] h-[291px]"><Scoreboard2 /></div>;
       case "3":
         return <div className="w-[448px] h-[154px]"><Scoreboard3 /></div>;
       default:
@@ -176,6 +177,9 @@ export default function ControllerPage() {
         </Card>
 
         <Controller />
+        
+        <LayoutEditor />
+
       </main>
     </div>
   );

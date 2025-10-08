@@ -11,6 +11,47 @@ const TEAM_B_COLOR = '#EF7438';
 const INITIAL_TIME_SECONDS = 20 * 60;
 const INITIAL_COLOR_SUGGESTIONS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FFFFFF', '#000000'];
 
+export interface LayoutStyle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontSize?: number;
+  visible?: boolean;
+}
+
+export interface ScoreboardLayout {
+  // Model 1
+  model1_teamAName: LayoutStyle;
+  model1_teamBName: LayoutStyle;
+  model1_teamAScore: LayoutStyle;
+  model1_teamBScore: LayoutStyle;
+  model1_logo: LayoutStyle;
+  model1_half: LayoutStyle;
+  
+  // Model 2
+  model2_teamAName: LayoutStyle;
+  model2_teamBName: LayoutStyle;
+  model2_teamAScore: LayoutStyle;
+  model2_teamBScore: LayoutStyle;
+  model2_teamAFouls: LayoutStyle;
+  model2_teamBFouls: LayoutStyle;
+  model2_logo: LayoutStyle;
+  model2_time: LayoutStyle;
+  model2_half: LayoutStyle;
+
+  // Model 3
+  model3_logo: LayoutStyle;
+  model3_teamAName: LayoutStyle;
+  model3_teamAScore: LayoutStyle;
+  model3_teamAFouls: LayoutStyle;
+  model3_teamBName: LayoutStyle;
+  model3_teamBScore: LayoutStyle;
+  model3_teamBFouls: LayoutStyle;
+  model3_half: LayoutStyle;
+  model3_time: LayoutStyle;
+}
+
 
 export interface Scoreboard {
   teamAName: string;
@@ -30,7 +71,41 @@ export interface Scoreboard {
   pauseTime: number;
   colorSuggestions: string[];
   animationTrigger?: number;
+  layout: ScoreboardLayout;
 }
+
+const defaultLayout: ScoreboardLayout = {
+  // Model 1 Defaults
+  model1_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 88, visible: true },
+  model1_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 88, visible: true },
+  model1_teamAScore: { x: 320, y: 41, width: 85, height: 105, fontSize: 96, visible: true },
+  model1_teamBScore: { x: 643, y: 41, width: 85, height: 105, fontSize: 96, visible: true },
+  model1_logo: { x: 405, y: 0, width: 238, height: 188, visible: true },
+  model1_half: { x: 405, y: 179, width: 233, height: 48, fontSize: 48, visible: true },
+  
+  // Model 2 Defaults
+  model2_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 82, visible: true },
+  model2_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 82, visible: true },
+  model2_teamAScore: { x: 249, y: 41, width: 160, height: 105, fontSize: 96, visible: true },
+  model2_teamBScore: { x: 584, y: 41, width: 144, height: 105, fontSize: 96, visible: true },
+  model2_teamAFouls: { x: 320, y: 153, width: 72, height: 79, fontSize: 88, visible: true },
+  model2_teamBFouls: { x: 656, y: 153, width: 72, height: 79, fontSize: 88, visible: true },
+  model2_logo: { x: 400, y: 0, width: 238, height: 188, visible: true },
+  model2_time: { x: 407, y: 153, width: 233, height: 79, fontSize: 72, visible: true },
+  model2_half: { x: 407, y: 243, width: 233, height: 48, fontSize: 36, visible: true },
+
+  // Model 3 Defaults
+  model3_logo: { x: 0, y: 0, width: 149, height: 154, visible: true },
+  model3_teamAName: { x: 149, y: 0, width: 100, height: 51, fontSize: 18, visible: true },
+  model3_teamAScore: { x: 249, y: 0, width: 100, height: 51, fontSize: 36, visible: true },
+  model3_teamAFouls: { x: 349, y: 0, width: 99, height: 51, fontSize: 36, visible: true },
+  model3_teamBName: { x: 149, y: 51, width: 100, height: 52, fontSize: 18, visible: true },
+  model3_teamBScore: { x: 249, y: 51, width: 100, height: 52, fontSize: 36, visible: true },
+  model3_teamBFouls: { x: 349, y: 51, width: 99, height: 52, fontSize: 36, visible: true },
+  model3_half: { x: 149, y: 103, width: 100, height: 51, fontSize: 24, visible: true },
+  model3_time: { x: 249, y: 103, width: 199, height: 51, fontSize: 30, visible: true },
+};
+
 
 const defaultScoreboard: Scoreboard = {
   teamAName: 'Tim A',
@@ -49,6 +124,7 @@ const defaultScoreboard: Scoreboard = {
   startTime: 0,
   pauseTime: INITIAL_TIME_SECONDS,
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
+  layout: defaultLayout,
 };
 
 export function useScoreboardData() {
@@ -67,7 +143,10 @@ export function useScoreboardData() {
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
-        // Ensure colorSuggestions is always an array
+        // Ensure layout and colorSuggestions exist
+        if (!data.layout) {
+          data.layout = defaultLayout;
+        }
         if (!data.colorSuggestions) {
           data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
         }
@@ -94,8 +173,6 @@ export function useScoreboardData() {
     // --- STARTING the timer ---
     if (data.isRunning === true && !scoreboard.isRunning) {
         updateData.startTime = Date.now();
-        // Start countdown from where it was last paused or set.
-        // `scoreboard.time` holds the last valid state.
         updateData.pauseTime = scoreboard.time;
     } 
     // --- PAUSING the timer ---
@@ -103,13 +180,13 @@ export function useScoreboardData() {
         const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
         const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
         updateData.time = newTime;
-        updateData.pauseTime = newTime; // Store the exact paused time
+        updateData.pauseTime = newTime; 
     } 
     // --- SETTING NEW TIME ---
     else if (typeof data.initialTime !== 'undefined') {
        updateData.time = data.initialTime;
-       updateData.pauseTime = data.initialTime; // Also update pauseTime
-       updateData.isRunning = false; // Always stop timer when setting new time
+       updateData.pauseTime = data.initialTime;
+       updateData.isRunning = false;
     }
     
     await update(scoreboardRef, updateData);
@@ -117,41 +194,34 @@ export function useScoreboardData() {
 
   // This effect runs the VISUAL timer on the client side based on server data
   useEffect(() => {
-    // Clear any existing timer
     if (timerRef.current) {
         clearInterval(timerRef.current);
     }
     
-    // If the timer should be running, set up an interval to update the server time
     if (scoreboard?.isRunning) {
         timerRef.current = setInterval(() => {
-            if (scoreboard) { // Check again inside interval
+            if (scoreboard) { 
                 const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
                 const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
-                // Directly update the time in the database. 
-                // This will trigger the onValue listener on all clients.
                 set(ref(database, `${SCOREBOARD_PATH}/time`), newTime);
                 
                 if (newTime === 0) {
-                  // Automatically stop the timer when it hits zero
                   update(ref(database, SCOREBOARD_PATH), { isRunning: false });
                 }
             }
         }, 1000);
     }
 
-    // Cleanup function to clear the interval
     return () => {
         if (timerRef.current) {
             clearInterval(timerRef.current);
         }
     };
-    // Re-run this effect ONLY when isRunning, startTime or pauseTime changes
   }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime, database]);
 
   const resetScoreboard = useCallback(() => {
     if (!database) return;
-    const newScoreboardState = { 
+    const newScoreboardState: Partial<Scoreboard> = { 
         ...defaultScoreboard, 
         logoSrc: scoreboard?.logoSrc || null,
         teamAColor: scoreboard?.teamAColor || TEAM_A_COLOR,
@@ -159,8 +229,22 @@ export function useScoreboardData() {
         teamAName: scoreboard?.teamAName || 'Tim A',
         teamBName: scoreboard?.teamBName || 'Tim B',
         colorSuggestions: scoreboard?.colorSuggestions || INITIAL_COLOR_SUGGESTIONS,
+        layout: scoreboard?.layout || defaultLayout,
     };
-    set(scoreboardRef, newScoreboardState);
+    // We only reset the data, not the layout
+    delete newScoreboardState.layout;
+    
+    const resetData = {
+      teamAScore: 0,
+      teamBScore: 0,
+      teamAFouls: 0,
+      teamBFouls: 0,
+      time: newScoreboardState.initialTime,
+      isRunning: false,
+      half: 'Babak 1',
+    }
+
+    update(scoreboardRef, resetData);
   }, [database, scoreboardRef, scoreboard]);
 
   const swapTeams = useCallback(() => {
@@ -199,6 +283,3 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
-
-    
-    

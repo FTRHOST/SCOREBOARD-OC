@@ -2,11 +2,50 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useScoreboardData } from "@/hooks/useScoreboardData";
+import { useScoreboardData, LayoutStyle } from "@/hooks/useScoreboardData";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
+
+// Helper hook to get previous value
+function usePrevious<T>(value: T): T | undefined {
+  const ref = React.useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+const DynamicElement = ({ style, color, children, text, className, isVisible }: { style: LayoutStyle, color?: string, children?: React.ReactNode, text?: string, className?: string, isVisible?: boolean }) => {
+  if (isVisible === false) return null;
+
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    backgroundColor: color,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    overflow: 'hidden',
+    textAlign: 'center',
+    lineHeight: 1.1,
+  };
+
+  return (
+    <div style={elementStyle} className={className}>
+      <div className="truncate px-2">
+        {text}
+        {children}
+      </div>
+    </div>
+  );
+};
 
 const Scoreboard2 = () => {
   const { scoreboard, loading } = useScoreboardData();
@@ -31,23 +70,15 @@ const Scoreboard2 = () => {
     }
   }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
   
-  if (loading) {
+  if (loading || !scoreboard) {
     return (
-      <div className="w-[1048px] h-[288px] flex items-center justify-center text-white font-display bg-black/20">
+      <div className="w-[1048px] h-[291px] flex items-center justify-center text-white font-display bg-black/20">
          <OsisCupLogo className="w-32 h-32 text-white/50 animate-pulse" />
       </div>
     );
   }
-  
-  if (!scoreboard) {
-      return (
-          <div className="w-[1048px] h-[288px] flex items-center justify-center text-white font-display bg-black/20">
-              Scoreboard data not available.
-          </div>
-      );
-  }
 
-  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
+  const { layout, teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "00:00";
@@ -58,43 +89,43 @@ const Scoreboard2 = () => {
 
   return (
     <div className="w-[1048px] h-[291px] relative font-display text-white">
-        {/* Latar Belakang Baris Atas */}
-        <div className="w-80 h-[105px] left-0 top-[41px] absolute" style={{backgroundColor: teamAColor || '#B62FCE'}} />
-        <div className="w-80 h-[105px] left-[728px] top-[41px] absolute" style={{backgroundColor: teamBColor || '#EF7438'}} />
-        <div className="w-[408px] h-[105px] left-[320px] top-[41px] absolute bg-[#05183B]" />
+        {/* Latar Belakang */}
+        <div style={{ position: 'absolute', left: `${layout.model2_teamAName.x}px`, top: `${layout.model2_teamAName.y}px`, width: `${layout.model2_teamAName.width}px`, height: `${layout.model2_teamAName.height}px`, backgroundColor: teamAColor || '#B62FCE' }} />
+        <div style={{ position: 'absolute', left: `${layout.model2_teamBName.x}px`, top: `${layout.model2_teamBName.y}px`, width: `${layout.model2_teamBName.width}px`, height: `${layout.model2_teamBName.height}px`, backgroundColor: teamBColor || '#EF7438' }} />
+        <div style={{ position: 'absolute', left: '320px', top: '41px', width: '408px', height: '105px', backgroundColor: '#05183B' }} />
         
-        {/* Latar Belakang Baris Bawah */}
-        <div className="w-[233px] h-[79px] left-[407px] top-[153px] absolute bg-[#05183B]" />
-        <div className="w-[233px] h-[48px] left-[407px] top-[243px] absolute bg-[#05183B]" />
-        <div className={cn("w-[72px] h-[79px] left-[320px] top-[153px] absolute", flashA && "animate-flash")} style={{backgroundColor: teamAColor || '#B62FCE'}} />
-        <div className={cn("w-[72px] h-[79px] left-[656px] top-[153px] absolute", flashB && "animate-flash")} style={{backgroundColor: teamBColor || '#EF7438'}}/>
+        <div style={{ position: 'absolute', left: `${layout.model2_time.x}px`, top: `${layout.model2_time.y}px`, width: `${layout.model2_time.width}px`, height: `${layout.model2_time.height}px`, backgroundColor: '#05183B' }} />
+        <div style={{ position: 'absolute', left: `${layout.model2_half.x}px`, top: `${layout.model2_half.y}px`, width: `${layout.model2_half.width}px`, height: `${layout.model2_half.height}px`, backgroundColor: '#05183B' }} />
+        
+        <div className={cn(flashA && "animate-flash")} style={{ position: 'absolute', left: `${layout.model2_teamAFouls.x}px`, top: `${layout.model2_teamAFouls.y}px`, width: `${layout.model2_teamAFouls.width}px`, height: `${layout.model2_teamAFouls.height}px`, backgroundColor: teamAColor || '#B62FCE' }} />
+        <div className={cn(flashB && "animate-flash")} style={{ position: 'absolute', left: `${layout.model2_teamBFouls.x}px`, top: `${layout.model2_teamBFouls.y}px`, width: `${layout.model2_teamBFouls.width}px`, height: `${layout.model2_teamBFouls.height}px`, backgroundColor: teamBColor || '#EF7438'}}/>
 
         {/* Konten Teks */}
-        <div className="w-80 h-[103px] left-0 top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamAName}</div>
-        <div className="w-80 h-[103px] left-[728px] top-[41px] absolute flex items-center justify-center text-7xl text-center truncate px-2">{teamBName}</div>
+        <DynamicElement style={layout.model2_teamAName} text={teamAName} />
+        <DynamicElement style={layout.model2_teamBName} text={teamBName} />
         
         {/* Skor */}
-        <div className="left-[249px] top-[41px] absolute h-[105px] w-[160px] flex items-center justify-center text-white text-[96px]">
+        <DynamicElement style={layout.model2_teamAScore}>
              <AnimatedNumber value={teamAScore} />
-        </div>
-        <div className="left-[584px] top-[41px] absolute h-[105px] w-[144px] flex items-center justify-center text-white text-[96px]">
+        </DynamicElement>
+        <DynamicElement style={layout.model2_teamBScore}>
             <AnimatedNumber value={teamBScore} />
-        </div>
+        </DynamicElement>
 
         {/* Pelanggaran */}
-        <div className="left-[320px] top-[153px] absolute w-[72px] h-[79px] flex items-center justify-center text-white text-8xl">
+        <DynamicElement style={layout.model2_teamAFouls}>
             <AnimatedNumber value={teamAFouls} />
-        </div>
-        <div className="left-[656px] top-[153px] absolute w-[72px] h-[79px] flex items-center justify-center text-white text-8xl">
+        </DynamicElement>
+        <DynamicElement style={layout.model2_teamBFouls}>
             <AnimatedNumber value={teamBFouls} />
-        </div>
+        </DynamicElement>
 
         {/* Waktu & Babak */}
-        <div className="w-[233px] h-[79px] left-[407px] top-[153px] absolute flex items-center justify-center text-6xl">{formatTime(time)}</div>
-        <div className="w-[233px] h-[48px] left-[407px] top-[243px] absolute flex items-center justify-center text-4xl">{half}</div>
+        <DynamicElement style={layout.model2_time} text={formatTime(time)} />
+        <DynamicElement style={layout.model2_half} text={half} />
         
         {/* Logo */}
-        <div className="w-[238px] h-[188px] left-[400px] top-0 absolute flex items-center justify-center">
+        <DynamicElement style={layout.model2_logo}>
             {logoSrc ? (
                 <div className="relative w-full h-full">
                     <Image 
@@ -107,18 +138,9 @@ const Scoreboard2 = () => {
             ) : (
                 <OsisCupLogo className="w-full h-full text-white" />
             )}
-        </div>
+        </DynamicElement>
     </div>
   );
 };
-
-// Helper hook to get previous value
-function usePrevious<T>(value: T): T | undefined {
-  const ref = React.useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
 
 export default Scoreboard2;

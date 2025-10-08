@@ -1,11 +1,49 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useScoreboardData } from "@/hooks/useScoreboardData";
+import { useScoreboardData, LayoutStyle } from "@/hooks/useScoreboardData";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
+
+function usePrevious<T>(value: T): T | undefined {
+  const ref = React.useRef<T>();
+  useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
+
+const DynamicElement = ({ style, color, children, text, className, isVisible }: { style: LayoutStyle, color?: string, children?: React.ReactNode, text?: string, className?: string, isVisible?: boolean }) => {
+  if (isVisible === false) return null;
+
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    backgroundColor: color,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    overflow: 'hidden',
+    textAlign: 'center',
+    lineHeight: 1.1,
+  };
+
+  return (
+    <div style={elementStyle} className={cn(className, 'truncate')}>
+        {text}
+        {children}
+    </div>
+  );
+};
+
 
 const Scoreboard3 = () => {
   const { scoreboard, loading } = useScoreboardData();
@@ -30,7 +68,7 @@ const Scoreboard3 = () => {
     }
   }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
 
-  if (loading) {
+  if (loading || !scoreboard) {
     return (
          <div className="bg-green-500 p-2 rounded-lg w-full h-full font-display text-white shadow-2xl flex items-center justify-center">
             <OsisCupLogo className="w-24 h-24 text-primary animate-pulse" />
@@ -38,9 +76,10 @@ const Scoreboard3 = () => {
     );
   }
   
-  const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
+  const { layout, teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "00:00";
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
@@ -56,46 +95,41 @@ const Scoreboard3 = () => {
   }
 
   return (
-    <div className="bg-green-500 p-2 rounded-lg w-full h-full font-display text-white shadow-2xl">
-      <div className="flex w-full h-full">
+    <div className="bg-green-500 w-[448px] h-[154px] font-display text-white shadow-2xl relative">
         {/* Logo Section */}
-        <div className="bg-white rounded-l-md w-1/3 flex items-center justify-center p-2 relative">
+        <div style={{ position: 'absolute', left: `${layout.model3_logo.x}px`, top: `${layout.model3_logo.y}px`, width: `${layout.model3_logo.width}px`, height: `${layout.model3_logo.height}px`, backgroundColor: 'white' }}
+          className="flex items-center justify-center p-2"
+        >
           {logoSrc ? (
-            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" />
+            <div className="relative w-full h-full">
+              <Image src={logoSrc} alt="Uploaded Logo" fill objectFit="contain" />
+            </div>
           ) : (
             <OsisCupLogo className="w-full h-full text-primary" />
           )}
         </div>
 
         {/* Info Section */}
-        <div className="w-2/3 grid grid-cols-3 grid-rows-3 gap-px text-center">
-          {/* Row 1: Team A, Score A, Foul A */}
-          <div className="flex items-center justify-center p-1 text-lg truncate" style={{ backgroundColor: teamAColor }}>{teamAName}</div>
-          <div className="bg-gray-900/70 flex items-center justify-center text-4xl"><AnimatedNumber value={teamAScore} /></div>
-          <div className={cn("flex items-center justify-center text-4xl", flashA && "animate-flash")} style={{ backgroundColor: teamAColor }}>{teamAFouls}</div>
-
-          {/* Row 2: Team B, Score B, Foul B */}
-          <div className="flex items-center justify-center p-1 text-lg truncate" style={{ backgroundColor: teamBColor }}>{teamBName}</div>
-          <div className="bg-gray-900/70 flex items-center justify-center text-4xl"><AnimatedNumber value={teamBScore} /></div>
-          <div className={cn("flex items-center justify-center text-4xl", flashB && "animate-flash")} style={{ backgroundColor: teamBColor }}>{teamBFouls}</div>
-
-          {/* Row 3: Half, Timer */}
-          <div className="bg-gray-900/70 flex items-center justify-center text-2xl">{getShortHalf(half)}</div>
-          <div className="col-span-2 bg-gray-700/80 flex items-center justify-center text-3xl">{formatTime(time)}</div>
-        </div>
-      </div>
+        {/* Row 1: Team A, Score A, Foul A */}
+        <DynamicElement style={layout.model3_teamAName} color={teamAColor} text={teamAName} />
+        <DynamicElement style={layout.model3_teamAScore} color="#1F2937">
+          <AnimatedNumber value={teamAScore} />
+        </DynamicElement>
+        <DynamicElement style={layout.model3_teamAFouls} color={teamAColor} className={cn(flashA && "animate-flash")} text={teamAFouls.toString()} />
+        
+        {/* Row 2: Team B, Score B, Foul B */}
+        <DynamicElement style={layout.model3_teamBName} color={teamBColor} text={teamBName} />
+        <DynamicElement style={layout.model3_teamBScore} color="#1F2937">
+          <AnimatedNumber value={teamBScore} />
+        </DynamicElement>
+        <DynamicElement style={layout.model3_teamBFouls} color={teamBColor} className={cn(flashB && "animate-flash")} text={teamBFouls.toString()} />
+        
+        {/* Row 3: Half, Timer */}
+        <DynamicElement style={layout.model3_half} color="#1F2937" text={getShortHalf(half)} />
+        <DynamicElement style={layout.model3_time} color="#374151" text={formatTime(time)} />
     </div>
   );
 };
-
-// Helper hook to get previous value
-function usePrevious<T>(value: T): T | undefined {
-  const ref = React.useRef<T>();
-  useEffect(() => {
-    ref.current = value;
-  });
-  return ref.current;
-}
 
 
 export default Scoreboard3;

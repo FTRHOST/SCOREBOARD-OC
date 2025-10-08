@@ -1,70 +1,80 @@
 
 "use client";
 
-import { useScoreboardData } from "@/hooks/useScoreboardData";
+import { useScoreboardData, LayoutStyle } from "@/hooks/useScoreboardData";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import Image from 'next/image';
 
+const DynamicElement = ({ style, color, children, text, isVisible }: { style: LayoutStyle, color?: string, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+  if (isVisible === false) return null;
+  
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    backgroundColor: color,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    overflow: 'hidden',
+    textAlign: 'center',
+    lineHeight: 1.1,
+  };
+
+  return (
+    <div style={elementStyle}>
+      <div className="truncate px-2">
+        {text}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+
 const Scoreboard1 = () => {
   const { scoreboard, loading } = useScoreboardData();
 
-  if (loading) {
+  if (loading || !scoreboard) {
     return (
        <div className="w-[1048px] h-[227px] flex items-center justify-center text-white font-display bg-black/20">
         Loading Scoreboard...
       </div>
     );
   }
-  
-  if (!scoreboard) {
-    return (
-      <div className="w-[1048px] h-[227px] flex items-center justify-center text-white font-display bg-black/20">
-        Scoreboard data not available.
-      </div>
-    );
-  }
 
-  const { teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
+  const { layout, teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   return (
     <div className="w-[1048px] h-[227px] relative font-display text-white">
-      {/* Lapis Bawah: Latar Belakang */}
-      <div 
-        className="w-80 h-[105px] left-0 top-[41px] absolute"
-        style={{ backgroundColor: teamAColor || '#B62FCE' }}
-      />
-      <div 
-        className="w-80 h-[105px] left-[728px] top-[41px] absolute"
-        style={{ backgroundColor: teamBColor || '#EF7438' }}
-      />
-      <div className="w-[408px] h-[105px] left-[320px] top-[41px] absolute bg-[#05183B]" />
-      <div className="w-[233px] h-12 left-[405px] top-[179px] absolute bg-[#05183B]" />
+      {/* Backgrounds */}
+      <div style={{ position: 'absolute', left: `${layout.model1_teamAName.x}px`, top: `${layout.model1_teamAName.y}px`, width: `${layout.model1_teamAName.width}px`, height: `${layout.model1_teamAName.height}px`, backgroundColor: teamAColor || '#B62FCE' }} />
+      <div style={{ position: 'absolute', left: `${layout.model1_teamBName.x}px`, top: `${layout.model1_teamBName.y}px`, width: `${layout.model1_teamBName.width}px`, height: `${layout.model1_teamBName.height}px`, backgroundColor: teamBColor || '#EF7438' }} />
+      <div style={{ position: 'absolute', left: `${layout.model1_teamAScore.x}px`, top: `${layout.model1_teamAScore.y}px`, width: `${layout.model1_teamAScore.width + layout.model1_logo.width + layout.model1_teamBScore.width}px`, height: `${layout.model1_teamAScore.height}px`, backgroundColor: '#05183B' }} />
+      <div style={{ position: 'absolute', left: `${layout.model1_half.x}px`, top: `${layout.model1_half.y}px`, width: `${layout.model1_half.width}px`, height: `${layout.model1_half.height}px`, backgroundColor: '#05183B' }} />
 
-      {/* Lapis Tengah: Teks */}
-      <div className="w-80 h-[105px] left-0 top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">
-        {teamAName}
-      </div>
-      <div className="w-80 h-[105px] left-[728px] top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">
-        {teamBName}
-      </div>
+      {/* Team Names */}
+      <DynamicElement style={layout.model1_teamAName} text={teamAName} />
+      <DynamicElement style={layout.model1_teamBName} text={teamBName} />
       
-      {/* Skor A */}
-      <div className="left-[320px] top-[41px] absolute text-white text-8xl font-display h-[105px] w-[85px] flex justify-center items-center">
+      {/* Scores */}
+      <DynamicElement style={layout.model1_teamAScore}>
         <AnimatedNumber value={teamAScore} />
-      </div>
-
-      {/* Skor B */}
-       <div className="right-[320px] top-[41px] absolute text-white text-8xl font-display h-[105px] w-[85px] flex justify-center items-center">
+      </DynamicElement>
+      <DynamicElement style={layout.model1_teamBScore}>
         <AnimatedNumber value={teamBScore} />
-      </div>
+      </DynamicElement>
 
-      <div className="w-[233px] h-12 left-[405px] top-[179px] absolute flex items-center justify-center text-white text-4xl">
-        {half}
-      </div>
+      {/* Half */}
+      <DynamicElement style={layout.model1_half} text={half} />
 
-      {/* Lapis Atas: Logo */}
-      <div className="w-[238px] h-[188px] left-[405px] top-0 absolute flex items-center justify-center">
+      {/* Logo */}
+      <DynamicElement style={layout.model1_logo}>
          {logoSrc ? (
             <div className="relative w-full h-full">
               <Image 
@@ -77,7 +87,7 @@ const Scoreboard1 = () => {
           ) : (
             <OsisCupLogo className="w-full h-full text-white" />
           )}
-      </div>
+      </DynamicElement>
     </div>
   );
 };
