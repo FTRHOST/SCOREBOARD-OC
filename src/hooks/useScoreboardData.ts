@@ -29,6 +29,7 @@ export interface Scoreboard {
   startTime: number; 
   pauseTime: number;
   colorSuggestions: string[];
+  animationTrigger?: number;
 }
 
 const defaultScoreboard: Scoreboard = {
@@ -199,4 +200,5 @@ export function useScoreboardData() {
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
 
+    
     

@@ -92,19 +92,11 @@ export default function Controller() {
   const handleAnimate = () => {
     if (!scoreboard) return;
     
-    // Animate scores
-    const originalScores = { teamAScore: scoreboard.teamAScore, teamBScore: scoreboard.teamBScore };
-    updateScoreboard({ teamAScore: originalScores.teamAScore + 1, teamBScore: originalScores.teamBScore + 1 });
-    
-    // Animate fouls
-    const originalFouls = { teamAFouls: scoreboard.teamAFouls, teamBFouls: scoreboard.teamBFouls };
-    updateScoreboard({ teamAFouls: originalFouls.teamAFouls + 1, teamBFouls: originalFouls.teamBFouls + 1 });
+    // Trigger animation state without changing data
+    updateScoreboard({ animationTrigger: Date.now() });
 
-    // Revert back after a short delay
-    setTimeout(() => {
-      updateScoreboard(originalScores);
-      updateScoreboard(originalFouls);
-    }, 500);
+    // The actual animation should be handled in the scoreboard components
+    // based on this trigger. For now, this just updates a value.
   };
 
   const CustomColorPopover = () => {
@@ -310,3 +302,5 @@ export default function Controller() {
     </Card>
   );
 }
+
+    
