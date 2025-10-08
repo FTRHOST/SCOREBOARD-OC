@@ -22,6 +22,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function Controller() {
   const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion } = useScoreboardData();
@@ -103,13 +104,13 @@ export default function Controller() {
   };
 
   const handleAddColor = () => {
-    if (newColorSuggestion.match(/^#[0-9a-fA-F]{6}$/)) {
-      addColorSuggestion(newColorSuggestion);
-      setNewColorSuggestion('');
+    if (newColorSuggestion) {
+        addColorSuggestion(newColorSuggestion);
+        setNewColorSuggestion('');
     } else {
       toast({
         title: "Invalid Color",
-        description: "Please enter a valid hex color code (e.g., #RRGGBB).",
+        description: "Please enter a valid color code.",
         variant: "destructive",
       });
     }
@@ -150,6 +151,35 @@ export default function Controller() {
         </div>
     </div>
   );
+  
+  const CustomColorPicker = ({ team, color, onColorChange }: { team: 'A' | 'B', color: string, onColorChange: (newColor: string) => void }) => {
+    const [customColor, setCustomColor] = useState(color);
+
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            className="h-10 w-full flex items-center justify-center"
+            style={{ backgroundColor: color }}
+          >
+            <Plus className="h-4 w-4 text-white mix-blend-difference" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-2">
+          <div className="flex items-center gap-2">
+            <Input
+              type="text"
+              value={customColor}
+              onChange={(e) => setCustomColor(e.target.value)}
+              className="w-32"
+            />
+            <Button onClick={() => onColorChange(customColor)} size="sm">Set</Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -166,16 +196,12 @@ export default function Controller() {
             <Label htmlFor="teamAName">Team Name</Label>
             <Input id="teamAName" value={teamAName || ''} onChange={(e) => handleUpdate('teamAName', e.target.value)} />
           </div>
-           <div className="space-y-2">
-              <Label htmlFor="teamAColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <Input id="teamAColor" type="color" value={teamAColor || '#B72FCE'} onChange={(e) => handleUpdate('teamAColor', e.target.value)} className="h-10 p-1" />
-               <ColorSuggestion team="A" />
-            </div>
           <div className="space-y-2">
             <Label>Score</Label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button size="icon" onClick={() => updateScore('A', -1)} variant="outline"><Minus /></Button>
+              <Input value={teamAScore} className="text-center font-bold" readOnly />
               <Button size="icon" onClick={() => updateScore('A', 1)}><Plus /></Button>
-              <Button size="icon" variant="outline" onClick={() => updateScore('A', -1)}><Minus /></Button>
             </div>
           </div>
           <div className="space-y-2">
@@ -186,6 +212,15 @@ export default function Controller() {
               <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
             </div>
           </div>
+          <div className="space-y-2">
+              <Label htmlFor="teamAColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
+              <CustomColorPicker 
+                team="A" 
+                color={teamAColor} 
+                onColorChange={(newColor) => handleUpdate('teamAColor', newColor)}
+              />
+              <ColorSuggestion team="A" />
+            </div>
         </div>
 
         {/* General Controls */}
@@ -279,15 +314,11 @@ export default function Controller() {
             <Input id="teamBName" value={teamBName || ''} onChange={(e) => handleUpdate('teamBName', e.target.value)} />
           </div>
           <div className="space-y-2">
-              <Label htmlFor="teamBColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <Input id="teamBColor" type="color" value={teamBColor || '#EF7438'} onChange={(e) => handleUpdate('teamBColor', e.target.value)} className="h-10 p-1" />
-              <ColorSuggestion team="B" />
-          </div>
-          <div className="space-y-2">
             <Label>Score</Label>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              <Button size="icon" onClick={() => updateScore('B', -1)} variant="outline"><Minus /></Button>
+              <Input value={teamBScore} className="text-center font-bold" readOnly />
               <Button size="icon" onClick={() => updateScore('B', 1)}><Plus /></Button>
-              <Button size="icon" variant="outline" onClick={() => updateScore('B', -1)}><Minus /></Button>
             </div>
           </div>
           <div className="space-y-2">
@@ -298,10 +329,17 @@ export default function Controller() {
               <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
             </div>
           </div>
+           <div className="space-y-2">
+              <Label htmlFor="teamBColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
+              <CustomColorPicker 
+                team="B" 
+                color={teamBColor} 
+                onColorChange={(newColor) => handleUpdate('teamBColor', newColor)}
+              />
+              <ColorSuggestion team="B" />
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-    
