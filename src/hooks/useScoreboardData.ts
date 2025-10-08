@@ -129,7 +129,7 @@ export function useScoreboardData() {
                 const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
                 // Directly update the time in the database. 
                 // This will trigger the onValue listener on all clients.
-                update(ref(database, `${SCOREBOARD_PATH}/time`), newTime);
+                set(ref(database, `${SCOREBOARD_PATH}/time`), newTime);
                 
                 if (newTime === 0) {
                   // Automatically stop the timer when it hits zero
