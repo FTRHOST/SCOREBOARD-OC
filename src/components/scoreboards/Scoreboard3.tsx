@@ -59,14 +59,14 @@ const Scoreboard3 = () => {
       setFlashA(true);
       setTimeout(() => setFlashA(false), 400);
     }
-  }, [scoreboard?.teamAFouls, prevFoulsA, scoreboard]);
+  }, [scoreboard?.teamAFouls, prevFoulsA]);
 
   useEffect(() => {
     if (scoreboard && prevFoulsB !== undefined && scoreboard.teamBFouls > prevFoulsB) {
       setFlashB(true);
       setTimeout(() => setFlashB(false), 400);
     }
-  }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
+  }, [scoreboard?.teamBFouls, prevFoulsB]);
 
   if (loading || !scoreboard) {
     return (
@@ -102,7 +102,7 @@ const Scoreboard3 = () => {
         >
           {logoSrc ? (
             <div className="relative w-full h-full">
-              <Image src={logoSrc} alt="Uploaded Logo" fill objectFit="contain" />
+              <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}} />
             </div>
           ) : (
             <OsisCupLogo className="w-full h-full text-primary" />

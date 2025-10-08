@@ -61,14 +61,14 @@ const Scoreboard2 = () => {
       setFlashA(true);
       setTimeout(() => setFlashA(false), 400);
     }
-  }, [scoreboard?.teamAFouls, prevFoulsA, scoreboard]);
+  }, [scoreboard?.teamAFouls, prevFoulsA]);
 
   useEffect(() => {
     if (scoreboard && prevFoulsB !== undefined && scoreboard.teamBFouls > prevFoulsB) {
       setFlashB(true);
       setTimeout(() => setFlashB(false), 400);
     }
-  }, [scoreboard?.teamBFouls, prevFoulsB, scoreboard]);
+  }, [scoreboard?.teamBFouls, prevFoulsB]);
   
   if (loading || !scoreboard) {
     return (
