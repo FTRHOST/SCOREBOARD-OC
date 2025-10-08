@@ -16,13 +16,38 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
+import { useScoreboardData } from "@/hooks/useScoreboardData";
+import { Input } from "@/components/ui/input";
+
 
 export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
   const [zoomLevel, setZoomLevel] = useState(100);
+  const { scoreboard, updateScoreboard } = useScoreboardData();
+  const { logoSrc } = scoreboard || {};
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (updateScoreboard) {
+          updateScoreboard({ logoSrc: result });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    if (updateScoreboard) {
+      updateScoreboard({ logoSrc: null });
+    }
+  };
 
   const renderScoreboard = () => {
     switch (selectedScoreboard) {
@@ -96,6 +121,18 @@ export default function ControllerPage() {
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2 w-full">
+              <Label htmlFor="logoUpload">Upload Logo</Label>
+              <div className="flex gap-2 items-center">
+                <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+                {logoSrc && (
+                    <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
+                        <X className="mr-2 h-4 w-4" /> Remove Logo
+                    </Button>
+                )}
               </div>
             </div>
 

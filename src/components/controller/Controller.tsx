@@ -38,7 +38,7 @@ export default function Controller() {
   }
 
   const {
-    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor, colorSuggestions
+    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, half, teamAColor, teamBColor, colorSuggestions
   } = scoreboard;
 
   const handleUpdate = (field: string, value: any) => {
@@ -86,18 +86,6 @@ export default function Controller() {
     }
   };
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        handleUpdate('logoSrc', result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-  
   const handleSwapTeams = () => {
     swapTeams();
   };
@@ -224,16 +212,6 @@ export default function Controller() {
               <div className="flex gap-2">
                 <Input id="halfSet" value={half} onChange={(e) => handleUpdate('half', e.target.value)} placeholder="e.g., Babak 1" />
               </div>
-            </div>
-            <Separator />
-            <div className="space-y-2">
-              <Label htmlFor="logoUpload">Upload Logo</Label>
-              <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
-              {logoSrc && (
-                  <Button variant="outline" size="sm" onClick={() => handleUpdate('logoSrc', null)}>
-                      <X className="mr-2 h-4 w-4" /> Remove Logo
-                  </Button>
-              )}
             </div>
             <Separator />
             <div className='flex flex-col gap-2'>
