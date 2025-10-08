@@ -115,55 +115,15 @@ export default function Controller() {
       });
     }
   };
-
-  const ColorSuggestion = ({ team }: { team: 'A' | 'B' }) => (
-    <div className="flex flex-col gap-2 mt-2">
-      <div className="flex flex-wrap gap-2">
-        {colorSuggestions?.map((color) => (
-          <div key={color} className="relative group">
-            <Button
-              variant="outline"
-              size="icon"
-              className="w-8 h-8"
-              style={{ backgroundColor: color }}
-              onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', color)}
-            />
-             <Button
-                variant="destructive"
-                size="icon"
-                className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => deleteColorSuggestion(color)}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-          </div>
-        ))}
-      </div>
-       <div className="flex gap-2 items-center">
-          <Input 
-            type="text" 
-            value={newColorSuggestion} 
-            onChange={(e) => setNewColorSuggestion(e.target.value)} 
-            placeholder="#RRGGBB"
-            className="w-28"
-          />
-          <Button onClick={handleAddColor} size="sm">Add</Button>
-        </div>
-    </div>
-  );
   
-  const CustomColorPicker = ({ team, color, onColorChange }: { team: 'A' | 'B', color: string, onColorChange: (newColor: string) => void }) => {
-    const [customColor, setCustomColor] = useState(color);
+  const CustomColorPopover = ({ onColorChange }: { onColorChange: (newColor: string) => void }) => {
+    const [customColor, setCustomColor] = useState('#FFFFFF');
 
     return (
       <Popover>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className="h-10 w-full flex items-center justify-center"
-            style={{ backgroundColor: color }}
-          >
-            <Plus className="h-4 w-4 text-white mix-blend-difference" />
+          <Button variant="outline" size="icon" className="w-8 h-8">
+            <Plus className="h-4 w-4" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-2">
@@ -172,7 +132,8 @@ export default function Controller() {
               type="text"
               value={customColor}
               onChange={(e) => setCustomColor(e.target.value)}
-              className="w-32"
+              className="w-24"
+              placeholder="#RRGGBB"
             />
             <Button onClick={() => onColorChange(customColor)} size="sm">Set</Button>
           </div>
@@ -180,6 +141,50 @@ export default function Controller() {
       </Popover>
     );
   };
+
+  const ColorControls = ({ team }: { team: 'A' | 'B' }) => (
+    <div className="space-y-2">
+        <Label htmlFor={`team${team}Color`} className="flex items-center gap-2"><Palette/> Team Color</Label>
+        <div 
+          className="w-full h-10 rounded-md border" 
+          style={{ backgroundColor: team === 'A' ? teamAColor : teamBColor }}
+        />
+
+        <div className="flex flex-wrap items-center gap-2">
+          {colorSuggestions?.map((color) => (
+            <div key={color} className="relative group">
+              <Button
+                variant="outline"
+                size="icon"
+                className="w-8 h-8 rounded-full"
+                style={{ backgroundColor: color }}
+                onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', color)}
+              />
+               <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => deleteColorSuggestion(color)}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+            </div>
+          ))}
+          <CustomColorPopover onColorChange={(newColor) => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', newColor)} />
+        </div>
+
+         <div className="flex gap-2 items-center pt-2">
+            <Input 
+              type="text" 
+              value={newColorSuggestion} 
+              onChange={(e) => setNewColorSuggestion(e.target.value)} 
+              placeholder="Add suggestion..."
+              className="h-8"
+            />
+            <Button onClick={handleAddColor} size="sm" className="h-8">Add</Button>
+          </div>
+      </div>
+  );
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -214,15 +219,7 @@ export default function Controller() {
               <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
             </div>
           </div>
-          <div className="space-y-2">
-              <Label htmlFor="teamAColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <CustomColorPicker 
-                team="A" 
-                color={teamAColor} 
-                onColorChange={(newColor) => handleUpdate('teamAColor', newColor)}
-              />
-              <ColorSuggestion team="A" />
-            </div>
+          <ColorControls team="A" />
         </div>
 
         {/* General Controls */}
@@ -333,15 +330,7 @@ export default function Controller() {
               <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
             </div>
           </div>
-           <div className="space-y-2">
-              <Label htmlFor="teamBColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <CustomColorPicker 
-                team="B" 
-                color={teamBColor} 
-                onColorChange={(newColor) => handleUpdate('teamBColor', newColor)}
-              />
-              <ColorSuggestion team="B" />
-          </div>
+           <ColorControls team="B" />
         </div>
       </CardContent>
     </Card>
