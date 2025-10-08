@@ -172,17 +172,6 @@ export default function Controller() {
           ))}
           <CustomColorPopover onColorChange={(newColor) => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', newColor)} />
         </div>
-
-         <div className="flex gap-2 items-center pt-2">
-            <Input 
-              type="text" 
-              value={newColorSuggestion} 
-              onChange={(e) => setNewColorSuggestion(e.target.value)} 
-              placeholder="Add suggestion..."
-              className="h-8"
-            />
-            <Button onClick={handleAddColor} size="sm" className="h-8">Add</Button>
-          </div>
       </div>
   );
 
