@@ -67,7 +67,7 @@ const Scoreboard1 = () => {
       </div>
       
       {/* Layer 3: Logo (On Top) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[238px] h-[188px]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[238px] h-[188px] flex items-center justify-center">
          <div className="relative w-full h-full">
            {logoSrc ? (
               <Image 
