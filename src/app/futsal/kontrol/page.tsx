@@ -78,7 +78,7 @@ export default function ControllerPage() {
                 <div 
                   className="w-full h-full [&>div]:origin-top-left"
                   style={{
-                    transform: `scale(min(1, calc(100% / var(--native-width, 1048px))))`,
+                    transform: `scale(calc(100% / var(--native-width, 1048px)))`,
                     '--native-width': selectedScoreboard === '1' ? '1048px' : selectedScoreboard === '2' ? '672px' : '448px'
                   } as React.CSSProperties}
                 >
