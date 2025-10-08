@@ -40,7 +40,7 @@ const DynamicElement = ({ style, color, children, text, isVisible }: { style: La
 const Scoreboard1 = () => {
   const { scoreboard, loading } = useScoreboardData();
 
-  if (loading || !scoreboard) {
+  if (loading || !scoreboard || !scoreboard.layout) {
     return (
        <div className="w-[1048px] h-[227px] flex items-center justify-center text-white font-display bg-black/20">
         Loading Scoreboard...
@@ -59,22 +59,22 @@ const Scoreboard1 = () => {
       <div style={{ position: 'absolute', left: `${layout.model1_half.x}px`, top: `${layout.model1_half.y}px`, width: `${layout.model1_half.width}px`, height: `${layout.model1_half.height}px`, backgroundColor: '#05183B' }} />
 
       {/* Team Names */}
-      <DynamicElement style={layout.model1_teamAName} text={teamAName} />
-      <DynamicElement style={layout.model1_teamBName} text={teamBName} />
+      <DynamicElement style={layout.model1_teamAName} text={teamAName} isVisible={layout.model1_teamAName.visible} />
+      <DynamicElement style={layout.model1_teamBName} text={teamBName} isVisible={layout.model1_teamBName.visible} />
       
       {/* Scores */}
-      <DynamicElement style={layout.model1_teamAScore}>
+      <DynamicElement style={layout.model1_teamAScore} isVisible={layout.model1_teamAScore.visible}>
         <AnimatedNumber value={teamAScore} />
       </DynamicElement>
-      <DynamicElement style={layout.model1_teamBScore}>
+      <DynamicElement style={layout.model1_teamBScore} isVisible={layout.model1_teamBScore.visible}>
         <AnimatedNumber value={teamBScore} />
       </DynamicElement>
 
       {/* Half */}
-      <DynamicElement style={layout.model1_half} text={half} />
+      <DynamicElement style={layout.model1_half} text={half} isVisible={layout.model1_half.visible} />
 
       {/* Logo */}
-      <DynamicElement style={layout.model1_logo}>
+      <DynamicElement style={layout.model1_logo} isVisible={layout.model1_logo.visible}>
          {logoSrc ? (
             <div className="relative w-full h-full">
               <Image 

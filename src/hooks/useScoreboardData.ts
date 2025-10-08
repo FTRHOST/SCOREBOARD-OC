@@ -17,7 +17,7 @@ export interface LayoutStyle {
   width: number;
   height: number;
   fontSize?: number;
-  visible?: boolean;
+  visible: boolean;
 }
 
 export interface ScoreboardLayout {
@@ -141,20 +141,17 @@ export function useScoreboardData() {
     if (!database) return;
 
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
+      let data: Scoreboard;
       if (snapshot.exists()) {
-        const data = snapshot.val();
-        // Ensure layout and colorSuggestions exist
-        if (!data.layout) {
-          data.layout = defaultLayout;
-        }
-        if (!data.colorSuggestions) {
-          data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
-        }
-        setScoreboard(data);
+        data = snapshot.val();
+        // Ensure layout and colorSuggestions exist and merge defaults
+        data.layout = { ...defaultLayout, ...(data.layout || {}) };
+        data.colorSuggestions = data.colorSuggestions || INITIAL_COLOR_SUGGESTIONS;
       } else {
-        set(scoreboardRef, defaultScoreboard); // Initialize if not present
-        setScoreboard(defaultScoreboard);
+        data = defaultScoreboard;
+        set(scoreboardRef, data); // Initialize if not present
       }
+      setScoreboard(data);
       setLoading(false);
     }, (err) => {
       console.error("RTDB read failed:", err);

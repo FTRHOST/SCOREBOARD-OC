@@ -68,7 +68,7 @@ const Scoreboard3 = () => {
     }
   }, [scoreboard?.teamBFouls, prevFoulsB]);
 
-  if (loading || !scoreboard) {
+  if (loading || !scoreboard || !scoreboard.layout) {
     return (
          <div className="bg-green-500 p-2 rounded-lg w-full h-full font-display text-white shadow-2xl flex items-center justify-center">
             <OsisCupLogo className="w-24 h-24 text-primary animate-pulse" />
@@ -111,22 +111,22 @@ const Scoreboard3 = () => {
 
         {/* Info Section */}
         {/* Row 1: Team A, Score A, Foul A */}
-        <DynamicElement style={layout.model3_teamAName} color={teamAColor} text={teamAName} />
-        <DynamicElement style={layout.model3_teamAScore} color="#1F2937">
+        <DynamicElement style={layout.model3_teamAName} color={teamAColor} text={teamAName} isVisible={layout.model3_teamAName.visible} />
+        <DynamicElement style={layout.model3_teamAScore} color="#1F2937" isVisible={layout.model3_teamAScore.visible}>
           <AnimatedNumber value={teamAScore} />
         </DynamicElement>
-        <DynamicElement style={layout.model3_teamAFouls} color={teamAColor} className={cn(flashA && "animate-flash")} text={teamAFouls.toString()} />
+        <DynamicElement style={layout.model3_teamAFouls} color={teamAColor} className={cn(flashA && "animate-flash")} text={teamAFouls.toString()} isVisible={layout.model3_teamAFouls.visible} />
         
         {/* Row 2: Team B, Score B, Foul B */}
-        <DynamicElement style={layout.model3_teamBName} color={teamBColor} text={teamBName} />
-        <DynamicElement style={layout.model3_teamBScore} color="#1F2937">
+        <DynamicElement style={layout.model3_teamBName} color={teamBColor} text={teamBName} isVisible={layout.model3_teamBName.visible} />
+        <DynamicElement style={layout.model3_teamBScore} color="#1F2937" isVisible={layout.model3_teamBScore.visible}>
           <AnimatedNumber value={teamBScore} />
         </DynamicElement>
-        <DynamicElement style={layout.model3_teamBFouls} color={teamBColor} className={cn(flashB && "animate-flash")} text={teamBFouls.toString()} />
+        <DynamicElement style={layout.model3_teamBFouls} color={teamBColor} className={cn(flashB && "animate-flash")} text={teamBFouls.toString()} isVisible={layout.model3_teamBFouls.visible} />
         
         {/* Row 3: Half, Timer */}
-        <DynamicElement style={layout.model3_half} color="#1F2937" text={getShortHalf(half)} />
-        <DynamicElement style={layout.model3_time} color="#374151" text={formatTime(time)} />
+        <DynamicElement style={layout.model3_half} color="#1F2937" text={getShortHalf(half)} isVisible={layout.model3_half.visible} />
+        <DynamicElement style={layout.model3_time} color="#374151" text={formatTime(time)} isVisible={layout.model3_time.visible} />
     </div>
   );
 };

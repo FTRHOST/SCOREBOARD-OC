@@ -70,7 +70,7 @@ const Scoreboard2 = () => {
     }
   }, [scoreboard?.teamBFouls, prevFoulsB]);
   
-  if (loading || !scoreboard) {
+  if (loading || !scoreboard || !scoreboard.layout) {
     return (
       <div className="w-[1048px] h-[291px] flex items-center justify-center text-white font-display bg-black/20">
          <OsisCupLogo className="w-32 h-32 text-white/50 animate-pulse" />
@@ -101,31 +101,31 @@ const Scoreboard2 = () => {
         <div className={cn(flashB && "animate-flash")} style={{ position: 'absolute', left: `${layout.model2_teamBFouls.x}px`, top: `${layout.model2_teamBFouls.y}px`, width: `${layout.model2_teamBFouls.width}px`, height: `${layout.model2_teamBFouls.height}px`, backgroundColor: teamBColor || '#EF7438'}}/>
 
         {/* Konten Teks */}
-        <DynamicElement style={layout.model2_teamAName} text={teamAName} />
-        <DynamicElement style={layout.model2_teamBName} text={teamBName} />
+        <DynamicElement style={layout.model2_teamAName} text={teamAName} isVisible={layout.model2_teamAName.visible} />
+        <DynamicElement style={layout.model2_teamBName} text={teamBName} isVisible={layout.model2_teamBName.visible} />
         
         {/* Skor */}
-        <DynamicElement style={layout.model2_teamAScore}>
+        <DynamicElement style={layout.model2_teamAScore} isVisible={layout.model2_teamAScore.visible}>
              <AnimatedNumber value={teamAScore} />
         </DynamicElement>
-        <DynamicElement style={layout.model2_teamBScore}>
+        <DynamicElement style={layout.model2_teamBScore} isVisible={layout.model2_teamBScore.visible}>
             <AnimatedNumber value={teamBScore} />
         </DynamicElement>
 
         {/* Pelanggaran */}
-        <DynamicElement style={layout.model2_teamAFouls}>
+        <DynamicElement style={layout.model2_teamAFouls} isVisible={layout.model2_teamAFouls.visible}>
             <AnimatedNumber value={teamAFouls} />
         </DynamicElement>
-        <DynamicElement style={layout.model2_teamBFouls}>
+        <DynamicElement style={layout.model2_teamBFouls} isVisible={layout.model2_teamBFouls.visible}>
             <AnimatedNumber value={teamBFouls} />
         </DynamicElement>
 
         {/* Waktu & Babak */}
-        <DynamicElement style={layout.model2_time} text={formatTime(time)} />
-        <DynamicElement style={layout.model2_half} text={half} />
+        <DynamicElement style={layout.model2_time} text={formatTime(time)} isVisible={layout.model2_time.visible} />
+        <DynamicElement style={layout.model2_half} text={half} isVisible={layout.model2_half.visible} />
         
         {/* Logo */}
-        <DynamicElement style={layout.model2_logo}>
+        <DynamicElement style={layout.model2_logo} isVisible={layout.model2_logo.visible}>
             {logoSrc ? (
                 <div className="relative w-full h-full">
                     <Image 
