@@ -50,7 +50,7 @@ const Scoreboard1 = () => {
       </div>
       
       {/* Skor A */}
-      <div className="left-[351px] top-[-21px] absolute text-white text-8xl font-display mt-[18px]">
+      <div className="left-[334px] top-[-21px] absolute text-white text-8xl font-display mt-[18px]">
         <AnimatedNumber value={teamAScore} />
       </div>
 

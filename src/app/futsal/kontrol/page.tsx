@@ -18,9 +18,7 @@ export default function ControllerPage() {
         </p>
       </header>
 
-      <main className="flex flex-col gap-8 items-start">
-        <Controller />
-
+      <main className="flex flex-col gap-8 items-center">
         <div className="w-full">
           <h2 className="text-2xl font-bold mb-4 text-center font-headline">Scoreboard Previews</h2>
           <p className="text-center text-muted-foreground mb-6">
@@ -44,6 +42,8 @@ export default function ControllerPage() {
             </div>
           </div>
         </div>
+
+        <Controller />
       </main>
     </div>
   );
