@@ -227,29 +227,18 @@ export function useScoreboardData() {
   }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime, database]);
 
   const resetScoreboard = useCallback(() => {
-    if (!database) return;
-    const newScoreboardState: Partial<Scoreboard> = { 
-        ...defaultScoreboard, 
-        logoSrc: scoreboard?.logoSrc || null,
-        teamAColor: scoreboard?.teamAColor || TEAM_A_COLOR,
-        teamBColor: scoreboard?.teamBColor || TEAM_B_COLOR,
-        teamAName: scoreboard?.teamAName || 'Tim A',
-        teamBName: scoreboard?.teamBName || 'Tim B',
-        colorSuggestions: scoreboard?.colorSuggestions || INITIAL_COLOR_SUGGESTIONS,
-        layout: scoreboard?.layout || defaultLayout,
-    };
-    // We only reset the data, not the layout
-    delete newScoreboardState.layout;
+    if (!database || !scoreboard) return;
     
     const resetData = {
       teamAScore: 0,
       teamBScore: 0,
       teamAFouls: 0,
       teamBFouls: 0,
-      time: newScoreboardState.initialTime,
+      time: scoreboard.initialTime,
       isRunning: false,
       half: 'Babak 1',
-    }
+      logoSrc: scoreboard.logoSrc, // Keep the existing logo
+    };
 
     update(scoreboardRef, resetData);
   }, [database, scoreboardRef, scoreboard]);
@@ -290,3 +279,5 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
+
+    
