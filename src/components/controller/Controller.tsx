@@ -11,6 +11,17 @@ import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Controller() {
   const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion } = useScoreboardData();
@@ -88,9 +99,7 @@ export default function Controller() {
   };
   
   const handleSwapTeams = () => {
-    if (window.confirm('Are you sure you want to swap the teams? This will swap names, scores, fouls, and colors.')) {
-        swapTeams();
-    }
+    swapTeams();
   };
 
   const handleAddColor = () => {
@@ -220,12 +229,44 @@ export default function Controller() {
           <div className='flex flex-col gap-2'>
             <Label>Actions</Label>
             <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSwapTeams} className="flex-1">
-                  <RefreshCw className="mr-2 h-4 w-4" /> Swap Teams
-                </Button>
-                 <Button variant="destructive" onClick={resetScoreboard}>
-                  <RotateCcw className="mr-2 h-4 w-4" /> Reset All
-                </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="flex-1">
+                    <RefreshCw className="mr-2 h-4 w-4" /> Swap Teams
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to swap teams?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will swap the names, scores, fouls, and colors between Team A and Team B.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleSwapTeams}>Confirm Swap</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive">
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset All
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to reset everything?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will reset scores, fouls, and the timer. Team names, colors, and the logo will not be changed. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={resetScoreboard}>Confirm Reset</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
         </div>
@@ -262,3 +303,5 @@ export default function Controller() {
     </Card>
   );
 }
+
+    

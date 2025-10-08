@@ -150,18 +150,16 @@ export function useScoreboardData() {
 
   const resetScoreboard = useCallback(() => {
     if (!database) return;
-    if (window.confirm('Are you sure you want to reset all scoreboard data (scores, time, etc.)? The logo and team data will not be changed.')) {
-        const newScoreboardState = { 
-            ...defaultScoreboard, 
-            logoSrc: scoreboard?.logoSrc || null,
-            teamAColor: scoreboard?.teamAColor || TEAM_A_COLOR,
-            teamBColor: scoreboard?.teamBColor || TEAM_B_COLOR,
-            teamAName: scoreboard?.teamAName || 'Tim A',
-            teamBName: scoreboard?.teamBName || 'Tim B',
-            colorSuggestions: scoreboard?.colorSuggestions || INITIAL_COLOR_SUGGESTIONS,
-        };
-        set(scoreboardRef, newScoreboardState);
-    }
+    const newScoreboardState = { 
+        ...defaultScoreboard, 
+        logoSrc: scoreboard?.logoSrc || null,
+        teamAColor: scoreboard?.teamAColor || TEAM_A_COLOR,
+        teamBColor: scoreboard?.teamBColor || TEAM_B_COLOR,
+        teamAName: scoreboard?.teamAName || 'Tim A',
+        teamBName: scoreboard?.teamBName || 'Tim B',
+        colorSuggestions: scoreboard?.colorSuggestions || INITIAL_COLOR_SUGGESTIONS,
+    };
+    set(scoreboardRef, newScoreboardState);
   }, [database, scoreboardRef, scoreboard]);
 
   const swapTeams = useCallback(() => {
@@ -200,3 +198,5 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
+
+    
