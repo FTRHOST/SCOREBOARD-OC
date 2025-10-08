@@ -50,12 +50,12 @@ const Scoreboard1 = () => {
       </div>
       
       {/* Skor A */}
-      <div className="left-[334px] top-[20px] absolute text-white text-8xl font-display">
+      <div className="left-[320px] top-[41px] absolute text-white text-8xl font-display h-[105px] w-[85px] flex justify-center items-center">
         <AnimatedNumber value={teamAScore} />
       </div>
 
       {/* Skor B */}
-      <div className="left-[652px] top-[20px] absolute text-white text-8xl font-display">
+       <div className="right-[320px] top-[41px] absolute text-white text-8xl font-display h-[105px] w-[85px] flex justify-center items-center">
         <AnimatedNumber value={teamBScore} />
       </div>
 
