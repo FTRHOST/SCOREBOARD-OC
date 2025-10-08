@@ -16,10 +16,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
+  const [zoomLevel, setZoomLevel] = useState(100);
 
   const renderScoreboard = () => {
     switch (selectedScoreboard) {
@@ -61,7 +64,7 @@ export default function ControllerPage() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <div className="w-full max-w-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
               <Select value={selectedScoreboard} onValueChange={setSelectedScoreboard}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a scoreboard model" />
@@ -72,18 +75,39 @@ export default function ControllerPage() {
                   <SelectItem value="3">Scoreboard Model 3</SelectItem>
                 </SelectContent>
               </Select>
+
+               <div className="flex flex-col gap-2">
+                  <Label htmlFor="zoom-slider" className="text-sm font-medium">
+                    Zoom Control
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <ZoomOut />
+                    <Slider
+                      id="zoom-slider"
+                      min={10}
+                      max={150}
+                      step={5}
+                      value={[zoomLevel]}
+                      onValueChange={(value) => setZoomLevel(value[0])}
+                    />
+                    <ZoomIn />
+                    <span className="text-sm font-medium w-16 text-center">{zoomLevel}%</span>
+                    <Button variant="outline" size="icon" onClick={() => setZoomLevel(100)} className="h-8 w-8">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+              </div>
             </div>
 
             <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
-                <div 
-                  className="w-full h-full [&>div]:origin-top-left"
-                  style={{
-                    transform: `scale(calc(100% / var(--native-width, 1048px)))`,
-                    '--native-width': selectedScoreboard === '1' ? '1048px' : selectedScoreboard === '2' ? '672px' : '448px'
-                  } as React.CSSProperties}
-                >
-                    {renderScoreboard()}
-                </div>
+              <div 
+                className="transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `scale(${zoomLevel / 100})`,
+                }}
+              >
+                  {renderScoreboard()}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -93,3 +117,4 @@ export default function ControllerPage() {
     </div>
   );
 }
+
