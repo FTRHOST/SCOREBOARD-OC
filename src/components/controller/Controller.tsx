@@ -216,7 +216,7 @@ export default function Controller() {
             <Separator />
             <div className='flex flex-col gap-2'>
               <Label>Actions</Label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" className="flex-1">
@@ -238,7 +238,7 @@ export default function Controller() {
                 </AlertDialog>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive">
+                    <Button variant="destructive" className="flex-1">
                       <RotateCcw className="mr-2 h-4 w-4" /> Reset All
                     </Button>
                   </AlertDialogTrigger>
@@ -291,3 +291,5 @@ export default function Controller() {
     </Card>
   );
 }
+
+    
