@@ -121,7 +121,7 @@ export default function Controller() {
               className="w-24"
               placeholder="#RRGGBB"
             />
-            <Button onClick={() => onColorChange(customColor)} size="sm">Set</Button>
+            <Button onClick={() => addColorSuggestion(customColor)} size="sm">Set</Button>
           </div>
         </PopoverContent>
       </Popover>
@@ -156,7 +156,7 @@ export default function Controller() {
                 </Button>
             </div>
           ))}
-          <CustomColorPopover onColorChange={(newColor) => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', newColor)} />
+          <CustomColorPopover onColorChange={(newColor) => addColorSuggestion(newColor)} />
         </div>
       </div>
   );
@@ -168,10 +168,10 @@ export default function Controller() {
           Master Controller
         </CardTitle>
       </CardHeader>
-      <CardContent className="md:grid md:grid-cols-3 md:gap-6">
-        <div className="flex gap-6 pb-4 md:pb-0 md:grid md:grid-cols-3 w-full overflow-x-auto md:overflow-visible">
+      <CardContent className="p-0 md:p-6">
+        <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
           {/* Team A Controls */}
-          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+          <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center" style={{ color: teamAColor }}>Team A</h3>
             <div className="space-y-2">
               <Label htmlFor="teamAName">Team Name</Label>
@@ -199,7 +199,7 @@ export default function Controller() {
           </div>
 
           {/* General Controls */}
-          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+          <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center">Match Controls</h3>
             <div className="space-y-2">
               <Label htmlFor="timerSet">Set Timer (minutes)</Label>
@@ -282,7 +282,7 @@ export default function Controller() {
           </div>
 
           {/* Team B Controls */}
-          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+          <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center" style={{ color: teamBColor }}>Team B</h3>
             <div className="space-y-2">
               <Label htmlFor="teamBName">Team Name</Label>
