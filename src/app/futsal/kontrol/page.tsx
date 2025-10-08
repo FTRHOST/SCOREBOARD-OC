@@ -16,10 +16,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RefreshCw } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
 
 export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const renderScoreboard = () => {
     switch (selectedScoreboard) {
@@ -61,7 +64,7 @@ export default function ControllerPage() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            <div className="w-full max-w-xs">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
                 <Select value={selectedScoreboard} onValueChange={setSelectedScoreboard}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a scoreboard model" />
@@ -72,10 +75,27 @@ export default function ControllerPage() {
                     <SelectItem value="3">Scoreboard Model 3</SelectItem>
                   </SelectContent>
                 </Select>
+                <div className="flex items-center gap-2">
+                  <ZoomOut className="h-5 w-5" />
+                  <Slider
+                    value={[zoomLevel]}
+                    onValueChange={(value) => setZoomLevel(value[0])}
+                    min={0.5}
+                    max={1.5}
+                    step={0.1}
+                  />
+                  <ZoomIn className="h-5 w-5" />
+                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setZoomLevel(1)}>
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                </div>
             </div>
 
-            <div className="w-full p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-x-auto min-h-[250px]">
-                <div className="transform scale-90 sm:scale-100">
+            <div className="w-full p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-auto min-h-[300px]">
+                <div 
+                  className="transform transition-transform duration-300"
+                  style={{ scale: zoomLevel }}
+                >
                     {renderScoreboard()}
                 </div>
             </div>
@@ -87,3 +107,5 @@ export default function ControllerPage() {
     </div>
   );
 }
+
+    
