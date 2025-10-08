@@ -24,13 +24,13 @@ export default function ControllerPage() {
   const renderScoreboard = () => {
     switch (selectedScoreboard) {
       case "1":
-        return <div className="w-[1048px] aspect-[1048/227]"><Scoreboard1 /></div>;
+        return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
       case "2":
-        return <div className="w-[672px] aspect-[672/356]"><Scoreboard2 /></div>;
+        return <div className="w-[672px] h-[356px]"><Scoreboard2 /></div>;
       case "3":
-        return <div className="w-[448px] aspect-[448/154]"><Scoreboard3 /></div>;
+        return <div className="w-[448px] h-[154px]"><Scoreboard3 /></div>;
       default:
-        return <div className="w-[1048px] aspect-[1048/227]"><Scoreboard1 /></div>;
+        return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
     }
   };
 
@@ -74,18 +74,15 @@ export default function ControllerPage() {
               </Select>
             </div>
 
-            <div className="w-full p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
-                <div className="w-full h-full">
-                  <div 
-                    className="w-full h-full [&>div]:origin-top-left [&>div]:scale-[--scale-factor]"
-                    style={{
-                      // Calculate the scale factor to fit the child into the container
-                      '--scale-factor': 'min(1, 100% / var(--native-width, 1048px))',
-                      '--native-width': selectedScoreboard === '1' ? '1048px' : selectedScoreboard === '2' ? '672px' : '448px'
-                    } as React.CSSProperties}
-                  >
-                      {renderScoreboard()}
-                  </div>
+            <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
+                <div 
+                  className="w-full h-full [&>div]:origin-top-left"
+                  style={{
+                    transform: `scale(min(1, calc(100% / var(--native-width, 1048px))))`,
+                    '--native-width': selectedScoreboard === '1' ? '1048px' : selectedScoreboard === '2' ? '672px' : '448px'
+                  } as React.CSSProperties}
+                >
+                    {renderScoreboard()}
                 </div>
             </div>
           </CardContent>
