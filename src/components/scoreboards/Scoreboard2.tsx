@@ -32,65 +32,83 @@ const Scoreboard2 = () => {
   
   if (loading) {
     return (
-      <div className="bg-green-500 p-4 rounded-lg w-full h-full font-display text-white shadow-2xl flex items-center justify-center">
+      <div className="w-[1048px] h-[288px] flex items-center justify-center text-white font-display bg-black/20">
          <OsisCupLogo className="w-32 h-32 text-white/50 animate-pulse" />
       </div>
     );
   }
   
+  if (!scoreboard) {
+      return (
+          <div className="w-[1048px] h-[288px] flex items-center justify-center text-white font-display bg-black/20">
+              Scoreboard data not available.
+          </div>
+      );
+  }
+
   const { teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
   const formatTime = (seconds: number) => {
+    if (isNaN(seconds)) return "00:00";
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
 
   return (
-    <div className="bg-green-500 p-4 rounded-lg w-full h-full font-display text-white shadow-2xl flex flex-col justify-center">
-      <div className="relative w-full h-auto flex flex-col items-center justify-center space-y-3">
-        {/* Background Logo */}
-        <div className="absolute inset-0 m-auto w-32 h-32 text-white/10">
-          {logoSrc ? (
-            <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" className="opacity-10" />
-          ) : (
-            <OsisCupLogo className="w-full h-full" />
-          )}
+    <div className="w-[1048px] h-[288px] relative font-display text-white">
+        {/* Latar Tengah */}
+        <div className="w-[408px] h-[112px] left-[320px] top-[41px] absolute bg-[#05183B]" />
+        <div className="w-[233px] h-[80px] left-[407px] top-[153px] absolute bg-[#05183B]" />
+        <div className="w-[233px] h-12 left-[407px] top-[243px] absolute bg-[#05183B]" />
+        
+        {/* Latar Tim A */}
+        <div className="w-80 h-[112px] left-0 top-[41px] absolute" style={{backgroundColor: teamAColor || '#B62FCE'}} />
+        <div className={cn("w-16 h-20 left-[320px] top-[153px] absolute", flashA && "animate-flash")} style={{backgroundColor: teamAColor || '#B62FCE'}}/>
+        
+        {/* Latar Tim B */}
+        <div className="w-80 h-[112px] left-[728px] top-[41px] absolute" style={{backgroundColor: teamBColor || '#EF7438'}} />
+        <div className={cn("w-16 h-20 left-[656px] top-[153px] absolute", flashB && "animate-flash")} style={{backgroundColor: teamBColor || '#EF7438'}} />
+
+        {/* Teks Tim */}
+        <div className="w-80 h-24 left-0 top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">{teamAName}</div>
+        <div className="w-80 h-24 left-[728px] top-[41px] absolute flex items-center justify-center text-white text-7xl text-center truncate px-2">{teamBName}</div>
+
+        {/* Skor */}
+        <div className="left-[351px] top-[19px] absolute text-center text-white text-8xl">
+            <AnimatedNumber value={teamAScore} />
+        </div>
+        <div className="left-[627px] top-[19px] absolute text-center text-white text-8xl">
+            <AnimatedNumber value={teamBScore} />
+        </div>
+        
+        {/* Pelanggaran */}
+        <div className="left-[328px] top-[132px] absolute text-center text-white text-7xl">
+            <AnimatedNumber value={teamAFouls} />
+        </div>
+        <div className="left-[673px] top-[129px] absolute text-center text-white text-7xl">
+            <AnimatedNumber value={teamBFouls} />
         </div>
 
-        {/* Top Row: Team Names and Scores */}
-        <div className="relative z-10 w-full flex items-center justify-between">
-          <div className="w-[30%] h-24 flex items-center justify-center rounded-md" style={{ backgroundColor: teamAColor }}>
-            <span className="text-4xl lg:text-5xl truncate px-2">{teamAName}</span>
-          </div>
-          <div className="w-[38%] h-24 flex items-center justify-center bg-gray-900/70 rounded-md">
-            <AnimatedNumber value={teamAScore} className="text-6xl lg:text-7xl w-1/2 text-center" />
-            <span className="text-6xl lg:text-7xl">:</span>
-            <AnimatedNumber value={teamBScore} className="text-6xl lg:text-7xl w-1/2 text-center" />
-          </div>
-          <div className="w-[30%] h-24 flex items-center justify-center rounded-md" style={{ backgroundColor: teamBColor }}>
-            <span className="text-4xl lg:text-5xl truncate px-2">{teamBName}</span>
-          </div>
+        {/* Waktu & Babak */}
+        <div className="w-[233px] h-[80px] left-[407px] top-[153px] absolute flex items-center justify-center text-white text-6xl">{formatTime(time)}</div>
+        <div className="w-[233px] h-12 left-[407px] top-[243px] absolute flex items-center justify-center text-white text-4xl">{half}</div>
+        
+        {/* Logo */}
+        <div className="w-[238px] h-[188px] left-[405px] top-0 absolute flex items-center justify-center">
+            {logoSrc ? (
+                <div className="relative w-full h-full">
+                    <Image 
+                        src={logoSrc} 
+                        alt="Uploaded Logo" 
+                        fill
+                        style={{objectFit: "contain"}}
+                    />
+                </div>
+            ) : (
+                <OsisCupLogo className="w-full h-full text-white" />
+            )}
         </div>
-
-        {/* Middle Row: Fouls and Timer */}
-        <div className="relative z-10 w-full flex items-center justify-between">
-          <div className={cn("w-16 h-20 flex items-center justify-center rounded-md", flashA && "animate-flash")} style={{ backgroundColor: teamAColor }}>
-            <span className="text-5xl">{teamAFouls}</span>
-          </div>
-          <div className="w-56 h-20 flex items-center justify-center bg-gray-900/70 rounded-md text-5xl">
-            {formatTime(time)}
-          </div>
-          <div className={cn("w-16 h-20 flex items-center justify-center rounded-md", flashB && "animate-flash")} style={{ backgroundColor: teamBColor }}>
-            <span className="text-5xl">{teamBFouls}</span>
-          </div>
-        </div>
-
-        {/* Bottom Row: Half */}
-        <div className="relative z-10 px-8 py-2 bg-gray-900/70 rounded-md">
-          <span className="text-2xl">{half}</span>
-        </div>
-      </div>
     </div>
   );
 };
