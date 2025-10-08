@@ -24,7 +24,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export default function Controller() {
-  const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion } = useScoreboardData();
+  const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, deleteColorSuggestion } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
 
@@ -214,7 +214,7 @@ export default function Controller() {
             <Separator />
             <div className='flex flex-col gap-2'>
               <Label>Actions</Label>
-              <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <div className="flex flex-wrap gap-2 w-full">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" className="flex-1">
@@ -289,5 +289,3 @@ export default function Controller() {
     </Card>
   );
 }
-
-    
