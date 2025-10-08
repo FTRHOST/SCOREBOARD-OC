@@ -28,7 +28,6 @@ export default function Controller() {
   const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
-  const [newColorSuggestion, setNewColorSuggestion] = useState('');
 
   if (loading) {
     return <div>Loading Controller...</div>;
@@ -102,19 +101,6 @@ export default function Controller() {
   const handleSwapTeams = () => {
     swapTeams();
   };
-
-  const handleAddColor = () => {
-    if (newColorSuggestion) {
-        addColorSuggestion(newColorSuggestion);
-        setNewColorSuggestion('');
-    } else {
-      toast({
-        title: "Invalid Color",
-        description: "Please enter a valid color code.",
-        variant: "destructive",
-      });
-    }
-  };
   
   const CustomColorPopover = ({ onColorChange }: { onColorChange: (newColor: string) => void }) => {
     const [customColor, setCustomColor] = useState('#FFFFFF');
@@ -182,144 +168,146 @@ export default function Controller() {
           Master Controller
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Team A Controls */}
-        <div className="flex flex-col gap-4 p-4 rounded-lg border bg-card">
-          <h3 className="font-bold text-lg text-center" style={{ color: teamAColor }}>Team A</h3>
-          <div className="space-y-2">
-            <Label htmlFor="teamAName">Team Name</Label>
-            <Input id="teamAName" value={teamAName || ''} onChange={(e) => handleUpdate('teamAName', e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Score</Label>
-            <div className="flex items-center gap-2">
-              <Button size="icon" onClick={() => updateScore('A', -1)} variant="outline"><Minus /></Button>
-              <Input value={teamAScore} className="text-center font-bold" readOnly />
-              <Button size="icon" onClick={() => updateScore('A', 1)}><Plus /></Button>
+      <CardContent className="md:grid md:grid-cols-3 md:gap-6">
+        <div className="flex gap-6 pb-4 md:pb-0 md:grid md:grid-cols-3 w-full overflow-x-auto md:overflow-visible">
+          {/* Team A Controls */}
+          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+            <h3 className="font-bold text-lg text-center" style={{ color: teamAColor }}>Team A</h3>
+            <div className="space-y-2">
+              <Label htmlFor="teamAName">Team Name</Label>
+              <Input id="teamAName" value={teamAName || ''} onChange={(e) => handleUpdate('teamAName', e.target.value)} />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Fouls</Label>
-            <div className="flex items-center gap-2">
-              <Button size="icon" variant="outline" onClick={() => updateFouls('A', -1)}><Minus /></Button>
-              <Input value={teamAFouls} className="text-center font-bold w-12" readOnly />
-              <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
-              <div className="flex-grow" />
-              <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
+            <div className="space-y-2">
+              <Label>Score</Label>
+              <div className="flex items-center gap-2">
+                <Button size="icon" onClick={() => updateScore('A', -1)} variant="outline"><Minus /></Button>
+                <Input value={teamAScore} className="text-center font-bold" readOnly />
+                <Button size="icon" onClick={() => updateScore('A', 1)}><Plus /></Button>
+              </div>
             </div>
+            <div className="space-y-2">
+              <Label>Fouls</Label>
+              <div className="flex items-center gap-2">
+                <Button size="icon" variant="outline" onClick={() => updateFouls('A', -1)}><Minus /></Button>
+                <Input value={teamAFouls} className="text-center font-bold w-12" readOnly />
+                <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
+                <div className="flex-grow" />
+                <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
+              </div>
+            </div>
+            <ColorControls team="A" />
           </div>
-          <ColorControls team="A" />
-        </div>
 
-        {/* General Controls */}
-        <div className="flex flex-col gap-4 p-4 rounded-lg border bg-card">
-          <h3 className="font-bold text-lg text-center">Match Controls</h3>
-          <div className="space-y-2">
-            <Label htmlFor="timerSet">Set Timer (minutes)</Label>
-            <div className="flex gap-2">
-              <Input id="timerSet" type="number" value={timeInput} onChange={(e) => setTimeInput(e.target.value)} placeholder="e.g., 20" />
-              <Button onClick={handleTimeSet}>Set</Button>
+          {/* General Controls */}
+          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+            <h3 className="font-bold text-lg text-center">Match Controls</h3>
+            <div className="space-y-2">
+              <Label htmlFor="timerSet">Set Timer (minutes)</Label>
+              <div className="flex gap-2">
+                <Input id="timerSet" type="number" value={timeInput} onChange={(e) => setTimeInput(e.target.value)} placeholder="e.g., 20" />
+                <Button onClick={handleTimeSet}>Set</Button>
+              </div>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Timer</Label>
-            <div className="flex gap-2">
-              {isRunning ? (
-                <Button className="flex-1" variant="destructive" onClick={() => handleUpdate('isRunning', false)}><Pause className="mr-2" /> Pause</Button>
-              ) : (
-                <Button className="flex-1" onClick={() => handleUpdate('isRunning', true)}><Play className="mr-2" /> Start</Button>
+            <div className="space-y-2">
+              <Label>Timer</Label>
+              <div className="flex gap-2">
+                {isRunning ? (
+                  <Button className="flex-1" variant="destructive" onClick={() => handleUpdate('isRunning', false)}><Pause className="mr-2" /> Pause</Button>
+                ) : (
+                  <Button className="flex-1" onClick={() => handleUpdate('isRunning', true)}><Play className="mr-2" /> Start</Button>
+                )}
+                <Button size="icon" variant="outline" onClick={resetTimer}><RotateCcw /></Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="halfSet">Set Half Text</Label>
+              <div className="flex gap-2">
+                <Input id="halfSet" value={half} onChange={(e) => handleUpdate('half', e.target.value)} placeholder="e.g., Babak 1" />
+              </div>
+            </div>
+            <Separator />
+            <div className="space-y-2">
+              <Label htmlFor="logoUpload">Upload Logo</Label>
+              <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+              {logoSrc && (
+                  <Button variant="outline" size="sm" onClick={() => handleUpdate('logoSrc', null)}>
+                      <X className="mr-2 h-4 w-4" /> Remove Logo
+                  </Button>
               )}
-              <Button size="icon" variant="outline" onClick={resetTimer}><RotateCcw /></Button>
+            </div>
+            <Separator />
+            <div className='flex flex-col gap-2'>
+              <Label>Actions</Label>
+              <div className="flex gap-2">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="flex-1">
+                      <RefreshCw className="mr-2 h-4 w-4" /> Swap Teams
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to swap teams?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will swap the names, scores, fouls, and colors between Team A and Team B.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleSwapTeams}>Confirm Swap</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <RotateCcw className="mr-2 h-4 w-4" /> Reset All
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure you want to reset everything?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will reset scores, fouls, and the timer. Team names, colors, and the logo will not be changed. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={resetScoreboard}>Confirm Reset</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           </div>
-           <div className="space-y-2">
-            <Label htmlFor="halfSet">Set Half Text</Label>
-            <div className="flex gap-2">
-              <Input id="halfSet" value={half} onChange={(e) => handleUpdate('half', e.target.value)} placeholder="e.g., Babak 1" />
-            </div>
-          </div>
-          <Separator />
-           <div className="space-y-2">
-            <Label htmlFor="logoUpload">Upload Logo</Label>
-            <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
-            {logoSrc && (
-                <Button variant="outline" size="sm" onClick={() => handleUpdate('logoSrc', null)}>
-                    <X className="mr-2 h-4 w-4" /> Remove Logo
-                </Button>
-            )}
-          </div>
-          <Separator />
-          <div className='flex flex-col gap-2'>
-            <Label>Actions</Label>
-            <div className="flex gap-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" className="flex-1">
-                    <RefreshCw className="mr-2 h-4 w-4" /> Swap Teams
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to swap teams?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will swap the names, scores, fouls, and colors between Team A and Team B.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleSwapTeams}>Confirm Swap</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive">
-                    <RotateCcw className="mr-2 h-4 w-4" /> Reset All
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure you want to reset everything?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will reset scores, fouls, and the timer. Team names, colors, and the logo will not be changed. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={resetScoreboard}>Confirm Reset</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </div>
-        </div>
 
-        {/* Team B Controls */}
-        <div className="flex flex-col gap-4 p-4 rounded-lg border bg-card">
-          <h3 className="font-bold text-lg text-center" style={{ color: teamBColor }}>Team B</h3>
-          <div className="space-y-2">
-            <Label htmlFor="teamBName">Team Name</Label>
-            <Input id="teamBName" value={teamBName || ''} onChange={(e) => handleUpdate('teamBName', e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label>Score</Label>
-            <div className="flex items-center gap-2">
-              <Button size="icon" onClick={() => updateScore('B', -1)} variant="outline"><Minus /></Button>
-              <Input value={teamBScore} className="text-center font-bold" readOnly />
-              <Button size="icon" onClick={() => updateScore('B', 1)}><Plus /></Button>
+          {/* Team B Controls */}
+          <div className="flex-shrink-0 w-full min-w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+            <h3 className="font-bold text-lg text-center" style={{ color: teamBColor }}>Team B</h3>
+            <div className="space-y-2">
+              <Label htmlFor="teamBName">Team Name</Label>
+              <Input id="teamBName" value={teamBName || ''} onChange={(e) => handleUpdate('teamBName', e.target.value)} />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Fouls</Label>
-            <div className="flex items-center gap-2">
-              <Button size="icon" variant="outline" onClick={() => updateFouls('B', -1)}><Minus /></Button>
-              <Input value={teamBFouls} className="text-center font-bold w-12" readOnly />
-              <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
-              <div className="flex-grow" />
-              <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
+            <div className="space-y-2">
+              <Label>Score</Label>
+              <div className="flex items-center gap-2">
+                <Button size="icon" onClick={() => updateScore('B', -1)} variant="outline"><Minus /></Button>
+                <Input value={teamBScore} className="text-center font-bold" readOnly />
+                <Button size="icon" onClick={() => updateScore('B', 1)}><Plus /></Button>
+              </div>
             </div>
+            <div className="space-y-2">
+              <Label>Fouls</Label>
+              <div className="flex items-center gap-2">
+                <Button size="icon" variant="outline" onClick={() => updateFouls('B', -1)}><Minus /></Button>
+                <Input value={teamBFouls} className="text-center font-bold w-12" readOnly />
+                <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
+                <div className="flex-grow" />
+                <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
+              </div>
+            </div>
+            <ColorControls team="B" />
           </div>
-           <ColorControls team="B" />
         </div>
       </CardContent>
     </Card>
