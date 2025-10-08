@@ -6,9 +6,11 @@ import { useDatabase } from '@/firebase';
 import { ref, onValue, update, set } from 'firebase/database';
 
 const SCOREBOARD_PATH = 'scoreboard';
-const TEAM_A_COLOR = '#b72fce';
-const TEAM_B_COLOR = '#ef7438';
+const TEAM_A_COLOR = '#B72FCE';
+const TEAM_B_COLOR = '#EF7438';
 const INITIAL_TIME_SECONDS = 20 * 60;
+const INITIAL_COLOR_SUGGESTIONS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FFFFFF', '#000000'];
+
 
 export interface Scoreboard {
   teamAName: string;
@@ -26,6 +28,7 @@ export interface Scoreboard {
   logoSrc: string | null;
   startTime: number; 
   pauseTime: number;
+  colorSuggestions: string[];
 }
 
 const defaultScoreboard: Scoreboard = {
@@ -44,6 +47,7 @@ const defaultScoreboard: Scoreboard = {
   logoSrc: null,
   startTime: 0,
   pauseTime: INITIAL_TIME_SECONDS,
+  colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
 };
 
 export function useScoreboardData() {
@@ -51,8 +55,8 @@ export function useScoreboardData() {
   const [scoreboard, setScoreboard] = useState<Scoreboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [, setTick] = useState(0); // State to force re-render every second for timer display
-
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
   const scoreboardRef = ref(database, SCOREBOARD_PATH);
 
   // This effect subscribes to RTDB changes
@@ -61,7 +65,12 @@ export function useScoreboardData() {
 
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
       if (snapshot.exists()) {
-        setScoreboard(snapshot.val());
+        const data = snapshot.val();
+        // Ensure colorSuggestions is always an array
+        if (!data.colorSuggestions) {
+          data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
+        }
+        setScoreboard(data);
       } else {
         set(scoreboardRef, defaultScoreboard); // Initialize if not present
         setScoreboard(defaultScoreboard);
@@ -76,32 +85,6 @@ export function useScoreboardData() {
     return () => unsubscribe();
   }, [database]);
   
-  // This effect runs the VISUAL timer on the client side based on server data
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (scoreboard?.isRunning) {
-      interval = setInterval(() => {
-        // This just forces a re-render to update the displayed time
-        setTick(tick => tick + 1); 
-      }, 1000);
-    }
-    
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [scoreboard?.isRunning]);
-  
-  const getDisplayTime = () => {
-    if (!scoreboard) return INITIAL_TIME_SECONDS;
-    if (scoreboard.isRunning) {
-        const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
-        return Math.max(0, scoreboard.pauseTime - elapsed);
-    }
-    return scoreboard.time;
-  }
-
   const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {
     if (!database || !scoreboard) return;
     
@@ -131,9 +114,43 @@ export function useScoreboardData() {
     await update(scoreboardRef, updateData);
   }, [database, scoreboard, scoreboardRef]);
 
+  // This effect runs the VISUAL timer on the client side based on server data
+  useEffect(() => {
+    // Clear any existing timer
+    if (timerRef.current) {
+        clearInterval(timerRef.current);
+    }
+    
+    // If the timer should be running, set up an interval to update the server time
+    if (scoreboard?.isRunning) {
+        timerRef.current = setInterval(() => {
+            if (scoreboard) { // Check again inside interval
+                const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
+                const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
+                // Directly update the time in the database. 
+                // This will trigger the onValue listener on all clients.
+                update(ref(database, `${SCOREBOARD_PATH}/time`), newTime);
+                
+                if (newTime === 0) {
+                  // Automatically stop the timer when it hits zero
+                  update(ref(database, SCOREBOARD_PATH), { isRunning: false });
+                }
+            }
+        }, 1000);
+    }
+
+    // Cleanup function to clear the interval
+    return () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+        }
+    };
+    // Re-run this effect ONLY when isRunning, startTime or pauseTime changes
+  }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime, database]);
+
   const resetScoreboard = useCallback(() => {
     if (!database) return;
-    if (window.confirm('Are you sure you want to reset all scoreboard data (scores, time, etc.)? The logo will not be changed.')) {
+    if (window.confirm('Are you sure you want to reset all scoreboard data (scores, time, etc.)? The logo and team data will not be changed.')) {
         const newScoreboardState = { 
             ...defaultScoreboard, 
             logoSrc: scoreboard?.logoSrc || null,
@@ -141,6 +158,7 @@ export function useScoreboardData() {
             teamBColor: scoreboard?.teamBColor || TEAM_B_COLOR,
             teamAName: scoreboard?.teamAName || 'Tim A',
             teamBName: scoreboard?.teamBName || 'Tim B',
+            colorSuggestions: scoreboard?.colorSuggestions || INITIAL_COLOR_SUGGESTIONS,
         };
         set(scoreboardRef, newScoreboardState);
     }
@@ -163,12 +181,22 @@ export function useScoreboardData() {
     update(scoreboardRef, swappedData);
   }, [database, scoreboard, scoreboardRef]);
 
-  // Create a proxy/derived scoreboard object that shows the calculated time
-  const displayScoreboard = scoreboard ? {
-      ...scoreboard,
-      time: getDisplayTime()
-  } : null;
+  const addColorSuggestion = useCallback((color: string) => {
+    if (!database || !scoreboard) return;
+    const currentSuggestions = scoreboard.colorSuggestions || [];
+    if (!currentSuggestions.includes(color)) {
+      const newSuggestions = [...currentSuggestions, color];
+      update(ref(database, SCOREBOARD_PATH), { colorSuggestions: newSuggestions });
+    }
+  }, [database, scoreboard]);
+
+  const deleteColorSuggestion = useCallback((colorToDelete: string) => {
+    if (!database || !scoreboard) return;
+    const currentSuggestions = scoreboard.colorSuggestions || [];
+    const newSuggestions = currentSuggestions.filter(color => color !== colorToDelete);
+    update(ref(database, SCOREBOARD_PATH), { colorSuggestions: newSuggestions });
+  }, [database, scoreboard]);
 
 
-  return { scoreboard: displayScoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams };
+  return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }

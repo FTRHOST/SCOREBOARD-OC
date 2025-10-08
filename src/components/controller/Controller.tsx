@@ -10,12 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, Play, Pause, RotateCcw, Zap, Trash2, X, Palette, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function Controller() {
-  const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams } = useScoreboardData();
+  const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion } = useScoreboardData();
   const { toast } = useToast();
   const [timeInput, setTimeInput] = useState('20');
-  const [halfInput, setHalfInput] = useState('First Half');
+  const [newColorSuggestion, setNewColorSuggestion] = useState('');
 
   if (loading) {
     return <div>Loading Controller...</div>;
@@ -26,7 +27,7 @@ export default function Controller() {
   }
 
   const {
-    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor
+    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, logoSrc, half, teamAColor, teamBColor, colorSuggestions
   } = scoreboard;
 
   const handleUpdate = (field: string, value: any) => {
@@ -92,6 +93,55 @@ export default function Controller() {
     }
   };
 
+  const handleAddColor = () => {
+    if (newColorSuggestion.match(/^#[0-9a-fA-F]{6}$/)) {
+      addColorSuggestion(newColorSuggestion);
+      setNewColorSuggestion('');
+    } else {
+      toast({
+        title: "Invalid Color",
+        description: "Please enter a valid hex color code (e.g., #RRGGBB).",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const ColorSuggestion = ({ team }: { team: 'A' | 'B' }) => (
+    <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-wrap gap-2">
+        {colorSuggestions?.map((color) => (
+          <div key={color} className="relative group">
+            <Button
+              variant="outline"
+              size="icon"
+              className="w-8 h-8"
+              style={{ backgroundColor: color }}
+              onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', color)}
+            />
+             <Button
+                variant="destructive"
+                size="icon"
+                className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={() => deleteColorSuggestion(color)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+          </div>
+        ))}
+      </div>
+       <div className="flex gap-2 items-center">
+          <Input 
+            type="text" 
+            value={newColorSuggestion} 
+            onChange={(e) => setNewColorSuggestion(e.target.value)} 
+            placeholder="#RRGGBB"
+            className="w-28"
+          />
+          <Button onClick={handleAddColor} size="sm">Add</Button>
+        </div>
+    </div>
+  );
+
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
       <CardHeader>
@@ -109,7 +159,8 @@ export default function Controller() {
           </div>
            <div className="space-y-2">
               <Label htmlFor="teamAColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <Input id="teamAColor" type="color" value={teamAColor || '#b72fce'} onChange={(e) => handleUpdate('teamAColor', e.target.value)} className="h-10 p-1" />
+              <Input id="teamAColor" type="color" value={teamAColor || '#B72FCE'} onChange={(e) => handleUpdate('teamAColor', e.target.value)} className="h-10 p-1" />
+               <ColorSuggestion team="A" />
             </div>
           <div className="space-y-2">
             <Label>Score</Label>
@@ -188,7 +239,8 @@ export default function Controller() {
           </div>
           <div className="space-y-2">
               <Label htmlFor="teamBColor" className="flex items-center gap-2"><Palette/> Team Color</Label>
-              <Input id="teamBColor" type="color" value={teamBColor || '#ef7438'} onChange={(e) => handleUpdate('teamBColor', e.target.value)} className="h-10 p-1" />
+              <Input id="teamBColor" type="color" value={teamBColor || '#EF7438'} onChange={(e) => handleUpdate('teamBColor', e.target.value)} className="h-10 p-1" />
+              <ColorSuggestion team="B" />
           </div>
           <div className="space-y-2">
             <Label>Score</Label>
@@ -210,5 +262,3 @@ export default function Controller() {
     </Card>
   );
 }
-
-    
