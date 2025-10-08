@@ -59,7 +59,7 @@ const Scoreboard1 = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-32 w-48 flex items-center justify-center z-10">
            {logoSrc ? (
             <div className="relative w-full h-full">
-              <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" style={{position: 'absolute', height: '188px', width: '238px', inset: '0px', objectFit: 'contain', color: 'transparent'}}/>
+              <Image src={logoSrc} alt="Uploaded Logo" layout="fill" objectFit="contain" style={{position: 'absolute', inset: '0px', objectFit: 'contain', color: 'transparent'}}/>
             </div>
           ) : (
             <OsisCupLogo className="w-36 h-36 text-white" />
