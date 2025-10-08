@@ -32,7 +32,7 @@ export default function AnimatedNumber({ value, className }: AnimatedNumberProps
       <div
         key={value}
         className={cn(
-          'transform-style-3d backface-hidden',
+          'transform-style-3d backface-hidden mt-[18px]',
           isAnimating && 'animate-flip'
         )}
       >
