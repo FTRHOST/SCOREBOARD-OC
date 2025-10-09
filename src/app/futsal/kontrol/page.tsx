@@ -6,7 +6,6 @@ import Controller from "@/components/controller/Controller";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
 import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
-import LayoutEditor from "@/components/controller/LayoutEditor";
 import {
   Select,
   SelectContent,
@@ -17,11 +16,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, Home } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, Settings } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
-import ConfigManager from "@/components/controller/ConfigManager";
 
 
 export default function ControllerPage() {
@@ -51,10 +49,10 @@ export default function ControllerPage() {
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
        <header className="flex justify-start items-center mb-4">
-        <Link href="/" passHref>
+        <Link href="/konfig" passHref>
             <Button variant="outline">
-                <Home className="mr-2 h-4 w-4" />
-                Home
+                <Settings className="mr-2 h-4 w-4" />
+                Konfigurasi
             </Button>
         </Link>
       </header>
@@ -124,10 +122,6 @@ export default function ControllerPage() {
 
         <Controller />
         
-        <LayoutEditor onElementSelect={setSelectedLayoutElement} />
-
-        <ConfigManager />
-
       </main>
     </div>
   );
