@@ -71,8 +71,7 @@ const Scoreboard1 = () => {
       {/* Backgrounds */}
       <BackgroundElement style={layout.model1_teamAName} color={teamAColor || '#B62FCE'} />
       <BackgroundElement style={layout.model1_teamBName} color={teamBColor || '#EF7438'} />
-      <BackgroundElement style={layout.model1_teamAScore} color={'#05183B'} />
-      <BackgroundElement style={layout.model1_teamBScore} color={'#05183B'} />
+      <BackgroundElement style={layout.model1_scoreContainer} color={'#05183B'} />
       <BackgroundElement style={layout.model1_half} color={'#05183B'} />
 
       {/* Team Names */}

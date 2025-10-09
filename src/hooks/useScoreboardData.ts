@@ -28,7 +28,8 @@ export interface ScoreboardLayout {
   model1_teamBScore: LayoutStyle;
   model1_logo: LayoutStyle;
   model1_half: LayoutStyle;
-  
+  model1_scoreContainer: LayoutStyle;
+
   // Model 2
   model2_teamAName: LayoutStyle;
   model2_teamBName: LayoutStyle;
@@ -82,7 +83,8 @@ const defaultLayout: ScoreboardLayout = {
   model1_teamBScore: { x: 643, y: 41, width: 85, height: 105, fontSize: 96, visible: true },
   model1_logo: { x: 405, y: 0, width: 238, height: 188, visible: true },
   model1_half: { x: 405, y: 179, width: 233, height: 48, fontSize: 48, visible: true },
-  
+  model1_scoreContainer: { x: 320, y: 41, width: 408, height: 105, visible: true, fontSize: 0 },
+
   // Model 2 Defaults
   model2_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 82, visible: true },
   model2_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 82, visible: true },
@@ -279,6 +281,3 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
-
-    
-    
