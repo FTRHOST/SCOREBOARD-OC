@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useDatabase } from '@/firebase';
 import { ref, onValue, update, set } from 'firebase/database';
 
 const VOLLEYBALL_PATH = 'volleyball';
-const SCOREBOARD_PATH = 'scoreboard'; // For shared data like logo
+const SCOREBOARD_PATH = 'scoreboard'; // For shared data like eventTitle
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
 const MAX_SETS = 5;
@@ -133,6 +133,7 @@ export interface VolleyballScoreboard {
   setHistory: Array<{ teamAScore: number; teamBScore: number }>;
   colorSuggestions: string[];
   layout: VolleyballLayout;
+  eventTitle: string;
 }
 
 const defaultVolleyballScoreboard: VolleyballScoreboard = {
@@ -150,6 +151,7 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
   setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultVolleyballLayout,
+  eventTitle: 'SCOREBOARD'
 };
 
 export function useVolleyballData() {
@@ -188,7 +190,7 @@ export function useVolleyballData() {
           layout: mergedLayout, 
           setHistory: newHistory,
           logoSrc: sharedData.logoSrc,
-          // We don't use eventTitle from volleyballData, futsal one is the source of truth
+          eventTitle: sharedData.eventTitle,
         };
 
         if (!data.colorSuggestions) {
@@ -214,6 +216,9 @@ export function useVolleyballData() {
         if(snapshot.exists()) {
             sharedData = snapshot.val();
             checkAndSetData();
+        } else {
+            sharedData = {};
+            checkAndSetData();
         }
     });
 
@@ -224,10 +229,11 @@ export function useVolleyballData() {
   }, [database]);
   
   
-  const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>) => {
+  const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>, isShared: boolean = false) => {
     if (!database) return;
-    const scoreboardRef = ref(database, VOLLEYBALL_PATH);
-    await update(scoreboardRef, data);
+    const path = isShared ? SCOREBOARD_PATH : VOLLEYBALL_PATH;
+    const dataRef = ref(database, path);
+    await update(dataRef, data);
   }, [database]);
 
   const updatePoints = (team: 'A' | 'B', delta: number) => {

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, RotateCcw, Palette, RefreshCw, Award, Trash2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,90 +25,42 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function VolleyballController() {
-  const props = useVolleyballData();
-  const { scoreboard, loading } = props;
+  const { scoreboard, loading, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion } = useVolleyballData();
 
-  return (
-    <Card className="w-full max-w-4xl mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center font-headline">
-          Master Kontroler Bola Voli
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 md:p-6">
-        <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
-          {loading || !scoreboard ? (
-            <>
-              <Skeleton className="h-[400px] w-full" />
-              <Skeleton className="h-[400px] w-full" />
-              <Skeleton className="h-[400px] w-full" />
-            </>
-          ) : (
-            <VolleyballControls {...props} />
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-
-const VolleyballControls = ({ 
-  scoreboard, 
-  updateScoreboard, 
-  updatePoints, 
-  updateSets, 
-  winSet, 
-  resetSet, 
-  resetMatch, 
-  swapTeams, 
-  updateSetHistoryScore, 
-  deleteColorSuggestion 
-}: any) => {
-
-  const [localSetHistory, setLocalSetHistory] = useState(() => Array(5).fill({ teamAScore: 0, teamBScore: 0 }));
-
-  useEffect(() => {
-    if (scoreboard?.setHistory) {
-      if (JSON.stringify(scoreboard.setHistory) !== JSON.stringify(localSetHistory)) {
-        setLocalSetHistory(scoreboard.setHistory);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoreboard?.setHistory]);
+  if (loading || !scoreboard) {
+    return (
+        <Card className="w-full max-w-4xl mx-auto shadow-lg">
+            <CardHeader>
+                <CardTitle className="text-2xl font-bold text-center font-headline">
+                    Master Kontroler Bola Voli
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 md:p-6">
+                <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
+                    <Skeleton className="h-[400px] w-full" />
+                    <Skeleton className="h-[400px] w-full" />
+                    <Skeleton className="h-[400px] w-full" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+  }
   
   const handleUpdate = (field: string, value: any) => {
     updateScoreboard({ [field]: value });
   };
   
-  const handleLocalHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
-    const newHistory = [...localSetHistory];
+  const handleHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
     const score = parseInt(value, 10);
     if (!isNaN(score) || value === '') {
-      const scoreValue = value === '' ? 0 : score;
-      if (team === 'A') {
-        newHistory[index] = { ...newHistory[index], teamAScore: scoreValue };
-      } else {
-        newHistory[index] = { ...newHistory[index], teamBScore: scoreValue };
-      }
-      setLocalSetHistory(newHistory);
+        const scoreValue = value === '' ? 0 : score;
+        updateSetHistoryScore(index, team, scoreValue);
     }
   };
 
-
-  const handleHistoryBlur = (index: number, team: 'A' | 'B') => {
-    const score = team === 'A' ? localSetHistory[index].teamAScore : localSetHistory[index].teamBScore;
-    updateSetHistoryScore(index, team, score);
-  };
-  
-  if (!scoreboard) {
-    return null; // The parent handles the loading state
-  }
-
-  const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions, matchTitle, eventTitle } = scoreboard;
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
-    const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
+    const [customColor, setCustomColor] = useState(team === 'A' ? scoreboard.teamAColor : scoreboard.teamBColor);
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -132,171 +84,185 @@ const VolleyballControls = ({
     );
   };
   
-  const TeamControls = ({ team, name, sets, points, color }: { team: 'A' | 'B', name: string, sets: number, points: number, color: string }) => (
-    <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
-      <h3 className="font-bold text-lg text-center" style={{ color: color }}>{team === 'A' ? 'Tim A' : 'Tim B'}</h3>
-      <div className="space-y-2">
-        <Label htmlFor={`team${team}Name`}>Nama Tim</Label>
-        <Input 
-          id={`team${team}Name`} 
-          value={name} 
-          onChange={(e) => handleUpdate(`team${team}Name`, e.target.value)}
-        />
-      </div>
+  const TeamControls = ({ team }: { team: 'A' | 'B' }) => {
+    const name = team === 'A' ? scoreboard.teamAName : scoreboard.teamBName;
+    const sets = team === 'A' ? scoreboard.teamASets : scoreboard.teamBSets;
+    const points = team === 'A' ? scoreboard.teamAPoints : scoreboard.teamBPoints;
+    const color = team === 'A' ? scoreboard.teamAColor : scoreboard.teamBColor;
 
-       <div className="space-y-2">
-          <Label>Set Dimenangkan: {sets}</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {localSetHistory.slice(0, 5).map((set: any, index: number) => (
-              <div key={index} className="space-y-1">
-                <Label htmlFor={`set${index+1}Team${team}`} className="text-xs">Set {index+1}</Label>
-                 <Input 
-                    id={`set${index+1}Team${team}`}
-                    type="number"
-                    value={team === 'A' ? (set?.teamAScore ?? 0) : (set?.teamBScore ?? 0)}
-                    onChange={(e) => handleLocalHistoryChange(index, team, e.target.value)}
-                    onBlur={() => handleHistoryBlur(index, team)}
-                    className="text-center"
-                 />
-              </div>
-            ))}
+    return (
+        <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+          <h3 className="font-bold text-lg text-center" style={{ color: color }}>{team === 'A' ? 'Tim A' : 'Tim B'}</h3>
+          <div className="space-y-2">
+            <Label htmlFor={`team${team}Name`}>Nama Tim</Label>
+            <Input 
+              id={`team${team}Name`} 
+              value={name} 
+              onChange={(e) => handleUpdate(`team${team}Name`, e.target.value)}
+            />
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label>Poin Saat Ini (Round Score)</Label>
-          <div className="flex items-center gap-2">
-            <Button size="icon" onClick={() => updatePoints(team, -1)} variant="outline"><Minus /></Button>
-            <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-center font-bold text-base">
-                {points}
+           <div className="space-y-2">
+              <Label>Set Dimenangkan: {sets}</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {scoreboard.setHistory.slice(0, 5).map((set: any, index: number) => (
+                  <div key={index} className="space-y-1">
+                    <Label htmlFor={`set${index+1}Team${team}`} className="text-xs">Set {index+1}</Label>
+                     <Input 
+                        id={`set${index+1}Team${team}`}
+                        type="number"
+                        value={team === 'A' ? (set?.teamAScore ?? 0) : (set?.teamBScore ?? 0)}
+                        onChange={(e) => handleHistoryChange(index, team, e.target.value)}
+                        className="text-center"
+                     />
+                  </div>
+                ))}
+              </div>
             </div>
-            <Button size="icon" onClick={() => updatePoints(team, 1)}><Plus /></Button>
+
+            <div className="space-y-2">
+              <Label>Poin Saat Ini (Round Score)</Label>
+              <div className="flex items-center gap-2">
+                <Button size="icon" onClick={() => updatePoints(team, -1)} variant="outline"><Minus /></Button>
+                <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-center font-bold text-base">
+                    {points}
+                </div>
+                <Button size="icon" onClick={() => updatePoints(team, 1)}><Plus /></Button>
+              </div>
+            </div>
+
+           <div className="space-y-2">
+            <Label className="flex items-center gap-2"><Palette/> Warna Tim</Label>
+            <div 
+              className="w-full h-8 rounded-md border" 
+              style={{ backgroundColor: color }}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+                {(scoreboard.colorSuggestions || []).map((c: string) => (
+                  <div key={c} className="relative group">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="w-8 h-8 rounded-full"
+                      style={{ backgroundColor: c }}
+                      onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', c)}
+                    />
+                     <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => deleteColorSuggestion && deleteColorSuggestion(c)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                  </div>
+                ))}
+                <CustomColorPopover team={team} />
+            </div>
           </div>
         </div>
-
-       <div className="space-y-2">
-        <Label className="flex items-center gap-2"><Palette/> Warna Tim</Label>
-        <div 
-          className="w-full h-8 rounded-md border" 
-          style={{ backgroundColor: color }}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-            {(colorSuggestions || []).map((c: string) => (
-              <div key={c} className="relative group">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-8 h-8 rounded-full"
-                  style={{ backgroundColor: c }}
-                  onClick={() => handleUpdate(team === 'A' ? 'teamAColor' : 'teamBColor', c)}
-                />
-                 <Button
-                    variant="destructive"
-                    size="icon"
-                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => deleteColorSuggestion && deleteColorSuggestion(c)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-              </div>
-            ))}
-            <CustomColorPopover team={team} />
-        </div>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <>
-      <TeamControls team="A" name={teamAName} sets={teamASets} points={teamAPoints} color={teamAColor} />
+    <Card className="w-full max-w-4xl mx-auto shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center font-headline">
+          Master Kontroler Bola Voli
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 md:p-6">
+        <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
+            <TeamControls team="A" />
 
-      {/* General Controls */}
-      <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
-        <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
-         <div className="space-y-2">
-            <Label htmlFor="eventTitle">Judul Acara</Label>
-            <Input 
-              id="eventTitle" 
-              value={eventTitle || ''} 
-              readOnly
-              className="bg-muted"
-            />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="matchTitle">Judul Pertandingan</Label>
-          <Input 
-            id="matchTitle" 
-            value={matchTitle} 
-            onChange={(e) => handleUpdate('matchTitle', e.target.value)} 
-            placeholder="e.g., FINAL" 
-          />
-        </div>
-        
-        <Separator />
-        
-        <div className='flex flex-col gap-2'>
-          <Label>Aksi Set</Label>
-            <div className="flex flex-wrap gap-2 w-full">
-            <Button variant="outline" className="flex-1" onClick={() => winSet('A')}>
-                <Award className="mr-2 h-4 w-4" /> Tim A Menang Set
-            </Button>
-            <Button variant="outline" className="flex-1" onClick={() => winSet('B')}>
-                <Award className="mr-2 h-4 w-4" /> Tim B Menang Set
-            </Button>
-            <Button variant="destructive" className="w-full" onClick={resetSet}>
-                <Trash2 className="mr-2 h-4 w-4" /> Reset Poin Set Ini
-            </Button>
+            {/* General Controls */}
+            <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
+                <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
+                <div className="space-y-2">
+                    <Label htmlFor="eventTitle">Judul Acara</Label>
+                    <Input 
+                        id="eventTitle" 
+                        value={scoreboard.eventTitle || ''} 
+                        onChange={(e) => updateScoreboard({ eventTitle: e.target.value }, true)}
+                    />
+                </div>
+                <div className="space-y-2">
+                <Label htmlFor="matchTitle">Judul Pertandingan</Label>
+                <Input 
+                    id="matchTitle" 
+                    value={scoreboard.matchTitle} 
+                    onChange={(e) => handleUpdate('matchTitle', e.target.value)} 
+                    placeholder="e.g., FINAL" 
+                />
+                </div>
+                
+                <Separator />
+                
+                <div className='flex flex-col gap-2'>
+                <Label>Aksi Set</Label>
+                    <div className="flex flex-wrap gap-2 w-full">
+                    <Button variant="outline" className="flex-1" onClick={() => winSet('A')}>
+                        <Award className="mr-2 h-4 w-4" /> Tim A Menang Set
+                    </Button>
+                    <Button variant="outline" className="flex-1" onClick={() => winSet('B')}>
+                        <Award className="mr-2 h-4 w-4" /> Tim B Menang Set
+                    </Button>
+                    <Button variant="destructive" className="w-full" onClick={resetSet}>
+                        <Trash2 className="mr-2 h-4 w-4" /> Reset Poin Set Ini
+                    </Button>
+                    </div>
+                </div>
+
+                <Separator />
+
+                <div className='flex flex-col gap-2'>
+                <Label>Aksi Pertandingan</Label>
+                <div className="flex flex-wrap gap-2 w-full">
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="flex-1">
+                        <RefreshCw className="mr-2 h-4 w-4" /> Tukar Tim
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Anda yakin ingin menukar tim?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Ini akan menukar nama, set, poin, dan warna antara Tim A dan Tim B.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={swapTeams}>Konfirmasi Tukar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive" className="flex-1">
+                        <RotateCcw className="mr-2 h-4 w-4" /> Reset Semua
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Anda yakin ingin mereset semuanya?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Ini akan mereset semua set dan poin ke 0. Nama tim, warna, dan logo tidak akan berubah.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={resetMatch}>Konfirmasi Reset</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
+                </div>
+                </div>
             </div>
+            
+            <TeamControls team="B" />
         </div>
-
-        <Separator />
-
-        <div className='flex flex-col gap-2'>
-          <Label>Aksi Pertandingan</Label>
-          <div className="flex flex-wrap gap-2 w-full">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="flex-1">
-                  <RefreshCw className="mr-2 h-4 w-4" /> Tukar Tim
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Anda yakin ingin menukar tim?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Ini akan menukar nama, set, poin, dan warna antara Tim A dan Tim B.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={swapTeams}>Konfirmasi Tukar</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="flex-1">
-                  <RotateCcw className="mr-2 h-4 w-4" /> Reset Semua
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Anda yakin ingin mereset semuanya?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Ini akan mereset semua set dan poin ke 0. Nama tim, warna, dan logo tidak akan berubah.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Batal</AlertDialogCancel>
-                  <AlertDialogAction onClick={resetMatch}>Konfirmasi Reset</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      </div>
-      
-      <TeamControls team="B" name={teamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
-    </>
+      </CardContent>
+    </Card>
   );
 }
