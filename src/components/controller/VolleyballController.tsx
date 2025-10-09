@@ -21,14 +21,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useScoreboardData } from "@/hooks/useScoreboardData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function VolleyballController() {
-  const volleyballProps = useVolleyballData();
-  const { scoreboard: futsalScoreboard } = useScoreboardData();
-  
-  const loading = volleyballProps.loading || !futsalScoreboard;
+  const props = useVolleyballData();
+  const { scoreboard, loading } = props;
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -38,20 +36,15 @@ export default function VolleyballController() {
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 md:p-6">
-         <div className="space-y-2 mb-4 px-4 md:px-0 md:w-1/3 md:mx-auto">
-            <Label htmlFor="eventTitle">Judul Acara</Label>
-            <Input 
-              id="eventTitle" 
-              value={futsalScoreboard?.eventTitle || ''} 
-              readOnly
-              className="bg-muted"
-            />
-        </div>
         <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
-          {loading ? (
-             <div className="col-span-3 text-center">Memuat Kontroler...</div>
+          {loading || !scoreboard ? (
+            <>
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+            </>
           ) : (
-            <VolleyballControls {...volleyballProps} />
+            <VolleyballControls {...props} />
           )}
         </div>
       </CardContent>
@@ -73,24 +66,16 @@ const VolleyballControls = ({
   deleteColorSuggestion 
 }: any) => {
 
-  const [localTeamAName, setLocalTeamAName] = useState('');
-  const [localTeamBName, setLocalTeamBName] = useState('');
-  const [localMatchTitle, setLocalMatchTitle] = useState('');
   const [localSetHistory, setLocalSetHistory] = useState(() => Array(5).fill({ teamAScore: 0, teamBScore: 0 }));
 
   useEffect(() => {
-    if (scoreboard) {
-        setLocalTeamAName(scoreboard.teamAName || '');
-        setLocalTeamBName(scoreboard.teamBName || '');
-        setLocalMatchTitle(scoreboard.matchTitle || '');
-        if(scoreboard.setHistory) {
-          if (JSON.stringify(scoreboard.setHistory) !== JSON.stringify(localSetHistory)) {
-            setLocalSetHistory(scoreboard.setHistory);
-          }
-        }
+    if (scoreboard?.setHistory) {
+      if (JSON.stringify(scoreboard.setHistory) !== JSON.stringify(localSetHistory)) {
+        setLocalSetHistory(scoreboard.setHistory);
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scoreboard]);
+  }, [scoreboard?.setHistory]);
   
   const handleUpdate = (field: string, value: any) => {
     updateScoreboard({ [field]: value });
@@ -117,14 +102,10 @@ const VolleyballControls = ({
   };
   
   if (!scoreboard) {
-    return (
-        <Card className="w-full max-w-4xl mx-auto shadow-lg">
-            <CardHeader><CardTitle>Memuat Kontroler...</CardTitle></CardHeader>
-        </Card>
-    );
+    return null; // The parent handles the loading state
   }
 
-  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions } = scoreboard;
+  const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions, matchTitle, eventTitle } = scoreboard;
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
     const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
@@ -158,9 +139,8 @@ const VolleyballControls = ({
         <Label htmlFor={`team${team}Name`}>Nama Tim</Label>
         <Input 
           id={`team${team}Name`} 
-          value={team === 'A' ? localTeamAName : localTeamBName} 
-          onChange={(e) => team === 'A' ? setLocalTeamAName(e.target.value) : setLocalTeamBName(e.target.value)}
-          onBlur={(e) => handleUpdate(`team${team}Name`, e.target.value)}
+          value={name} 
+          onChange={(e) => handleUpdate(`team${team}Name`, e.target.value)}
         />
       </div>
 
@@ -228,18 +208,26 @@ const VolleyballControls = ({
 
   return (
     <>
-      <TeamControls team="A" name={localTeamAName} sets={teamASets} points={teamAPoints} color={teamAColor} />
+      <TeamControls team="A" name={teamAName} sets={teamASets} points={teamAPoints} color={teamAColor} />
 
       {/* General Controls */}
       <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
         <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
+         <div className="space-y-2">
+            <Label htmlFor="eventTitle">Judul Acara</Label>
+            <Input 
+              id="eventTitle" 
+              value={eventTitle || ''} 
+              readOnly
+              className="bg-muted"
+            />
+        </div>
         <div className="space-y-2">
           <Label htmlFor="matchTitle">Judul Pertandingan</Label>
           <Input 
             id="matchTitle" 
-            value={localMatchTitle} 
-            onChange={(e) => setLocalMatchTitle(e.target.value)} 
-            onBlur={(e) => handleUpdate('matchTitle', e.target.value)}
+            value={matchTitle} 
+            onChange={(e) => handleUpdate('matchTitle', e.target.value)} 
             placeholder="e.g., FINAL" 
           />
         </div>
@@ -308,7 +296,7 @@ const VolleyballControls = ({
         </div>
       </div>
       
-      <TeamControls team="B" name={localTeamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
+      <TeamControls team="B" name={teamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
     </>
   );
 }
