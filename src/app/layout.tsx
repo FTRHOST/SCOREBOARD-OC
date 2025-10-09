@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'SCOREBOARD',
     description: 'Interactive Futsal and Volleyball Scoreboard Controller',
-    images: ['https://storage.googleapis.com/proud-booth-428 Proud/comp_000000_000000_1721798369.84534_3.png'],
+    images: ['/icon.svg'],
   },
 };
 
