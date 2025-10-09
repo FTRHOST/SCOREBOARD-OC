@@ -17,12 +17,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Sparkles } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Sparkles, Home } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
+import ConfigManager from "@/components/controller/ConfigManager";
 
 
 export default function ControllerPage() {
@@ -77,7 +78,7 @@ export default function ControllerPage() {
       case "2":
         return <div className="w-[1048px] h-[291px]"><Scoreboard2 /></div>;
       case "3":
-        return <div className="w-[448px] h-[154px]"><Scoreboard3 /></div>;
+        return <div className="w-[450px] h-[162px]"><Scoreboard3 /></div>;
       default:
         return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
     }
@@ -85,6 +86,14 @@ export default function ControllerPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
+       <header className="flex justify-start items-center mb-4">
+        <Link href="/" passHref>
+            <Button variant="outline">
+                <Home className="mr-2 h-4 w-4" />
+                Home
+            </Button>
+        </Link>
+      </header>
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
@@ -139,7 +148,7 @@ export default function ControllerPage() {
             <div className="space-y-2 w-full">
               <Label htmlFor="logoUpload">Upload Logo</Label>
               <div className="flex flex-col sm:flex-row gap-2 items-center">
-                <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+                <Input id="logoUpload" type="file" accept="image/*,.svg" onChange={handleLogoUpload} className="text-sm" />
                 {logoSrc && (
                     <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
                         <X className="mr-2 h-4 w-4" /> Remove Logo
@@ -179,6 +188,8 @@ export default function ControllerPage() {
         <Controller />
         
         <LayoutEditor />
+
+        <ConfigManager />
 
       </main>
     </div>

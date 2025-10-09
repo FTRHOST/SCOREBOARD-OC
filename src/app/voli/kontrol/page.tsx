@@ -16,12 +16,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Home } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useVolleyballData } from "@/hooks/useVolleyballData";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
+import VolleyballLayoutEditor from "@/components/controller/VolleyballLayoutEditor";
+import ConfigManager from "@/components/controller/ConfigManager";
 
 
 export default function VolleyballControllerPage() {
@@ -70,6 +72,14 @@ export default function VolleyballControllerPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
+       <header className="flex justify-start items-center mb-4">
+        <Link href="/" passHref>
+            <Button variant="outline">
+                <Home className="mr-2 h-4 w-4" />
+                Home
+            </Button>
+        </Link>
+      </header>
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
@@ -124,7 +134,7 @@ export default function VolleyballControllerPage() {
             <div className="space-y-2 w-full">
               <Label htmlFor="logoUpload">Unggah Logo</Label>
               <div className="flex flex-col sm:flex-row gap-2 items-center">
-                <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+                <Input id="logoUpload" type="file" accept="image/*,.svg" onChange={handleLogoUpload} className="text-sm" />
                 {logoSrc && (
                     <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
                         <X className="mr-2 h-4 w-4" /> Hapus Logo
@@ -147,6 +157,10 @@ export default function VolleyballControllerPage() {
         </Card>
 
         <VolleyballController />
+        
+        <VolleyballLayoutEditor />
+
+        <ConfigManager />
         
       </main>
     </div>

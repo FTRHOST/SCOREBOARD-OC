@@ -1,23 +1,66 @@
 
 "use client";
 import React from 'react';
-import { useVolleyballData } from '@/hooks/useVolleyballData';
+import { useVolleyballData, VolleyballLayoutStyle } from '@/hooks/useVolleyballData';
 import Image from 'next/image';
 import { OsisCupLogo } from '@/components/icons/OsisCupLogo';
+
+const DynamicElement = ({ style, children, text, isVisible }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+  if (isVisible === false) return null;
+  
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    overflow: 'hidden',
+    textAlign: 'center',
+    lineHeight: 1.1,
+  };
+
+  return (
+    <div style={elementStyle}>
+      <div className="truncate px-2">
+        {text}
+        {children}
+      </div>
+    </div>
+  );
+};
+
+const BackgroundElement = ({ style, color, children, className }: { style: VolleyballLayoutStyle, color?: string, children?: React.ReactNode, className?: string }) => {
+  if (style.visible === false) return null;
+  
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    backgroundColor: color,
+  };
+
+  return <div style={elementStyle} className={className}>{children}</div>;
+};
 
 const ScoreboardVoli3 = () => {
     const { scoreboard, loading } = useVolleyballData();
 
-    if (loading || !scoreboard) {
+    if (loading || !scoreboard || !scoreboard.layout) {
         return <div className="w-[673px] h-52 flex items-center justify-center bg-gray-800 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, currentSet } = scoreboard;
+    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, currentSet, layout } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
     
     const displayHistory = [...setHistory];
     if (currentSet >= 1 && currentSet <= setHistory.length) {
-        // For the current set, display live points instead of history
         displayHistory[currentSet - 1] = {
             teamAScore: teamAPoints,
             teamBScore: teamBPoints,
@@ -26,30 +69,42 @@ const ScoreboardVoli3 = () => {
 
     return (
         <div className="w-[673px] h-52 relative font-display">
-            {/* Team A Name Box */}
-            <div className="w-40 h-16 left-[163px] top-[20px] absolute flex items-center justify-center p-1" style={{backgroundColor: teamAColor}}>
-                <div className="text-center text-white text-4xl truncate">{teamAName}</div>
-            </div>
+            {/* Backgrounds */}
+            <BackgroundElement style={layout.model3_teamANameBox} color={teamAColor} />
+            <BackgroundElement style={layout.model3_teamBNameBox} color={teamBColor} />
+            <BackgroundElement style={layout.model3_teamASetBox} color={'#0F172A'} />
+            <BackgroundElement style={layout.model3_teamBSetBox} color={'#0F172A'} />
+            <BackgroundElement style={layout.model3_logoBox} color={'white'} className="flex items-center justify-center p-2" />
+            <BackgroundElement style={layout.model3_matchTitleBox} color={'#0F172A'} />
 
-            {/* Team B Name Box */}
-            <div className="w-40 h-16 left-[163px] top-[90px] absolute flex items-center justify-center p-1" style={{backgroundColor: teamBColor}}>
-                <div className="text-center text-white text-4xl truncate">{teamBName}</div>
-            </div>
-            
-            {/* Team A Set Box */}
-            <div className="w-20 h-16 left-[321px] top-[20px] absolute bg-slate-900 flex items-center justify-center">
-                <div className="text-center text-white text-6xl">{teamASets}</div>
-            </div>
+            {/* Set History Containers */}
+             <BackgroundElement style={layout.model3_teamASetHistoryBox} className="p-5 rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
+                {displayHistory.slice(0, 3).map((set, index) => (
+                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamAColor}}>
+                        <div className="text-center text-white text-6xl">{set.teamAScore}</div>
+                    </div>
+                ))}
+            </BackgroundElement>
+             <BackgroundElement style={layout.model3_teamBSetHistoryBox} className="p-5 rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
+                {displayHistory.slice(0, 3).map((set, index) => (
+                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamBColor}}>
+                        <div className="text-center text-white text-6xl">{set.teamBScore}</div>
+                    </div>
+                ))}
+            </BackgroundElement>
 
-            {/* Team B Set Box */}
-            <div className="w-20 h-16 left-[321px] top-[92px] absolute bg-slate-900 flex items-center justify-center">
-                <div className="text-center text-white text-6xl">{teamBSets}</div>
-            </div>
 
-            {/* Logo Box */}
-            <div className="w-40 h-36 left-0 top-[20px] absolute bg-white flex items-center justify-center p-2">
+            {/* Dynamic Content */}
+            <DynamicElement style={layout.model3_teamANameText} text={teamAName} isVisible={layout.model3_teamANameText.visible} />
+            <DynamicElement style={layout.model3_teamBNameText} text={teamBName} isVisible={layout.model3_teamBNameText.visible} />
+            <DynamicElement style={layout.model3_teamASetsText} text={teamASets.toString()} isVisible={layout.model3_teamASetsText.visible} />
+            <DynamicElement style={layout.model3_teamBSetsText} text={teamBSets.toString()} isVisible={layout.model3_teamBSetsText.visible} />
+            <DynamicElement style={layout.model3_matchTitleText} text={matchTitle} isVisible={layout.model3_matchTitleText.visible} />
+
+            {/* Logo */}
+            <DynamicElement style={layout.model3_logoImage} isVisible={layout.model3_logoImage.visible}>
                  {logoSrc ? (
-                    <div className="relative w-[130px] h-[113px]">
+                    <div className="relative w-full h-full">
                     {isSvg ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
@@ -65,30 +120,7 @@ const ScoreboardVoli3 = () => {
                 ) : (
                     <OsisCupLogo className="w-full h-full text-black" />
                 )}
-            </div>
-
-            {/* Team A Set History (includes current points) */}
-            <div className="w-72 p-5 left-[385px] top-0 absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamAColor}}>
-                        <div className="text-center text-white text-6xl">{set.teamAScore}</div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Team B Set History (includes current points) */}
-            <div className="w-72 p-5 left-[385px] top-[73px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamBColor}}>
-                        <div className="text-center text-white text-6xl">{set.teamBScore}</div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Match Title */}
-            <div className="w-[673px] h-12 left-0 top-[164px] absolute bg-slate-900 flex justify-center items-center">
-                <div className="text-center text-white text-4xl">{matchTitle}</div>
-            </div>
+            </DynamicElement>
         </div>
     );
 };
