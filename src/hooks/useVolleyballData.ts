@@ -4,9 +4,9 @@
 import { useEffect, useCallback, useState, useMemo } from 'react';
 import { useDatabase } from '@/firebase';
 import { ref, onValue, update, set } from 'firebase/database';
-import { Scoreboard as FutsalScoreboard, defaultLayout as defaultFutsalLayout, useScoreboardData as useFutsalData } from './useScoreboardData';
 
 const VOLLEYBALL_PATH = 'volleyball';
+const SCOREBOARD_PATH = 'scoreboard'; // For shared data like logo
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
 const MAX_SETS = 5;
@@ -154,54 +154,75 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
 
 export function useVolleyballData() {
   const database = useDatabase();
-  const { scoreboard: futsalScoreboard } = useFutsalData();
-  const [volleyballData, setVolleyballData] = useState<Omit<VolleyballScoreboard, 'logoSrc' | 'eventTitle'> | null>(null);
-
-  const loading = !futsalScoreboard || !volleyballData;
+  const [scoreboard, setScoreboard] = useState<VolleyballScoreboard | null>(null);
+  const [loading, setLoading] = useState(true);
   const error = null; // Simplified for now
 
   useEffect(() => {
     if (!database) return;
 
-    const scoreboardRef = ref(database, VOLLEYBALL_PATH);
+    const volleyballRef = ref(database, VOLLEYBALL_PATH);
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
+    
+    let volleyballData: any = null;
+    let sharedData: any = null;
 
-    const unsubscribeVoli = onValue(scoreboardRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const val = snapshot.val();
+    const checkAndSetData = () => {
+      if (volleyballData && sharedData) {
         
         const mergedLayout = { ...defaultVolleyballLayout };
         for (const modelKey in defaultVolleyballLayout) {
-          // @ts-ignore
-          mergedLayout[modelKey] = { ...defaultVolleyballLayout[modelKey], ...(val.layout?.[modelKey] || {}) };
+            // @ts-ignore
+            mergedLayout[modelKey] = { ...defaultVolleyballLayout[modelKey], ...(volleyballData.layout?.[modelKey] || {}) };
         }
 
-        const history = val.setHistory || [];
+        const history = volleyballData.setHistory || [];
         const newHistory = Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 });
         for(let i=0; i < history.length && i < MAX_SETS; i++) {
           newHistory[i] = history[i] || { teamAScore: 0, teamBScore: 0 };
         }
         
-        const data = { ...defaultVolleyballScoreboard, ...val, layout: mergedLayout, setHistory: newHistory };
+        const data = { 
+          ...defaultVolleyballScoreboard, 
+          ...volleyballData, 
+          layout: mergedLayout, 
+          setHistory: newHistory,
+          logoSrc: sharedData.logoSrc,
+          // We don't use eventTitle from volleyballData, futsal one is the source of truth
+        };
+
         if (!data.colorSuggestions) {
           data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
         }
-        setVolleyballData(data);
-      } else {
-        set(scoreboardRef, defaultVolleyballScoreboard); // Initialize if not present
-        setVolleyballData(defaultVolleyballScoreboard);
+        
+        setScoreboard(data);
+        setLoading(false);
       }
+    };
+    
+    const unsubscribeVoli = onValue(volleyballRef, (snapshot) => {
+      if (snapshot.exists()) {
+        volleyballData = snapshot.val();
+      } else {
+        set(volleyballRef, defaultVolleyballScoreboard); // Initialize if not present
+        volleyballData = defaultVolleyballScoreboard;
+      }
+      checkAndSetData();
+    });
+    
+    const unsubscribeShared = onValue(scoreboardRef, (snapshot) => {
+        if(snapshot.exists()) {
+            sharedData = snapshot.val();
+            checkAndSetData();
+        }
     });
 
-    return () => unsubscribeVoli();
+    return () => {
+        unsubscribeVoli();
+        unsubscribeShared();
+    }
   }, [database]);
   
-  const scoreboard = useMemo<VolleyballScoreboard | null>(() => {
-    if (loading) return null;
-    return {
-      ...volleyballData!,
-      logoSrc: futsalScoreboard.logoSrc,
-    };
-  }, [loading, volleyballData, futsalScoreboard?.logoSrc]);
   
   const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>) => {
     if (!database) return;

@@ -23,9 +23,46 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
 
+
+export default function VolleyballController() {
+  const volleyballProps = useVolleyballData();
+  const { scoreboard: futsalScoreboard } = useScoreboardData();
+  
+  const loading = volleyballProps.loading || !futsalScoreboard;
+
+  return (
+    <Card className="w-full max-w-4xl mx-auto shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center font-headline">
+          Master Kontroler Bola Voli
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0 md:p-6">
+         <div className="space-y-2 mb-4 px-4 md:px-0 md:w-1/3 md:mx-auto">
+            <Label htmlFor="eventTitle">Judul Acara</Label>
+            <Input 
+              id="eventTitle" 
+              value={futsalScoreboard?.eventTitle || ''} 
+              readOnly
+              className="bg-muted"
+            />
+        </div>
+        <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
+          {loading ? (
+             <div className="col-span-3 text-center">Memuat Kontroler...</div>
+          ) : (
+            <VolleyballControls {...volleyballProps} />
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
 const VolleyballControls = ({ 
-  volleyballScoreboard, 
-  updateVolleyballScoreboard, 
+  scoreboard, 
+  updateScoreboard, 
   updatePoints, 
   updateSets, 
   winSet, 
@@ -33,38 +70,35 @@ const VolleyballControls = ({
   resetMatch, 
   swapTeams, 
   updateSetHistoryScore, 
-  deleteVolleyballColorSuggestion 
+  deleteColorSuggestion 
 }: any) => {
 
   const [localTeamAName, setLocalTeamAName] = useState('');
   const [localTeamBName, setLocalTeamBName] = useState('');
   const [localMatchTitle, setLocalMatchTitle] = useState('');
-  const [localSetHistory, setLocalSetHistory] = useState(Array(5).fill({ teamAScore: 0, teamBScore: 0 }));
+  const [localSetHistory, setLocalSetHistory] = useState(() => Array(5).fill({ teamAScore: 0, teamBScore: 0 }));
 
   useEffect(() => {
-    if (volleyballScoreboard) {
-        setLocalTeamAName(volleyballScoreboard.teamAName || '');
-        setLocalTeamBName(volleyballScoreboard.teamBName || '');
-        setLocalMatchTitle(volleyballScoreboard.matchTitle || '');
-        if(volleyballScoreboard.setHistory) {
-          // Ensure we don't create a new array if it's the same
-          if (JSON.stringify(volleyballScoreboard.setHistory) !== JSON.stringify(localSetHistory)) {
-            setLocalSetHistory(volleyballScoreboard.setHistory);
+    if (scoreboard) {
+        setLocalTeamAName(scoreboard.teamAName || '');
+        setLocalTeamBName(scoreboard.teamBName || '');
+        setLocalMatchTitle(scoreboard.matchTitle || '');
+        if(scoreboard.setHistory) {
+          if (JSON.stringify(scoreboard.setHistory) !== JSON.stringify(localSetHistory)) {
+            setLocalSetHistory(scoreboard.setHistory);
           }
         }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [volleyballScoreboard]);
+  }, [scoreboard]);
   
   const handleUpdate = (field: string, value: any) => {
-    updateVolleyballScoreboard({ [field]: value });
+    updateScoreboard({ [field]: value });
   };
   
   const handleLocalHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
     const newHistory = [...localSetHistory];
     const score = parseInt(value, 10);
-
-    // Only update if it's a valid number or empty string
     if (!isNaN(score) || value === '') {
       const scoreValue = value === '' ? 0 : score;
       if (team === 'A') {
@@ -82,15 +116,15 @@ const VolleyballControls = ({
     updateSetHistoryScore(index, team, score);
   };
   
-  if (!volleyballScoreboard) {
+  if (!scoreboard) {
     return (
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
-            <CardHeader><CardTitle>Loading Controller...</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Memuat Kontroler...</CardTitle></CardHeader>
         </Card>
     );
   }
 
-  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions } = volleyballScoreboard;
+  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions } = scoreboard;
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
     const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
@@ -139,7 +173,7 @@ const VolleyballControls = ({
                  <Input 
                     id={`set${index+1}Team${team}`}
                     type="number"
-                    value={team === 'A' ? set.teamAScore : set.teamBScore}
+                    value={team === 'A' ? (set?.teamAScore ?? 0) : (set?.teamBScore ?? 0)}
                     onChange={(e) => handleLocalHistoryChange(index, team, e.target.value)}
                     onBlur={() => handleHistoryBlur(index, team)}
                     className="text-center"
@@ -180,7 +214,7 @@ const VolleyballControls = ({
                     variant="destructive"
                     size="icon"
                     className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => deleteVolleyballColorSuggestion && deleteVolleyballColorSuggestion(c)}
+                    onClick={() => deleteColorSuggestion && deleteColorSuggestion(c)}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -276,54 +310,5 @@ const VolleyballControls = ({
       
       <TeamControls team="B" name={localTeamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
     </>
-  );
-}
-
-
-export default function VolleyballController() {
-  const volleyballProps = useVolleyballData();
-  const { scoreboard: futsalScoreboard, updateScoreboard: updateFutsalScoreboard } = useScoreboardData();
-  
-  const [localEventTitle, setLocalEventTitle] = useState('');
-
-  useEffect(() => {
-    if (futsalScoreboard) {
-        setLocalEventTitle(futsalScoreboard.eventTitle || '');
-    }
-  }, [futsalScoreboard]);
-  
-  const handleFutsalUpdate = (field: string, value: any) => {
-    updateFutsalScoreboard({ [field]: value });
-  };
-  
-  const loading = volleyballProps.loading || !futsalScoreboard;
-
-  return (
-    <Card className="w-full max-w-4xl mx-auto shadow-lg">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center font-headline">
-          Master Kontroler Bola Voli
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0 md:p-6">
-        <div className="space-y-2 mb-4 px-4 md:px-0 md:w-1/3 md:mx-auto">
-            <Label htmlFor="eventTitle">Judul Acara</Label>
-            <Input 
-              id="eventTitle" 
-              value={localEventTitle} 
-              onChange={(e) => setLocalEventTitle(e.target.value)} 
-              onBlur={(e) => handleFutsalUpdate('eventTitle', e.target.value)} 
-              placeholder="e.g., OSIS CUP" 
-            />
-        </div>
-        <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
-          {loading ? (
-             <div className="col-span-3 text-center">Loading Controller...</div>
-          ) : (
-            <VolleyballControls {...volleyballProps} />
-          )}
-        </div>
-      </CardContent>
-    </Card>
   );
 }
