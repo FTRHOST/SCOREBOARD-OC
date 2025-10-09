@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Controller from "@/components/controller/Controller";
+import LayoutEditor from "@/components/controller/LayoutEditor";
 import Scoreboard1 from "@/components/scoreboards/Scoreboard1";
 import Scoreboard2 from "@/components/scoreboards/Scoreboard2";
 import Scoreboard3 from "@/components/scoreboards/Scoreboard3";
@@ -16,17 +17,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, Settings } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, Settings, Home, LayoutTemplate } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ScoreboardLayout } from "@/hooks/useScoreboardData";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useScoreboardData } from "@/hooks/useScoreboardData";
 
 
 export default function ControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
   const [zoomLevel, setZoomLevel] = useState(100);
   const isMobile = useIsMobile();
-  const [selectedLayoutElement, setSelectedLayoutElement] = useState<any | null>(null);
+  const [selectedLayoutElement, setSelectedLayoutElement] = useState<keyof ScoreboardLayout | null>(null);
+  const { scoreboard, loading } = useScoreboardData();
 
   useEffect(() => {
     setZoomLevel(isMobile ? 30 : 85);
@@ -45,16 +51,41 @@ export default function ControllerPage() {
         return <div className="w-[1048px] h-[227px]"><Scoreboard1 {...props} /></div>;
     }
   };
+  
+  if (loading || !scoreboard) {
+      return (
+        <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8 space-y-8">
+            <header className="flex justify-between items-center mb-4">
+                <div className="flex gap-2">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+            </header>
+            <main className="flex flex-col gap-8 items-center">
+                <Skeleton className="w-full max-w-4xl h-[400px]" />
+                <Skeleton className="w-full max-w-4xl h-[600px]" />
+            </main>
+        </div>
+      );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
-       <header className="flex justify-start items-center mb-4">
-        <Link href="/konfig" passHref>
-            <Button variant="outline">
-                <Settings className="mr-2 h-4 w-4" />
-                Konfigurasi
-            </Button>
-        </Link>
+       <header className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+                 <Link href="/" passHref>
+                    <Button variant="outline">
+                        <Home className="mr-2 h-4 w-4" />
+                        Home
+                    </Button>
+                </Link>
+                <Link href="/konfig" passHref>
+                    <Button variant="outline">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Konfigurasi
+                    </Button>
+                </Link>
+            </div>
       </header>
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -119,6 +150,19 @@ export default function ControllerPage() {
             </div>
           </CardContent>
         </Card>
+        
+        <div className="w-full max-w-4xl">
+             <Accordion type="single" collapsible>
+                <AccordionItem value="layout-editor">
+                    <AccordionTrigger>
+                        <h3 className="text-lg font-semibold flex items-center gap-2"><LayoutTemplate /> Dynamic Layout Editor</h3>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-4">
+                        <LayoutEditor onElementSelect={setSelectedLayoutElement} />
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
+        </div>
 
         <Controller />
         
