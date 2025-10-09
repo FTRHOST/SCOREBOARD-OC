@@ -94,7 +94,9 @@ export default function VolleyballController() {
           <Label>Poin Saat Ini (Round Score)</Label>
           <div className="flex items-center gap-2">
             <Button size="icon" onClick={() => updatePoints(team, -1)} variant="outline"><Minus /></Button>
-            <Input value={points} className="text-center font-bold" readOnly />
+            <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-center font-bold text-base">
+                {points}
+            </div>
             <Button size="icon" onClick={() => updatePoints(team, 1)}><Plus /></Button>
           </div>
         </div>
@@ -222,3 +224,5 @@ export default function VolleyballController() {
     </Card>
   );
 }
+
+    

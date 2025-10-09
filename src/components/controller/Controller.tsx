@@ -167,7 +167,9 @@ export default function Controller() {
               <Label>Score</Label>
               <div className="flex items-center gap-2">
                 <Button size="icon" onClick={() => updateScore('A', -1)} variant="outline"><Minus /></Button>
-                <Input value={teamAScore} className="text-center font-bold" readOnly />
+                <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background text-center font-bold items-center justify-center">
+                  {teamAScore}
+                </div>
                 <Button size="icon" onClick={() => updateScore('A', 1)}><Plus /></Button>
               </div>
             </div>
@@ -175,7 +177,9 @@ export default function Controller() {
               <Label>Fouls</Label>
               <div className="flex items-center gap-2">
                 <Button size="icon" variant="outline" onClick={() => updateFouls('A', -1)}><Minus /></Button>
-                <Input value={teamAFouls} className="text-center font-bold w-12" readOnly />
+                 <div className="flex h-10 w-12 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background text-center font-bold items-center justify-center">
+                  {teamAFouls}
+                </div>
                 <Button size="icon" onClick={() => updateFouls('A', 1)}><Plus /></Button>
                 <div className="flex-grow" />
                 <Button size="icon" variant="destructive" onClick={() => resetFouls('A')}><Trash2 /></Button>
@@ -268,7 +272,9 @@ export default function Controller() {
               <Label>Score</Label>
               <div className="flex items-center gap-2">
                 <Button size="icon" onClick={() => updateScore('B', -1)} variant="outline"><Minus /></Button>
-                <Input value={teamBScore} className="text-center font-bold" readOnly />
+                <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background text-center font-bold items-center justify-center">
+                  {teamBScore}
+                </div>
                 <Button size="icon" onClick={() => updateScore('B', 1)}><Plus /></Button>
               </div>
             </div>
@@ -276,7 +282,9 @@ export default function Controller() {
               <Label>Fouls</Label>
               <div className="flex items-center gap-2">
                 <Button size="icon" variant="outline" onClick={() => updateFouls('B', -1)}><Minus /></Button>
-                <Input value={teamBFouls} className="text-center font-bold w-12" readOnly />
+                 <div className="flex h-10 w-12 rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background text-center font-bold items-center justify-center">
+                  {teamBFouls}
+                </div>
                 <Button size="icon" onClick={() => updateFouls('B', 1)}><Plus /></Button>
                 <div className="flex-grow" />
                 <Button size="icon" variant="destructive" onClick={() => resetFouls('B')}><Trash2 /></Button>
@@ -289,3 +297,5 @@ export default function Controller() {
     </Card>
   );
 }
+
+    

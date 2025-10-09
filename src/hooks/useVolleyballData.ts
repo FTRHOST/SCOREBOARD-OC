@@ -190,7 +190,7 @@ export function useVolleyballData() {
         data = defaultVolleyballScoreboard;
         set(scoreboardRef, data);
       }
-      setScoreboard(prev => ({ ...prev, ...data }));
+      setScoreboard(prev => ({ ...(prev || defaultVolleyballScoreboard), ...data }));
       setLoading(false);
     }, (err) => {
       console.error("Voli RTDB read failed:", err);
@@ -206,7 +206,11 @@ export function useVolleyballData() {
              setLoading(false);
              return initialData;
         }
-        return { ...prev, logoSrc: newLogoSrc };
+        // Only update if the logo has changed to prevent unnecessary re-renders
+        if (prev.logoSrc !== newLogoSrc) {
+            return { ...prev, logoSrc: newLogoSrc };
+        }
+        return prev;
       });
     }, (err) => {
         console.error("Futsal logo RTDB read failed:", err);
@@ -340,3 +344,5 @@ export function useVolleyballData() {
 
   return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion };
 }
+
+    
