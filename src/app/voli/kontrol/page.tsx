@@ -1,26 +1,152 @@
 "use client";
 
-// This is a placeholder for the volleyball controller page.
-// We will build this out in the next steps.
-
+import { useState, useEffect } from "react";
+import VolleyballController from "@/components/controller/VolleyballController";
+import ScoreboardVoli1 from "@/components/scoreboards/volleyball/ScoreboardVoli1";
+import ScoreboardVoli2 from "@/components/scoreboards/volleyball/ScoreboardVoli2";
+import ScoreboardVoli3 from "@/components/scoreboards/volleyball/ScoreboardVoli3";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { useVolleyballData } from "@/hooks/useVolleyballData";
+import { Input } from "@/components/ui/input";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 export default function VolleyballControllerPage() {
+  const [selectedScoreboard, setSelectedScoreboard] = useState("1");
+  const [zoomLevel, setZoomLevel] = useState(100);
+  const { scoreboard, updateScoreboard } = useVolleyballData();
+  const logoSrc = scoreboard?.logoSrc; 
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setZoomLevel(isMobile ? 30 : 85);
+  }, [isMobile]);
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        if (updateScoreboard) {
+          updateScoreboard({ logoSrc: result });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    if (updateScoreboard) {
+      updateScoreboard({ logoSrc: null });
+    }
+  };
+
+  const renderScoreboard = () => {
+    switch (selectedScoreboard) {
+      case "1":
+        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 /></div>;
+      case "2":
+        return <div className="w-[1049px] h-[256px]"><ScoreboardVoli2 /></div>;
+      case "3":
+        return <div className="w-[673px] h-[208px]"><ScoreboardVoli3 /></div>;
+      default:
+        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 /></div>;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 lg:p-8">
       <main className="flex flex-col gap-8 items-center">
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold font-headline text-center">
-              Master Kontroler Bola Voli
-            </CardTitle>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+               <CardTitle className="text-2xl font-bold font-headline">
+                Pratinjau Papan Skor Voli
+               </CardTitle>
+                <Link href={`/voli/${selectedScoreboard}`} target="_blank" passHref>
+                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Buka di Tab Baru
+                    </Button>
+                </Link>
+            </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-center text-muted-foreground">
-              Kontroler untuk papan skor bola voli akan dibangun di sini.
-            </p>
+          <CardContent className="flex flex-col items-center gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+              <Select value={selectedScoreboard} onValueChange={setSelectedScoreboard}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Pilih model papan skor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Papan Skor Model 1</SelectItem>
+                  <SelectItem value="2">Papan Skor Model 2</SelectItem>
+                  <SelectItem value="3">Papan Skor Model 3</SelectItem>
+                </SelectContent>
+              </Select>
+
+               <div className="flex flex-col gap-2">
+                  <Label htmlFor="zoom-slider" className="text-sm font-medium">
+                    Kontrol Zoom
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <ZoomOut />
+                    <Slider
+                      id="zoom-slider"
+                      min={10}
+                      max={150}
+                      step={5}
+                      value={[zoomLevel]}
+                      onValueChange={(value) => setZoomLevel(value[0])}
+                    />
+                    <ZoomIn />
+                    <span className="text-sm font-medium w-16 text-center">{zoomLevel}%</span>
+                    <Button variant="outline" size="icon" onClick={() => setZoomLevel(isMobile ? 30 : 85)} className="h-8 w-8">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2 w-full">
+              <Label htmlFor="logoUpload">Unggah Logo</Label>
+              <div className="flex flex-col sm:flex-row gap-2 items-center">
+                <Input id="logoUpload" type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+                {logoSrc && (
+                    <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
+                        <X className="mr-2 h-4 w-4" /> Hapus Logo
+                    </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
+              <div 
+                className="transition-transform duration-300 ease-in-out"
+                style={{
+                  transform: `scale(${zoomLevel / 100})`,
+                }}
+              >
+                  {renderScoreboard()}
+              </div>
+            </div>
           </CardContent>
         </Card>
+
+        <VolleyballController />
+        
       </main>
     </div>
   );

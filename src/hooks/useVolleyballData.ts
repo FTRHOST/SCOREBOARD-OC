@@ -7,6 +7,7 @@ import { ref, onValue, update, set } from 'firebase/database';
 const VOLLEYBALL_PATH = 'volleyball';
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
+const MAX_SETS = 5;
 
 export interface VolleyballScoreboard {
   teamAName: string;
@@ -20,7 +21,6 @@ export interface VolleyballScoreboard {
   teamBColor: string;
   logoSrc: string | null;
   matchTitle: string;
-  // Placeholder for set history, timeouts, etc.
   setHistory: Array<{ teamAScore: number; teamBScore: number }>;
 }
 
@@ -34,15 +34,9 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
   currentSet: 1,
   teamAColor: TEAM_A_COLOR,
   teamBColor: TEAM_B_COLOR,
-  logoSrc: "https://placehold.co/238x188",
+  logoSrc: null,
   matchTitle: "FINAL",
-  setHistory: [
-    { teamAScore: 0, teamBScore: 0 },
-    { teamAScore: 0, teamBScore: 0 },
-    { teamAScore: 0, teamBScore: 0 },
-    { teamAScore: 0, teamBScore: 0 },
-    { teamAScore: 0, teamBScore: 0 },
-  ],
+  setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
 };
 
 export function useVolleyballData() {
@@ -60,7 +54,14 @@ export function useVolleyballData() {
       let data: VolleyballScoreboard;
       if (snapshot.exists()) {
         const val = snapshot.val();
-        data = { ...defaultVolleyballScoreboard, ...val };
+        // Ensure setHistory has the correct length
+        const history = val.setHistory || [];
+        const newHistory = Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 });
+        for(let i=0; i < history.length && i < MAX_SETS; i++) {
+          newHistory[i] = history[i];
+        }
+        data = { ...defaultVolleyballScoreboard, ...val, setHistory: newHistory };
+
       } else {
         data = defaultVolleyballScoreboard;
         set(scoreboardRef, data); // Initialize if not present
@@ -81,7 +82,73 @@ export function useVolleyballData() {
     await update(scoreboardRef, data);
   }, [database, scoreboard, scoreboardRef]);
 
-  // Placeholder for future functions like point updates, set wins, etc.
+  const updatePoints = (team: 'A' | 'B', delta: number) => {
+    if (!scoreboard) return;
+    const currentPoints = team === 'A' ? scoreboard.teamAPoints : scoreboard.teamBPoints;
+    const newPoints = Math.max(0, currentPoints + delta);
+    updateScoreboard(team === 'A' ? { teamAPoints: newPoints } : { teamBPoints: newPoints });
+  };
 
-  return { scoreboard, loading, error, updateScoreboard };
+  const updateSets = (team: 'A' | 'B', delta: number) => {
+    if (!scoreboard) return;
+    const currentSets = team === 'A' ? scoreboard.teamASets : scoreboard.teamBSets;
+    const newSets = Math.max(0, currentSets + delta);
+    updateScoreboard(team === 'A' ? { teamASets: newSets } : { teamBSets: newSets });
+  };
+  
+  const winSet = (winner: 'A' | 'B') => {
+    if (!scoreboard || scoreboard.currentSet > MAX_SETS) return;
+
+    const { teamAPoints, teamBPoints, teamASets, teamBSets, currentSet, setHistory } = scoreboard;
+
+    const newSetHistory = [...setHistory];
+    newSetHistory[currentSet - 1] = { teamAScore: teamAPoints, teamBScore: teamBPoints };
+    
+    const newTeamASets = teamASets + (winner === 'A' ? 1 : 0);
+    const newTeamBSets = teamBSets + (winner === 'B' ? 1 : 0);
+
+    updateScoreboard({
+      teamAPoints: 0,
+      teamBPoints: 0,
+      teamASets: newTeamASets,
+      teamBSets: newTeamBSets,
+      currentSet: Math.min(currentSet + 1, MAX_SETS),
+      setHistory: newSetHistory,
+    });
+  };
+
+  const resetSet = () => {
+    updateScoreboard({ teamAPoints: 0, teamBPoints: 0 });
+  };
+
+  const resetMatch = () => {
+    if (!scoreboard) return;
+    updateScoreboard({
+      teamASets: 0,
+      teamBSets: 0,
+      teamAPoints: 0,
+      teamBPoints: 0,
+      currentSet: 1,
+      setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
+      // Note: We keep team names, colors, and logo
+    });
+  };
+  
+  const swapTeams = () => {
+    if (!scoreboard) return;
+    updateScoreboard({
+      teamAName: scoreboard.teamBName,
+      teamBName: scoreboard.teamAName,
+      teamAColor: scoreboard.teamBColor,
+      teamBColor: scoreboard.teamAColor,
+      teamASets: scoreboard.teamBSets,
+      teamBSets: scoreboard.teamASets,
+      teamAPoints: scoreboard.teamBPoints,
+      teamBPoints: scoreboard.teamAPoints,
+      // We don't swap set history as it's tied to the set number
+    });
+  };
+
+
+  return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams };
 }
