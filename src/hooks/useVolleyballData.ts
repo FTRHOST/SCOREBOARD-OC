@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useCallback, useState, useRef } from 'react';
@@ -5,6 +6,7 @@ import { useDatabase } from '@/firebase';
 import { ref, onValue, update, set } from 'firebase/database';
 
 const VOLLEYBALL_PATH = 'volleyball';
+const FUTSAL_PATH = 'scoreboard'; // Path to the futsal data for logo sharing
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
 const MAX_SETS = 5;
@@ -46,41 +48,64 @@ export function useVolleyballData() {
   const [error, setError] = useState<Error | null>(null);
   
   const scoreboardRef = ref(database, VOLLEYBALL_PATH);
+  const futsalScoreboardRef = ref(database, FUTSAL_PATH); // Ref to futsal data
 
   useEffect(() => {
     if (!database) return;
 
-    const unsubscribe = onValue(scoreboardRef, (snapshot) => {
+    // Listener for volleyball data
+    const unsubscribeVoli = onValue(scoreboardRef, (snapshot) => {
       let data: VolleyballScoreboard;
       if (snapshot.exists()) {
         const val = snapshot.val();
-        // Ensure setHistory has the correct length
         const history = val.setHistory || [];
         const newHistory = Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 });
         for(let i=0; i < history.length && i < MAX_SETS; i++) {
           newHistory[i] = history[i];
         }
         data = { ...defaultVolleyballScoreboard, ...val, setHistory: newHistory };
-
       } else {
         data = defaultVolleyballScoreboard;
-        set(scoreboardRef, data); // Initialize if not present
+        set(scoreboardRef, data);
       }
-      setScoreboard(data);
+      setScoreboard(prev => ({ ...prev, ...data }));
       setLoading(false);
     }, (err) => {
-      console.error("RTDB read failed:", err);
+      console.error("Voli RTDB read failed:", err);
       setError(err);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Listener for futsal logo data
+    const unsubscribeFutsalLogo = onValue(ref(database, `${FUTSAL_PATH}/logoSrc`), (snapshot) => {
+      const newLogoSrc = snapshot.val() || null;
+      setScoreboard(prev => {
+        if (!prev) {
+             const initialData = { ...defaultVolleyballScoreboard, logoSrc: newLogoSrc };
+             setLoading(false);
+             return initialData;
+        }
+        return { ...prev, logoSrc: newLogoSrc };
+      });
+    }, (err) => {
+        console.error("Futsal logo RTDB read failed:", err);
+    });
+
+    return () => {
+        unsubscribeVoli();
+        unsubscribeFutsalLogo();
+    };
   }, [database]);
   
   const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>) => {
-    if (!database || !scoreboard) return;
-    await update(scoreboardRef, data);
-  }, [database, scoreboard, scoreboardRef]);
+    if (!database) return;
+    // If updating logo, write to futsal path instead
+    if (data.logoSrc !== undefined) {
+      await update(futsalScoreboardRef, { logoSrc: data.logoSrc });
+    } else {
+      await update(scoreboardRef, data);
+    }
+  }, [database, scoreboardRef, futsalScoreboardRef]);
 
   const updatePoints = (team: 'A' | 'B', delta: number) => {
     if (!scoreboard) return;
@@ -130,7 +155,7 @@ export function useVolleyballData() {
       teamBPoints: 0,
       currentSet: 1,
       setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
-      // Note: We keep team names, colors, and logo
+      // Note: We keep team names, colors, and logo is preserved by not touching it
     });
   };
   
