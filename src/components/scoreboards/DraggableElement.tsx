@@ -31,7 +31,7 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Update position from style props if not dragging
+    // Update internal position when style prop changes, if not dragging
     if (!isDragging) {
       setPosition({ x: style.x, y: style.y });
     }
@@ -40,29 +40,45 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isSelected || !database) return;
 
-    // Prevent drag from starting on text selection
+    // Prevent default browser behavior, like text selection
     e.preventDefault();
     setIsDragging(true);
 
-    const parentRect = containerRef.current?.offsetParent?.getBoundingClientRect();
-    const scale = parentRect ? (parentRect.width / (containerRef.current?.offsetParent?.clientWidth || 1)) : 1;
+    const el = e.currentTarget as HTMLDivElement;
+    const parent = el.offsetParent as HTMLElement;
+    if (!parent) return;
+
+    const parentRect = parent.getBoundingClientRect();
+    
+    // The scale is determined by the ratio of the bounding box width to the offsetWidth
+    const scale = parentRect.width / parent.offsetWidth;
+
+    // Calculate the initial offset from the element's top-left corner
+    // We need to account for the parent's position and the current scale
+    const startX = (e.clientX - parentRect.left) / scale;
+    const startY = (e.clientY - parentRect.top) / scale;
     
     offsetRef.current = {
-      x: (e.clientX - parentRect!.left) / scale - position.x,
-      y: (e.clientY - parentRect!.top) / scale - position.y,
+      x: startX - position.x,
+      y: startY - position.y,
     };
-    
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleMouseMove = (e: MouseEvent) => {
-    const parentRect = containerRef.current?.offsetParent?.getBoundingClientRect();
-    if (!parentRect) return;
-    const scale = parentRect ? (parentRect.width / (containerRef.current?.offsetParent?.clientWidth || 1)) : 1;
-    
+    const parent = containerRef.current?.offsetParent as HTMLElement;
+    if (!parent || !isDragging) return;
+
+    const parentRect = parent.getBoundingClientRect();
+    const scale = parentRect.width / parent.offsetWidth;
+
+    // Calculate new position based on mouse movement, offset, and scale
     const newX = (e.clientX - parentRect.left) / scale - offsetRef.current.x;
     const newY = (e.clientY - parentRect.top) / scale - offsetRef.current.y;
+    
+    // Update local state to give immediate visual feedback
     setPosition({ x: newX, y: newY });
   };
   
@@ -70,12 +86,16 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
     setIsDragging(false);
     document.removeEventListener('mousemove', handleMouseMove);
     document.removeEventListener('mouseup', handleMouseUp);
-
-    const path = `${layoutType === 'futsal' ? 'scoreboard' : 'volleyball'}/layout/${elementKey}`;
-    update(ref(database), {
-      [`${path}/x`]: Math.round(position.x),
-      [`${path}/y`]: Math.round(position.y),
-    });
+    
+    // Only update database if dragging was actually active
+    if (isDragging && database) {
+        const path = `${layoutType === 'futsal' ? 'scoreboard' : 'volleyball'}/layout/${elementKey}`;
+        // Use the final position from the state
+        update(ref(database), {
+          [`${path}/x`]: Math.round(position.x),
+          [`${path}/y`]: Math.round(position.y),
+        });
+    }
   };
 
   if (!isVisible) return null;
@@ -91,7 +111,7 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
     userSelect: 'none',
     boxSizing: 'border-box',
     border: isSelected ? `2px dashed ${isDragging ? 'hsl(var(--primary))' : 'hsl(var(--ring))'}` : 'none',
-    zIndex: isSelected ? 1000 : undefined,
+    zIndex: isSelected ? 1000 : 100, // Ensure selected is on top
     transition: isDragging ? 'none' : 'border-color 0.2s',
   };
 
