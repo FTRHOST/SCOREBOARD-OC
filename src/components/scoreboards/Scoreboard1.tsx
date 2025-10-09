@@ -6,13 +6,8 @@ import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import Image from 'next/image';
 import DraggableElement from './DraggableElement';
-import { cn } from "@/lib/utils";
 
-interface ScoreboardProps {
-  selectedLayoutElement: keyof ScoreboardLayout | null;
-}
-
-const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+const DynamicElement = ({ style, children, text, isVisible, backgroundColor, className }: { style: LayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean, backgroundColor?: string, className?: string }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
@@ -25,10 +20,11 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutSty
     overflow: 'hidden',
     textAlign: 'center',
     lineHeight: 1.1,
+    backgroundColor: backgroundColor,
   };
 
   return (
-    <div style={elementStyle}>
+    <div style={elementStyle} className={className}>
       <div className="truncate px-2">
         {text}
         {children}
@@ -37,20 +33,8 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutSty
   );
 };
 
-const BackgroundElement = ({ style, color, isVisible, children, className }: { style: LayoutStyle, color?: string, isVisible?: boolean, children?: React.ReactNode, className?: string }) => {
-  if (isVisible === false) return null;
-  
-  const elementStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    backgroundColor: color,
-  };
 
-  return <div style={elementStyle} className={className}>{children}</div>;
-};
-
-
-const Scoreboard1 = ({ selectedLayoutElement }: ScoreboardProps) => {
+const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof ScoreboardLayout | null }) => {
   const { scoreboard, loading } = useScoreboardData();
 
   if (loading || !scoreboard || !scoreboard.layout) {
@@ -65,28 +49,42 @@ const Scoreboard1 = ({ selectedLayoutElement }: ScoreboardProps) => {
   
   const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
+  // Define the render order: backgrounds first, then content, then logo on top
+  const backgroundKeys: (keyof ScoreboardLayout)[] = ['model1_scoreContainer', 'model1_teamAName', 'model1_teamBName'];
+  const contentKeys: (keyof ScoreboardLayout)[] = ['model1_teamAScore', 'model1_teamBScore', 'model1_half'];
+  const logoKey: keyof ScoreboardLayout = 'model1_logo';
+  
+  const allKeys = [...backgroundKeys, ...contentKeys, logoKey];
+
   return (
     <div className="w-[1048px] h-[227px] relative font-display text-white">
-      {Object.keys(layout).filter(k => k.startsWith('model1')).map((key) => {
+      {allKeys.map((key) => {
         const elementKey = key as keyof ScoreboardLayout;
         const style = layout[elementKey];
         if (!style) return null;
 
-        let content;
-        let isBackground = false;
-        let bgColor;
+        let content: React.ReactNode;
+        let isContainer = false;
+        let bgColor: string | undefined;
 
         switch (elementKey) {
+          // Containers with background color
           case 'model1_teamAName':
-            isBackground = true;
+            isContainer = true;
             bgColor = teamAColor || '#B62FCE';
             content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />;
             break;
           case 'model1_teamBName':
-            isBackground = true;
+            isContainer = true;
             bgColor = teamBColor || '#EF7438';
             content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />;
             break;
+          case 'model1_scoreContainer':
+            isContainer = true;
+            bgColor = '#05183B';
+            break;
+
+          // Text/Content Elements
           case 'model1_teamAScore':
             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>;
             break;
@@ -96,6 +94,8 @@ const Scoreboard1 = ({ selectedLayoutElement }: ScoreboardProps) => {
           case 'model1_half':
             content = <DynamicElement style={style} text={half} isVisible={style.visible} />;
             break;
+          
+          // Logo Element (rendered last to be on top)
           case 'model1_logo':
             content = <DynamicElement style={style} isVisible={style.visible}>
               {logoSrc ? (
@@ -111,16 +111,13 @@ const Scoreboard1 = ({ selectedLayoutElement }: ScoreboardProps) => {
               )}
             </DynamicElement>;
             break;
-          case 'model1_scoreContainer':
-             isBackground = true;
-             bgColor = '#05183B';
-             break;
+
           default:
             return null;
         }
         
-        if (isBackground) {
-            content = <BackgroundElement style={style} color={bgColor} isVisible={style.visible}>{content}</BackgroundElement>
+        if (isContainer) {
+            content = <DynamicElement style={style} backgroundColor={bgColor} isVisible={style.visible}>{content}</DynamicElement>
         }
 
         return (
