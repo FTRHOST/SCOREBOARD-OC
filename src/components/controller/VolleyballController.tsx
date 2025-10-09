@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, RotateCcw, Palette, RefreshCw, Award, Trash2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +29,23 @@ export default function VolleyballController() {
   
   const eventTitle = futsalScoreboard?.eventTitle;
 
+  const [localTeamAName, setLocalTeamAName] = useState('');
+  const [localTeamBName, setLocalTeamBName] = useState('');
+  const [localMatchTitle, setLocalMatchTitle] = useState('');
+  const [localEventTitle, setLocalEventTitle] = useState('');
+
+  useEffect(() => {
+    if (volleyballScoreboard) {
+        setLocalTeamAName(volleyballScoreboard.teamAName || '');
+        setLocalTeamBName(volleyballScoreboard.teamBName || '');
+        setLocalMatchTitle(volleyballScoreboard.matchTitle || '');
+    }
+    if (futsalScoreboard) {
+        setLocalEventTitle(futsalScoreboard.eventTitle || '');
+    }
+  }, [volleyballScoreboard, futsalScoreboard]);
+
+
   const handleFutsalUpdate = (field: string, value: any) => {
     updateFutsalScoreboard({ [field]: value });
   };
@@ -43,7 +60,7 @@ export default function VolleyballController() {
     );
   }
 
-  const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, matchTitle, teamAColor, teamBColor, setHistory, colorSuggestions } = volleyballScoreboard;
+  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, setHistory, colorSuggestions } = volleyballScoreboard;
   
   const handleUpdate = (field: string, value: any) => {
     updateVolleyballScoreboard({ [field]: value });
@@ -79,7 +96,12 @@ export default function VolleyballController() {
       <h3 className="font-bold text-lg text-center" style={{ color: color }}>{team === 'A' ? 'Tim A' : 'Tim B'}</h3>
       <div className="space-y-2">
         <Label htmlFor={`team${team}Name`}>Nama Tim</Label>
-        <Input id={`team${team}Name`} value={name || ''} onChange={(e) => handleUpdate(`team${team}Name`, e.target.value)} />
+        <Input 
+          id={`team${team}Name`} 
+          value={team === 'A' ? localTeamAName : localTeamBName} 
+          onChange={(e) => team === 'A' ? setLocalTeamAName(e.target.value) : setLocalTeamBName(e.target.value)}
+          onBlur={(e) => handleUpdate(`team${team}Name`, e.target.value)}
+        />
       </div>
 
        <div className="space-y-2">
@@ -153,18 +175,30 @@ export default function VolleyballController() {
       <CardContent className="p-0 md:p-6">
         <div className="flex gap-4 pb-4 md:pb-0 md:grid md:grid-cols-3 md:gap-6 w-full overflow-x-auto md:overflow-visible p-4 md:p-0">
           
-          <TeamControls team="A" name={teamAName} sets={teamASets} points={teamAPoints} color={teamAColor} />
+          <TeamControls team="A" name={localTeamAName} sets={teamASets} points={teamAPoints} color={teamAColor} />
 
           {/* General Controls */}
           <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
             <div className="space-y-2">
                 <Label htmlFor="eventTitle">Judul Acara</Label>
-                <Input id="eventTitle" value={eventTitle || ''} onChange={(e) => handleFutsalUpdate('eventTitle', e.target.value)} placeholder="e.g., OSIS CUP" />
+                <Input 
+                  id="eventTitle" 
+                  value={localEventTitle} 
+                  onChange={(e) => setLocalEventTitle(e.target.value)} 
+                  onBlur={(e) => handleFutsalUpdate('eventTitle', e.target.value)} 
+                  placeholder="e.g., OSIS CUP" 
+                />
             </div>
             <div className="space-y-2">
               <Label htmlFor="matchTitle">Judul Pertandingan</Label>
-              <Input id="matchTitle" value={matchTitle} onChange={(e) => handleUpdate('matchTitle', e.target.value)} placeholder="e.g., FINAL" />
+              <Input 
+                id="matchTitle" 
+                value={localMatchTitle} 
+                onChange={(e) => setLocalMatchTitle(e.target.value)} 
+                onBlur={(e) => handleUpdate('matchTitle', e.target.value)}
+                placeholder="e.g., FINAL" 
+              />
             </div>
             
             <Separator />
@@ -231,7 +265,7 @@ export default function VolleyballController() {
             </div>
           </div>
           
-          <TeamControls team="B" name={teamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
+          <TeamControls team="B" name={localTeamBName} sets={teamBSets} points={teamBPoints} color={teamBColor} />
 
         </div>
       </CardContent>
