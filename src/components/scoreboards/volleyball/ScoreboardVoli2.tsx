@@ -11,8 +11,16 @@ const ScoreboardVoli2 = () => {
         return <div className="w-[1049px] h-64 flex items-center justify-center bg-gray-800 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, setHistory } = scoreboard;
+    const { teamAName, teamBName, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, teamAPoints, teamBPoints, currentSet } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
+
+    const displayHistory = [...setHistory];
+    if (currentSet >= 1 && currentSet <= setHistory.length) {
+        displayHistory[currentSet - 1] = {
+            teamAScore: teamAPoints,
+            teamBScore: teamBPoints,
+        };
+    }
 
     return (
         <div className="w-[1049px] h-64 relative font-display">
@@ -35,7 +43,7 @@ const ScoreboardVoli2 = () => {
 
             {/* Team B Set History */}
             <div className="h-28 left-[727px] top-[146px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-10 overflow-hidden px-4">
-                {setHistory.slice(0, 3).map((set, index) => (
+                {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[24px] absolute" style={{backgroundColor: teamBColor}}></div>
                         <div className="w-full left-0 top-0 absolute text-center text-white text-7xl">{set.teamBScore}</div>
@@ -45,7 +53,7 @@ const ScoreboardVoli2 = () => {
 
             {/* Team A Set History */}
             <div className="h-28 left-0 top-[146px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-10 overflow-hidden px-4">
-                 {setHistory.slice(0, 3).map((set, index) => (
+                 {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[21px] absolute" style={{backgroundColor: teamAColor}}></div>
                         <div className="w-full left-0 top-0 absolute text-center text-white text-7xl">{set.teamAScore}</div>

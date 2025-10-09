@@ -11,8 +11,16 @@ const ScoreboardVoli3 = () => {
         return <div className="w-[673px] h-52 flex items-center justify-center bg-gray-800 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory } = scoreboard;
+    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, currentSet } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
+    
+    const displayHistory = [...setHistory];
+    if (currentSet >= 1 && currentSet <= setHistory.length) {
+        displayHistory[currentSet - 1] = {
+            teamAScore: teamAPoints,
+            teamBScore: teamBPoints,
+        };
+    }
 
     return (
         <div className="w-[673px] h-52 relative font-display">
@@ -59,7 +67,7 @@ const ScoreboardVoli3 = () => {
 
             {/* Team A Set History */}
             <div className="w-72 p-5 left-[385px] top-0 absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {setHistory.slice(0, 3).map((set, index) => (
+                {displayHistory.slice(0, 3).map((set, index) => (
                      <div key={index} className="flex-1 h-16 relative bg-fuchsia-600 flex justify-center items-center">
                         <div className="text-center text-white text-6xl">{set.teamAScore}</div>
                     </div>
@@ -68,7 +76,7 @@ const ScoreboardVoli3 = () => {
 
             {/* Team B Set History */}
             <div className="w-72 p-5 left-[385px] top-[73px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {setHistory.slice(0, 3).map((set, index) => (
+                {displayHistory.slice(0, 3).map((set, index) => (
                      <div key={index} className="flex-1 h-16 relative bg-orange-400 flex justify-center items-center">
                         <div className="text-center text-white text-6xl">{set.teamBScore}</div>
                     </div>
