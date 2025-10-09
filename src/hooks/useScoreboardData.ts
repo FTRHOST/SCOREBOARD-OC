@@ -179,29 +179,34 @@ export function useScoreboardData() {
   const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {
     if (!database || !scoreboard) return;
     
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
     let updateData: Partial<Scoreboard> = { ...data };
 
     // --- STARTING the timer ---
     if (data.isRunning === true && !scoreboard.isRunning) {
+        // Set the start time based on current server time, and pauseTime to current time value
         updateData.startTime = Date.now();
         updateData.pauseTime = scoreboard.time;
     } 
     // --- PAUSING the timer ---
     else if (data.isRunning === false && scoreboard.isRunning) {
+        // Calculate remaining time based on when it was started
         const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
         const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
         updateData.time = newTime;
-        updateData.pauseTime = newTime; 
+        // No need to update pauseTime here, it's already the correct remaining time
     } 
     // --- SETTING NEW TIME ---
     else if (typeof data.initialTime !== 'undefined') {
+       // When setting a new time, reset everything
        updateData.time = data.initialTime;
-       updateData.pauseTime = data.initialTime;
+       updateData.pauseTime = data.initialTime; // Sync pauseTime
        updateData.isRunning = false;
+       updateData.startTime = 0;
     }
     
     await update(scoreboardRef, updateData);
-  }, [database, scoreboard, scoreboardRef]);
+  }, [database, scoreboard]);
 
   // This effect runs the VISUAL timer on the client side based on server data
   useEffect(() => {
@@ -211,15 +216,24 @@ export function useScoreboardData() {
     
     if (scoreboard?.isRunning) {
         timerRef.current = setInterval(() => {
-            if (scoreboard) { 
-                const elapsed = Math.floor((Date.now() - scoreboard.startTime) / 1000);
-                const newTime = Math.max(0, scoreboard.pauseTime - elapsed);
-                set(ref(database, `${SCOREBOARD_PATH}/time`), newTime);
-                
-                if (newTime === 0) {
-                  update(ref(database, SCOREBOARD_PATH), { isRunning: false });
+            setScoreboard(prevScoreboard => {
+                if (!prevScoreboard || !prevScoreboard.isRunning) {
+                    return prevScoreboard;
                 }
-            }
+                const elapsed = Math.floor((Date.now() - prevScoreboard.startTime) / 1000);
+                const newTime = Math.max(0, prevScoreboard.pauseTime - elapsed);
+
+                if (newTime === 0) {
+                   if (timerRef.current) clearInterval(timerRef.current);
+                   // The controller will be responsible for setting isRunning to false
+                   // to avoid race conditions. We just stop the client timer.
+                }
+
+                return {
+                    ...prevScoreboard,
+                    time: newTime,
+                };
+            });
         }, 1000);
     }
 
@@ -228,11 +242,12 @@ export function useScoreboardData() {
             clearInterval(timerRef.current);
         }
     };
-  }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime, database]);
+  }, [scoreboard?.isRunning, scoreboard?.startTime, scoreboard?.pauseTime]);
 
   const resetScoreboard = useCallback(() => {
     if (!database || !scoreboard) return;
     
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
     const resetData: Partial<Scoreboard> = {
       teamAScore: 0,
       teamBScore: 0,
@@ -249,7 +264,8 @@ export function useScoreboardData() {
 
   const swapTeams = useCallback(() => {
     if (!database || !scoreboard) return;
-
+    
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
     const swappedData = {
         teamAName: scoreboard.teamBName,
         teamBName: scoreboard.teamAName,
@@ -266,18 +282,20 @@ export function useScoreboardData() {
 
   const addColorSuggestion = useCallback((color: string) => {
     if (!database || !scoreboard) return;
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
     const currentSuggestions = scoreboard.colorSuggestions || [];
     if (!currentSuggestions.includes(color)) {
       const newSuggestions = [...currentSuggestions, color];
-      update(ref(database, SCOREBOARD_PATH), { colorSuggestions: newSuggestions });
+      update(scoreboardRef, { colorSuggestions: newSuggestions });
     }
   }, [database, scoreboard]);
 
   const deleteColorSuggestion = useCallback((colorToDelete: string) => {
     if (!database || !scoreboard) return;
+    const scoreboardRef = ref(database, SCOREBOARD_PATH);
     const currentSuggestions = scoreboard.colorSuggestions || [];
     const newSuggestions = currentSuggestions.filter(color => color !== colorToDelete);
-    update(ref(database, SCOREBOARD_PATH), { colorSuggestions: newSuggestions });
+    update(scoreboardRef, { colorSuggestions: newSuggestions });
   }, [database, scoreboard]);
 
 
