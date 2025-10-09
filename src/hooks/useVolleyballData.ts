@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { useEffect, useCallback, useState } from 'react';
 import { useDatabase } from '@/firebase';
@@ -46,6 +46,12 @@ export interface VolleyballLayout {
   model2_teamBSets: VolleyballLayoutStyle;
   model2_matchTitleText: VolleyballLayoutStyle;
   model2_logo: VolleyballLayoutStyle;
+  model2_teamASet1Score: VolleyballLayoutStyle;
+  model2_teamASet2Score: VolleyballLayoutStyle;
+  model2_teamASet3Score: VolleyballLayoutStyle;
+  model2_teamBSet1Score: VolleyballLayoutStyle;
+  model2_teamBSet2Score: VolleyballLayoutStyle;
+  model2_teamBSet3Score: VolleyballLayoutStyle;
   // Model 3
   model3_teamANameBox: VolleyballLayoutStyle;
   model3_teamBNameBox: VolleyballLayoutStyle;
@@ -61,23 +67,6 @@ export interface VolleyballLayout {
   model3_teamBSetsText: VolleyballLayoutStyle;
   model3_matchTitleText: VolleyballLayoutStyle;
   model3_logoImage: VolleyballLayoutStyle;
-}
-
-export interface VolleyballScoreboard {
-  teamAName: string;
-  teamBName: string;
-  teamASets: number;
-  teamBSets: number;
-  teamAPoints: number;
-  teamBPoints: number;
-  currentSet: number;
-  teamAColor: string;
-  teamBColor: string;
-  logoSrc: string | null;
-  matchTitle: string;
-  setHistory: Array<{ teamAScore: number; teamBScore: number }>;
-  colorSuggestions: string[];
-  layout: VolleyballLayout;
 }
 
 const defaultVolleyballLayout: VolleyballLayout = {
@@ -105,6 +94,12 @@ const defaultVolleyballLayout: VolleyballLayout = {
   model2_teamBSets: { x: 603, y: 20, width: 96, height: 96, visible: true, fontSize: 96 },
   model2_matchTitleText: { x: 408, y: 189, width: 240, height: 48, visible: true, fontSize: 48 },
   model2_logo: { x: 406, y: 0, width: 238, height: 188, visible: true, fontSize: 0 },
+  model2_teamASet1Score: { x: 35, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
+  model2_teamASet2Score: { x: 129, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
+  model2_teamASet3Score: { x: 222, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
+  model2_teamBSet1Score: { x: 759, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
+  model2_teamBSet2Score: { x: 852, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
+  model2_teamBSet3Score: { x: 945, y: 146, width: 64, height: 96, fontSize: 72, visible: true },
   // Model 3
   model3_teamANameBox: { x: 163, y: 20, width: 160, height: 64, visible: true, fontSize: 0 },
   model3_teamBNameBox: { x: 163, y: 90, width: 160, height: 64, visible: true, fontSize: 0 },
@@ -122,6 +117,23 @@ const defaultVolleyballLayout: VolleyballLayout = {
   model3_logoImage: { x: 17, y: 33, width: 130, height: 113, visible: true, fontSize: 0 },
 };
 
+
+export interface VolleyballScoreboard {
+  teamAName: string;
+  teamBName: string;
+  teamASets: number;
+  teamBSets: number;
+  teamAPoints: number;
+  teamBPoints: number;
+  currentSet: number;
+  teamAColor: string;
+  teamBColor: string;
+  logoSrc: string | null;
+  matchTitle: string;
+  setHistory: Array<{ teamAScore: number; teamBScore: number }>;
+  colorSuggestions: string[];
+  layout: VolleyballLayout;
+}
 
 const defaultVolleyballScoreboard: VolleyballScoreboard = {
   teamAName: 'Tim A',

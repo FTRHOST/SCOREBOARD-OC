@@ -66,6 +66,9 @@ const ScoreboardVoli2 = () => {
             teamBScore: teamBPoints,
         };
     }
+    
+    const teamAScores = [layout.model2_teamASet1Score, layout.model2_teamASet2Score, layout.model2_teamASet3Score];
+    const teamBScores = [layout.model2_teamBSet1Score, layout.model2_teamBSet2Score, layout.model2_teamBSet3Score];
 
     return (
         <div className="w-[1049px] h-64 relative font-display">
@@ -80,7 +83,6 @@ const ScoreboardVoli2 = () => {
                 {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[21px] absolute" style={{backgroundColor: teamAColor}}></div>
-                        <div className="w-full left-0 top-0 absolute text-center text-white text-7xl">{set.teamAScore}</div>
                     </div>
                 ))}
             </BackgroundElement>
@@ -88,7 +90,6 @@ const ScoreboardVoli2 = () => {
                 {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[24px] absolute" style={{backgroundColor: teamBColor}}></div>
-                        <div className="w-full left-0 top-0 absolute text-center text-white text-7xl">{set.teamBScore}</div>
                     </div>
                 ))}
             </BackgroundElement>
@@ -100,7 +101,15 @@ const ScoreboardVoli2 = () => {
             {/* Main Sets */}
             <DynamicElement style={layout.model2_teamASets} text={teamASets.toString()} isVisible={layout.model2_teamASets.visible} />
             <DynamicElement style={layout.model2_teamBSets} text={teamBSets.toString()} isVisible={layout.model2_teamBSets.visible} />
-            
+
+            {/* Set History Scores */}
+            {displayHistory.slice(0, 3).map((set, index) => (
+                <React.Fragment key={index}>
+                    <DynamicElement style={teamAScores[index]} text={set.teamAScore.toString()} isVisible={teamAScores[index].visible} />
+                    <DynamicElement style={teamBScores[index]} text={set.teamBScore.toString()} isVisible={teamBScores[index].visible} />
+                </React.Fragment>
+            ))}
+
             {/* Match Title */}
             <DynamicElement style={layout.model2_matchTitleText} text={matchTitle} isVisible={layout.model2_matchTitleText.visible} />
 
