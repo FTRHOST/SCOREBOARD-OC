@@ -32,6 +32,7 @@ export default function VolleyballControllerPage() {
   const { scoreboard, updateScoreboard } = useVolleyballData();
   const logoSrc = scoreboard?.logoSrc; 
   const isMobile = useIsMobile();
+  const [selectedLayoutElement, setSelectedLayoutElement] = useState<any | null>(null);
 
   useEffect(() => {
     setZoomLevel(isMobile ? 30 : 85);
@@ -58,15 +59,16 @@ export default function VolleyballControllerPage() {
   };
 
   const renderScoreboard = () => {
+    const props = { selectedLayoutElement };
     switch (selectedScoreboard) {
       case "1":
-        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 /></div>;
+        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 {...props} /></div>;
       case "2":
-        return <div className="w-[1049px] h-[256px]"><ScoreboardVoli2 /></div>;
+        return <div className="w-[1049px] h-[256px]"><ScoreboardVoli2 {...props} /></div>;
       case "3":
-        return <div className="w-[673px] h-[208px]"><ScoreboardVoli3 /></div>;
+        return <div className="w-[673px] h-[208px]"><ScoreboardVoli3 {...props} /></div>;
       default:
-        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 /></div>;
+        return <div className="w-[1048px] h-[224px]"><ScoreboardVoli1 {...props} /></div>;
     }
   };
 
@@ -145,7 +147,7 @@ export default function VolleyballControllerPage() {
 
             <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
               <div 
-                className="transition-transform duration-300 ease-in-out"
+                className="transition-transform duration-300 ease-in-out relative"
                 style={{
                   transform: `scale(${zoomLevel / 100})`,
                 }}
@@ -158,7 +160,7 @@ export default function VolleyballControllerPage() {
 
         <VolleyballController />
         
-        <VolleyballLayoutEditor />
+        <VolleyballLayoutEditor onElementSelect={setSelectedLayoutElement} />
 
         <ConfigManager />
         

@@ -1,20 +1,21 @@
 
 "use client";
 import React from 'react';
-import { useVolleyballData, VolleyballLayoutStyle } from '@/hooks/useVolleyballData';
+import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
 import Image from 'next/image';
 import { OsisCupLogo } from '@/components/icons/OsisCupLogo';
+import DraggableElement from '../DraggableElement';
+
+interface ScoreboardProps {
+  selectedLayoutElement: keyof VolleyballLayout | null;
+}
 
 const DynamicElement = ({ style, children, text, isVisible }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `${style.x}px`,
-    top: `${style.y}px`,
-    width: `${style.width}px`,
-    height: `${style.height}px`,
-    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    width: '100%',
+    height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -34,22 +35,19 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
   );
 };
 
-const BackgroundElement = ({ style, color, children, className }: { style: VolleyballLayoutStyle, color?: string, children?: React.ReactNode, className?: string }) => {
-  if (style.visible === false) return null;
+const BackgroundElement = ({ style, color, children, className, isVisible }: { style: VolleyballLayoutStyle, color?: string, children?: React.ReactNode, className?: string, isVisible?: boolean }) => {
+  if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `${style.x}px`,
-    top: `${style.y}px`,
-    width: `${style.width}px`,
-    height: `${style.height}px`,
+    width: '100%',
+    height: '100%',
     backgroundColor: color,
   };
 
   return <div style={elementStyle} className={className}>{children}</div>;
 };
 
-const ScoreboardVoli3 = () => {
+const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const { scoreboard, loading } = useVolleyballData();
 
     if (loading || !scoreboard || !scoreboard.layout) {
@@ -68,59 +66,79 @@ const ScoreboardVoli3 = () => {
     }
 
     return (
-        <div className="w-[673px] h-52 relative font-display">
-            {/* Backgrounds */}
-            <BackgroundElement style={layout.model3_teamANameBox} color={teamAColor} />
-            <BackgroundElement style={layout.model3_teamBNameBox} color={teamBColor} />
-            <BackgroundElement style={layout.model3_teamASetBox} color={'#0F172A'} />
-            <BackgroundElement style={layout.model3_teamBSetBox} color={'#0F172A'} />
-            <BackgroundElement style={layout.model3_logoBox} color={'white'} className="flex items-center justify-center p-2" />
-            <BackgroundElement style={layout.model3_matchTitleBox} color={'#0F172A'} />
+        <div className="w-[673px] h-[208px] relative font-display">
+            {Object.keys(layout).filter(k => k.startsWith('model3')).map((key) => {
+                const elementKey = key as keyof VolleyballLayout;
+                const style = layout[elementKey];
+                if (!style) return null;
 
-            {/* Set History Containers */}
-             <BackgroundElement style={layout.model3_teamASetHistoryBox} className="p-5 rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamAColor}}>
-                        <div className="text-center text-white text-6xl">{set.teamAScore}</div>
-                    </div>
-                ))}
-            </BackgroundElement>
-             <BackgroundElement style={layout.model3_teamBSetHistoryBox} className="p-5 rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
-                {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamBColor}}>
-                        <div className="text-center text-white text-6xl">{set.teamBScore}</div>
-                    </div>
-                ))}
-            </BackgroundElement>
+                let content;
+                let isBackground = false;
+                let bgColor;
 
+                switch (elementKey) {
+                    case 'model3_teamANameBox': isBackground = true; bgColor = teamAColor; break;
+                    case 'model3_teamBNameBox': isBackground = true; bgColor = teamBColor; break;
+                    case 'model3_teamASetBox': isBackground = true; bgColor = '#0F172A'; break;
+                    case 'model3_teamBSetBox': isBackground = true; bgColor = '#0F172A'; break;
+                    case 'model3_logoBox': isBackground = true; bgColor = 'white'; break;
+                    case 'model3_matchTitleBox': isBackground = true; bgColor = '#0F172A'; break;
+                    case 'model3_teamASetHistoryBox': isBackground = true;
+                        content = <div className="p-5 rounded-[5px] inline-flex justify-center items-center gap-[3px] overflow-hidden w-full h-full">
+                           {displayHistory.slice(0, 3).map((set, index) => (
+                                <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamAColor}}>
+                                   <div className="text-center text-white text-6xl">{set.teamAScore}</div>
+                               </div>
+                           ))}
+                       </div>;
+                       break;
+                    case 'model3_teamBSetHistoryBox': isBackground = true;
+                       content = <div className="p-5 rounded-[5px] inline-flex justify-center items-center gap-[3px] overflow-hidden w-full h-full">
+                           {displayHistory.slice(0, 3).map((set, index) => (
+                                <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamBColor}}>
+                                   <div className="text-center text-white text-6xl">{set.teamBScore}</div>
+                               </div>
+                           ))}
+                       </div>;
+                       break;
+                    case 'model3_teamANameText': content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />; break;
+                    case 'model3_teamBNameText': content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />; break;
+                    case 'model3_teamASetsText': content = <DynamicElement style={style} text={teamASets.toString()} isVisible={style.visible} />; break;
+                    case 'model3_teamBSetsText': content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />; break;
+                    case 'model3_matchTitleText': content = <DynamicElement style={style} text={matchTitle} isVisible={style.visible} />; break;
+                    case 'model3_logoImage':
+                        content = <div className="relative w-full h-full">
+                            {logoSrc ? (
+                                isSvg ? (
+                                    <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
+                                ) : (
+                                    <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}}/>
+                                )
+                            ) : (
+                                <OsisCupLogo className="w-full h-full text-black" />
+                            )}
+                        </div>;
+                        break;
+                    default:
+                        return null;
+                }
+                
+                if (isBackground) {
+                    content = <BackgroundElement style={style} color={bgColor} isVisible={style.visible}>{content}</BackgroundElement>;
+                }
 
-            {/* Dynamic Content */}
-            <DynamicElement style={layout.model3_teamANameText} text={teamAName} isVisible={layout.model3_teamANameText.visible} />
-            <DynamicElement style={layout.model3_teamBNameText} text={teamBName} isVisible={layout.model3_teamBNameText.visible} />
-            <DynamicElement style={layout.model3_teamASetsText} text={teamASets.toString()} isVisible={layout.model3_teamASetsText.visible} />
-            <DynamicElement style={layout.model3_teamBSetsText} text={teamBSets.toString()} isVisible={layout.model3_teamBSetsText.visible} />
-            <DynamicElement style={layout.model3_matchTitleText} text={matchTitle} isVisible={layout.model3_matchTitleText.visible} />
-
-            {/* Logo */}
-            <DynamicElement style={layout.model3_logoImage} isVisible={layout.model3_logoImage.visible}>
-                 {logoSrc ? (
-                    <div className="relative w-full h-full">
-                    {isSvg ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
-                    ) : (
-                        <Image 
-                        src={logoSrc} 
-                        alt="Uploaded Logo" 
-                        fill
-                        style={{objectFit: "contain"}}
-                        />
-                    )}
-                    </div>
-                ) : (
-                    <OsisCupLogo className="w-full h-full text-black" />
-                )}
-            </DynamicElement>
+                return (
+                    <DraggableElement
+                        key={elementKey}
+                        elementKey={elementKey}
+                        style={style}
+                        selectedElement={selectedLayoutElement}
+                        layoutType="volleyball"
+                    >
+                        {content}
+                    </DraggableElement>
+                );
+            })}
         </div>
     );
 };

@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Sparkles, Home } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Home } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
@@ -32,6 +32,7 @@ export default function ControllerPage() {
   const { scoreboard, updateScoreboard } = useScoreboardData();
   const logoSrc = scoreboard?.logoSrc; 
   const isMobile = useIsMobile();
+  const [selectedLayoutElement, setSelectedLayoutElement] = useState<any | null>(null);
 
   useEffect(() => {
     setZoomLevel(isMobile ? 30 : 85);
@@ -58,15 +59,16 @@ export default function ControllerPage() {
   };
 
   const renderScoreboard = () => {
+    const props = { selectedLayoutElement };
     switch (selectedScoreboard) {
       case "1":
-        return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
+        return <div className="w-[1048px] h-[227px]"><Scoreboard1 {...props} /></div>;
       case "2":
-        return <div className="w-[1048px] h-[291px]"><Scoreboard2 /></div>;
+        return <div className="w-[1048px] h-[291px]"><Scoreboard2 {...props} /></div>;
       case "3":
-        return <div className="w-[450px] h-[162px]"><Scoreboard3 /></div>;
+        return <div className="w-[450px] h-[162px]"><Scoreboard3 {...props} /></div>;
       default:
-        return <div className="w-[1048px] h-[227px]"><Scoreboard1 /></div>;
+        return <div className="w-[1048px] h-[227px]"><Scoreboard1 {...props} /></div>;
     }
   };
 
@@ -145,7 +147,7 @@ export default function ControllerPage() {
 
             <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
               <div 
-                className="transition-transform duration-300 ease-in-out"
+                className="transition-transform duration-300 ease-in-out relative"
                 style={{
                   transform: `scale(${zoomLevel / 100})`,
                 }}
@@ -158,7 +160,7 @@ export default function ControllerPage() {
 
         <Controller />
         
-        <LayoutEditor />
+        <LayoutEditor onElementSelect={setSelectedLayoutElement} />
 
         <ConfigManager />
 

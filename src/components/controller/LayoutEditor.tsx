@@ -13,7 +13,11 @@ import { update, ref } from 'firebase/database';
 import { useDatabase } from '@/firebase';
 import { Switch } from '@/components/ui/switch';
 
-const LayoutEditor = () => {
+interface LayoutEditorProps {
+  onElementSelect: (elementKey: keyof ScoreboardLayout | null) => void;
+}
+
+const LayoutEditor = ({ onElementSelect }: LayoutEditorProps) => {
   const { scoreboard } = useScoreboardData();
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof ScoreboardLayout>('model1_teamAScore');
@@ -23,7 +27,8 @@ const LayoutEditor = () => {
     if (scoreboard?.layout) {
       setCurrentStyle(scoreboard.layout[selectedElement]);
     }
-  }, [selectedElement, scoreboard]);
+    onElementSelect(selectedElement);
+  }, [selectedElement, scoreboard, onElementSelect]);
 
   const handleStyleChange = (key: keyof LayoutStyle, value: number) => {
     if (!currentStyle) return;

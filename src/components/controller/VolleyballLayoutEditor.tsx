@@ -12,7 +12,11 @@ import { update, ref } from 'firebase/database';
 import { useDatabase } from '@/firebase';
 import { Switch } from '@/components/ui/switch';
 
-const VolleyballLayoutEditor = () => {
+interface VolleyballLayoutEditorProps {
+  onElementSelect: (elementKey: keyof VolleyballLayout | null) => void;
+}
+
+const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps) => {
   const { scoreboard } = useVolleyballData();
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof VolleyballLayout>('model1_teamAName');
@@ -22,7 +26,8 @@ const VolleyballLayoutEditor = () => {
     if (scoreboard?.layout) {
       setCurrentStyle(scoreboard.layout[selectedElement]);
     }
-  }, [selectedElement, scoreboard]);
+    onElementSelect(selectedElement);
+  }, [selectedElement, scoreboard, onElementSelect]);
 
   const handleStyleChange = (key: keyof VolleyballLayoutStyle, value: number) => {
     if (!currentStyle || !database) return;

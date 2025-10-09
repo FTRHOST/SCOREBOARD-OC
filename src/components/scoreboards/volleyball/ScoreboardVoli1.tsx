@@ -1,20 +1,21 @@
 
 "use client";
 import React from 'react';
-import { useVolleyballData, VolleyballLayoutStyle } from '@/hooks/useVolleyballData';
+import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
 import Image from 'next/image';
 import { OsisCupLogo } from '@/components/icons/OsisCupLogo';
+import DraggableElement from '../DraggableElement';
+
+interface ScoreboardProps {
+  selectedLayoutElement: keyof VolleyballLayout | null;
+}
 
 const DynamicElement = ({ style, children, text, isVisible }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `${style.x}px`,
-    top: `${style.y}px`,
-    width: `${style.width}px`,
-    height: `${style.height}px`,
-    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
+    width: '100%',
+    height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -34,23 +35,20 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
   );
 };
 
-const BackgroundElement = ({ style, color }: { style: VolleyballLayoutStyle, color?: string }) => {
-  if (style.visible === false) return null;
+const BackgroundElement = ({ style, color, isVisible, children }: { style: VolleyballLayoutStyle, color?: string, isVisible?: boolean, children?: React.ReactNode }) => {
+  if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `${style.x}px`,
-    top: `${style.y}px`,
-    width: `${style.width}px`,
-    height: `${style.height}px`,
+    width: '100%',
+    height: '100%',
     backgroundColor: color,
   };
 
-  return <div style={elementStyle} />;
+  return <div style={elementStyle}>{children}</div>;
 };
 
 
-const ScoreboardVoli1 = () => {
+const ScoreboardVoli1 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const { scoreboard, loading } = useVolleyballData();
 
     if (loading || !scoreboard || !scoreboard.layout) {
@@ -61,44 +59,83 @@ const ScoreboardVoli1 = () => {
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
     return (
-        <div className="w-[1048px] h-224px] relative font-display">
-            {/* Backgrounds */}
-            <BackgroundElement style={layout.model1_teamABox} color={teamAColor} />
-            <BackgroundElement style={layout.model1_teamBBox} color={teamBColor} />
-            <BackgroundElement style={layout.model1_centerScoreBox} color={'#0F172A'} />
-            <BackgroundElement style={layout.model1_matchTitleBox} color={'#0F172A'} />
+        <div className="w-[1048px] h-[224px] relative font-display">
+            {Object.keys(layout).filter(k => k.startsWith('model1')).map((key) => {
+                const elementKey = key as keyof VolleyballLayout;
+                const style = layout[elementKey];
+                if (!style) return null;
 
-            {/* Team Names */}
-            <DynamicElement style={layout.model1_teamAName} text={teamAName} isVisible={layout.model1_teamAName.visible} />
-            <DynamicElement style={layout.model1_teamBName} text={teamBName} isVisible={layout.model1_teamBName.visible} />
+                let content;
+                let isBackground = false;
+                let bgColor;
 
-            {/* Sets */}
-            <DynamicElement style={layout.model1_teamASets} text={teamASets.toString()} isVisible={layout.model1_teamASets.visible} />
-            <DynamicElement style={layout.model1_teamBSets} text={teamBSets.toString()} isVisible={layout.model1_teamBSets.visible} />
+                switch (elementKey) {
+                    case 'model1_teamABox':
+                        isBackground = true;
+                        bgColor = teamAColor;
+                        break;
+                    case 'model1_teamBBox':
+                        isBackground = true;
+                        bgColor = teamBColor;
+                        break;
+                    case 'model1_centerScoreBox':
+                        isBackground = true;
+                        bgColor = '#0F172A';
+                        break;
+                    case 'model1_matchTitleBox':
+                        isBackground = true;
+                        bgColor = '#0F172A';
+                        break;
+                    case 'model1_teamAName':
+                        content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />;
+                        break;
+                    case 'model1_teamBName':
+                        content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />;
+                        break;
+                    case 'model1_teamASets':
+                        content = <DynamicElement style={style} text={teamASets.toString()} isVisible={style.visible} />;
+                        break;
+                    case 'model1_teamBSets':
+                        content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />;
+                        break;
+                    case 'model1_matchTitleText':
+                        content = <DynamicElement style={style} text={matchTitle} isVisible={style.visible} />;
+                        break;
+                    case 'model1_logo':
+                        content = <DynamicElement style={style} isVisible={style.visible}>
+                            {logoSrc ? (
+                                <div className="relative w-full h-full">
+                                {isSvg ? (
+                                    <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
+                                ) : (
+                                    <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}} />
+                                )}
+                                </div>
+                            ) : (
+                                <OsisCupLogo className="w-full h-full text-white" />
+                            )}
+                        </DynamicElement>;
+                        break;
+                    default:
+                        return null;
+                }
+                
+                if (isBackground) {
+                    content = <BackgroundElement style={style} color={bgColor} isVisible={style.visible}>{content}</BackgroundElement>
+                }
 
-            {/* Match Title */}
-            <DynamicElement style={layout.model1_matchTitleText} text={matchTitle} isVisible={layout.model1_matchTitleText.visible} />
-            
-            {/* Logo */}
-            <DynamicElement style={layout.model1_logo} isVisible={layout.model1_logo.visible}>
-                 {logoSrc ? (
-                    <div className="relative w-full h-full">
-                    {isSvg ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
-                    ) : (
-                        <Image 
-                        src={logoSrc} 
-                        alt="Uploaded Logo" 
-                        fill
-                        style={{objectFit: "contain"}}
-                        />
-                    )}
-                    </div>
-                ) : (
-                    <OsisCupLogo className="w-full h-full text-white" />
-                )}
-            </DynamicElement>
+                return (
+                    <DraggableElement
+                        key={elementKey}
+                        elementKey={elementKey}
+                        style={style}
+                        selectedElement={selectedLayoutElement}
+                        layoutType="volleyball"
+                    >
+                        {content}
+                    </DraggableElement>
+                );
+            })}
         </div>
     );
 };

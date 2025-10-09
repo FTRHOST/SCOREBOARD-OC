@@ -2,11 +2,12 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useScoreboardData, LayoutStyle } from "@/hooks/useScoreboardData";
+import { useScoreboardData, LayoutStyle, ScoreboardLayout } from "@/hooks/useScoreboardData";
 import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
+import DraggableElement from './DraggableElement';
 
 function usePrevious<T>(value: T): T | undefined {
   const ref = React.useRef<T>();
@@ -16,17 +17,16 @@ function usePrevious<T>(value: T): T | undefined {
   return ref.current;
 }
 
-const DynamicElement = ({ style, color, children, text, className, isVisible }: { style: LayoutStyle, color?: string, children?: React.ReactNode, text?: string, className?: string, isVisible?: boolean }) => {
+interface ScoreboardProps {
+  selectedLayoutElement: keyof ScoreboardLayout | null;
+}
+
+const DynamicElement = ({ style, children, text, className, isVisible }: { style: LayoutStyle, children?: React.ReactNode, text?: string, className?: string, isVisible?: boolean }) => {
   if (isVisible === false) return null;
 
   const elementStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: `${style.x}px`,
-    top: `${style.y}px`,
-    width: `${style.width}px`,
-    height: `${style.height}px`,
-    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
-    backgroundColor: color,
+    width: '100%',
+    height: '100%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -44,8 +44,19 @@ const DynamicElement = ({ style, color, children, text, className, isVisible }: 
   );
 };
 
+const BackgroundElement = ({ style, color, isVisible, children, className }: { style: LayoutStyle, color?: string, isVisible?: boolean, children?: React.ReactNode, className?: string }) => {
+  if (isVisible === false) return null;
+  
+  const elementStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    backgroundColor: color,
+  };
 
-const Scoreboard3 = () => {
+  return <div style={elementStyle} className={cn(className)}>{children}</div>;
+};
+
+const Scoreboard3 = ({ selectedLayoutElement }: ScoreboardProps) => {
   const { scoreboard, loading } = useScoreboardData();
   
   const [flashA, setFlashA] = useState(false);
@@ -98,47 +109,64 @@ const Scoreboard3 = () => {
 
   return (
     <div className="w-[450px] h-[162px] font-display text-white shadow-2xl relative">
-        {/* Logo Section */}
-        <div style={{ position: 'absolute', left: `${layout.model3_logo.x}px`, top: `${layout.model3_logo.y}px`, width: `${layout.model3_logo.width}px`, height: `${layout.model3_logo.height}px`, backgroundColor: 'white' }}
-          className="flex items-center justify-center p-2"
-        >
-          {logoSrc ? (
-            <div className="relative w-full h-full">
-              {isSvg ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logoSrc} alt="Uploaded Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              ) : (
-                <Image 
-                  src={logoSrc} 
-                  alt="Uploaded Logo" 
-                  fill
-                  style={{objectFit: "contain"}}
-                />
-              )}
-            </div>
-          ) : (
-            <OsisCupLogo className="w-full h-full text-primary" />
-          )}
-        </div>
+      {Object.keys(layout).filter(k => k.startsWith('model3')).map((key) => {
+        const elementKey = key as keyof ScoreboardLayout;
+        const style = layout[elementKey];
+        if (!style) return null;
+        
+        let content: React.ReactNode;
+        let isBackground = false;
+        let bgColor;
+        let flashClass;
 
-        {/* Info Section */}
-        {/* Row 1: Team A, Score A, Foul A */}
-        <DynamicElement style={layout.model3_teamAName} color={teamAColor} text={teamAName} isVisible={layout.model3_teamAName.visible} />
-        <DynamicElement style={layout.model3_teamAScore} color="#1F2937" isVisible={layout.model3_teamAScore.visible}>
-          <AnimatedNumber value={teamAScore} />
-        </DynamicElement>
-        <DynamicElement style={layout.model3_teamAFouls} color={teamAColor} className={cn(flashA && "animate-flash")} text={teamAFouls.toString()} isVisible={layout.model3_teamAFouls.visible} />
-        
-        {/* Row 2: Team B, Score B, Foul B */}
-        <DynamicElement style={layout.model3_teamBName} color={teamBColor} text={teamBName} isVisible={layout.model3_teamBName.visible} />
-        <DynamicElement style={layout.model3_teamBScore} color="#1F2937" isVisible={layout.model3_teamBScore.visible}>
-          <AnimatedNumber value={teamBScore} />
-        </DynamicElement>
-        <DynamicElement style={layout.model3_teamBFouls} color={teamBColor} className={cn(flashB && "animate-flash")} text={teamBFouls.toString()} isVisible={layout.model3_teamBFouls.visible} />
-        
-        {/* Row 3: Half, Timer */}
-        <DynamicElement style={layout.model3_half} color="#1F2937" text={getShortHalf(half)} isVisible={layout.model3_half.visible} />
-        <DynamicElement style={layout.model3_time} color="#374151" text={formatTime(time)} isVisible={layout.model3_time.visible} />
+        switch(elementKey) {
+            case 'model3_teamAName': isBackground=true; bgColor=teamAColor; content=<DynamicElement style={style} text={teamAName} isVisible={style.visible} />; break;
+            case 'model3_teamAScore': isBackground=true; bgColor="#1F2937"; content=<DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>; break;
+            case 'model3_teamAFouls': isBackground=true; bgColor=teamAColor; flashClass = flashA ? 'animate-flash' : ''; content=<DynamicElement style={style} text={teamAFouls.toString()} isVisible={style.visible} />; break;
+
+            case 'model3_teamBName': isBackground=true; bgColor=teamBColor; content=<DynamicElement style={style} text={teamBName} isVisible={style.visible} />; break;
+            case 'model3_teamBScore': isBackground=true; bgColor="#1F2937"; content=<DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamBScore} /></DynamicElement>; break;
+            case 'model3_teamBFouls': isBackground=true; bgColor=teamBColor; flashClass = flashB ? 'animate-flash' : ''; content=<DynamicElement style={style} text={teamBFouls.toString()} isVisible={style.visible} />; break;
+            
+            case 'model3_half': isBackground=true; bgColor="#1F2937"; content=<DynamicElement style={style} text={getShortHalf(half)} isVisible={style.visible} />; break;
+            case 'model3_time': isBackground=true; bgColor="#374151"; content=<DynamicElement style={style} text={formatTime(time)} isVisible={style.visible} />; break;
+
+            case 'model3_logo':
+                isBackground=true;
+                bgColor="white";
+                content = <div className="p-2 w-full h-full">
+                {logoSrc ? (
+                    <div className="relative w-full h-full">
+                    {isSvg ? (
+                        <img src={logoSrc} alt="Uploaded Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                        <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}}/>
+                    )}
+                    </div>
+                ) : (
+                    <OsisCupLogo className="w-full h-full text-primary" />
+                )}
+                </div>;
+                break;
+            default: return null;
+        }
+
+        if (isBackground) {
+            content = <BackgroundElement style={style} color={bgColor} isVisible={style.visible} className={flashClass}>{content}</BackgroundElement>
+        }
+
+        return (
+          <DraggableElement
+            key={elementKey}
+            elementKey={elementKey}
+            style={style}
+            selectedElement={selectedLayoutElement}
+            layoutType="futsal"
+          >
+            {content}
+          </DraggableElement>
+        );
+      })}
     </div>
   );
 };
