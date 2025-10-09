@@ -128,7 +128,7 @@ const defaultScoreboard: Scoreboard = {
   pauseTime: INITIAL_TIME_SECONDS,
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultLayout,
-  eventTitle: 'Futsal Scoreboard Pro'
+  eventTitle: 'SCOREBOARD'
 };
 
 export function useScoreboardData() {

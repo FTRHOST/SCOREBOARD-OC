@@ -46,7 +46,7 @@ export default function Home() {
         <Card className="w-full shadow-lg mb-8">
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center font-headline">
-              {eventTitle || "Papan Skor"}
+              {eventTitle || "SCOREBOARD"}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">

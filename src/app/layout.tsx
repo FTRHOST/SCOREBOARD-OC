@@ -5,8 +5,13 @@ import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Futsal Scoreboard Pro',
+  title: 'SCOREBOARD',
   description: 'Interactive Futsal and Volleyball Scoreboard Controller',
+  openGraph: {
+    title: 'SCOREBOARD',
+    description: 'Interactive Futsal and Volleyball Scoreboard Controller',
+    images: ['https://storage.googleapis.com/proud-booth-428 Proud/comp_000000_000000_1721798369.84534_3.png'],
+  },
 };
 
 
