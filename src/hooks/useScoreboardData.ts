@@ -76,14 +76,14 @@ export interface Scoreboard {
 }
 
 const defaultLayout: ScoreboardLayout = {
-  // Model 1 Defaults based on user image
-  model1_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 48, visible: true }, // Box for Team A
-  model1_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 48, visible: true }, // Box for Team B
-  model1_teamAScore: { x: 320, y: 41, width: 144, height: 105, fontSize: 96, visible: true }, // Score A
-  model1_teamBScore: { x: 584, y: 41, width: 144, height: 105, fontSize: 96, visible: true }, // Score B
-  model1_logo: { x: 405, y: 0, width: 238, height: 188, visible: true, fontSize: 0 }, // Logo on top
-  model1_half: { x: 405, y: 179, width: 233, height: 48, fontSize: 36, visible: true }, // Half below
-  model1_scoreContainer: { x: 320, y: 41, width: 408, height: 105, visible: true, fontSize: 0 }, // Central container
+  // Model 1 Defaults based on the new reference image
+  model1_scoreContainer: { x: 320, y: 41, width: 408, height: 105, visible: true, fontSize: 0 },
+  model1_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 88, visible: true },
+  model1_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 88, visible: true },
+  model1_teamAScore: { x: 320, y: 41, width: 144, height: 105, fontSize: 96, visible: true },
+  model1_teamBScore: { x: 584, y: 41, width: 144, height: 105, fontSize: 96, visible: true },
+  model1_logo: { x: 405, y: 0, width: 238, height: 188, visible: true, fontSize: 0 },
+  model1_half: { x: 405, y: 165, width: 233, height: 48, fontSize: 42, visible: true },
 
   // Model 2 Defaults
   model2_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 82, visible: true },

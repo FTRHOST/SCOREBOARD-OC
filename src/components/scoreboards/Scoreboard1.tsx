@@ -48,17 +48,12 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
   const { layout, teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
   
   const isSvg = logoSrc?.startsWith('data:image/svg+xml');
-
-  // Define the render order: backgrounds first, then content, then logo on top
-  const backgroundKeys: (keyof ScoreboardLayout)[] = ['model1_teamAName', 'model1_teamBName'];
-  const contentKeys: (keyof ScoreboardLayout)[] = ['model1_teamAScore', 'model1_teamBScore', 'model1_half'];
-  const logoKey: keyof ScoreboardLayout = 'model1_logo';
   
-  const allKeys = [...backgroundKeys, ...contentKeys, logoKey];
+  const renderOrder: (keyof ScoreboardLayout)[] = ['model1_scoreContainer', 'model1_teamAName', 'model1_teamBName', 'model1_teamAScore', 'model1_teamBScore', 'model1_half', 'model1_logo'];
 
   return (
-    <div className="w-[1048px] h-[227px] relative font-display text-white bg-[#05183B]">
-      {allKeys.map((key) => {
+    <div className="w-[1048px] h-[227px] relative font-display text-white bg-transparent">
+      {renderOrder.map((key) => {
         const elementKey = key as keyof ScoreboardLayout;
         const style = layout[elementKey];
         if (!style) return null;
@@ -67,7 +62,10 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
         let bgColor: string | undefined;
 
         switch (elementKey) {
-          // Containers with background color
+          case 'model1_scoreContainer':
+            bgColor = '#05183B';
+            content = <DynamicElement style={style} isVisible={style.visible} backgroundColor={bgColor} />;
+            break;
           case 'model1_teamAName':
             bgColor = teamAColor || '#B62FCE';
             content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} backgroundColor={bgColor}/>;
@@ -76,19 +74,16 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
             bgColor = teamBColor || '#EF7438';
             content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} backgroundColor={bgColor}/>;
             break;
-
-          // Text/Content Elements
           case 'model1_teamAScore':
-            content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>;
+             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>;
             break;
           case 'model1_teamBScore':
             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamBScore} /></DynamicElement>;
             break;
           case 'model1_half':
-            content = <DynamicElement style={style} text={half} isVisible={style.visible} />;
+            bgColor = '#05183B';
+            content = <DynamicElement style={style} text={half} isVisible={style.visible} backgroundColor={bgColor}/>;
             break;
-          
-          // Logo Element (rendered last to be on top)
           case 'model1_logo':
             content = <DynamicElement style={style} isVisible={style.visible}>
               {logoSrc ? (
@@ -104,7 +99,6 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
               )}
             </DynamicElement>;
             break;
-
           default:
             return null;
         }
