@@ -16,11 +16,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, X, Home } from "lucide-react";
+import { ExternalLink, ZoomIn, ZoomOut, RotateCcw, Home } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { useVolleyballData } from "@/hooks/useVolleyballData";
-import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VolleyballLayoutEditor from "@/components/controller/VolleyballLayoutEditor";
 import ConfigManager from "@/components/controller/ConfigManager";
@@ -29,34 +27,12 @@ import ConfigManager from "@/components/controller/ConfigManager";
 export default function VolleyballControllerPage() {
   const [selectedScoreboard, setSelectedScoreboard] = useState("1");
   const [zoomLevel, setZoomLevel] = useState(100);
-  const { scoreboard, updateScoreboard } = useVolleyballData();
-  const logoSrc = scoreboard?.logoSrc; 
   const isMobile = useIsMobile();
   const [selectedLayoutElement, setSelectedLayoutElement] = useState<any | null>(null);
 
   useEffect(() => {
     setZoomLevel(isMobile ? 30 : 85);
   }, [isMobile]);
-
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        if (updateScoreboard) {
-          updateScoreboard({ logoSrc: result });
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRemoveLogo = () => {
-    if (updateScoreboard) {
-      updateScoreboard({ logoSrc: null });
-    }
-  };
 
   const renderScoreboard = () => {
     const props = { selectedLayoutElement };
@@ -133,18 +109,6 @@ export default function VolleyballControllerPage() {
               </div>
             </div>
             
-            <div className="space-y-2 w-full">
-              <Label htmlFor="logoUpload">Unggah Logo</Label>
-              <div className="flex flex-col sm:flex-row gap-2 items-center">
-                <Input id="logoUpload" type="file" accept="image/*,.svg" onChange={handleLogoUpload} className="text-sm" />
-                {logoSrc && (
-                    <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
-                        <X className="mr-2 h-4 w-4" /> Hapus Logo
-                    </Button>
-                )}
-              </div>
-            </div>
-
             <div className="w-full aspect-video p-4 bg-muted/30 rounded-lg flex items-center justify-center overflow-hidden">
               <div 
                 className="transition-transform duration-300 ease-in-out relative"
