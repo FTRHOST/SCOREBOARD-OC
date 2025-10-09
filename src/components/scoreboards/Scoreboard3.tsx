@@ -97,7 +97,7 @@ const Scoreboard3 = () => {
   }
 
   return (
-    <div className="w-[448px] h-[154px] font-display text-white shadow-2xl relative">
+    <div className="w-[450px] h-[162px] font-display text-white shadow-2xl relative">
         {/* Logo Section */}
         <div style={{ position: 'absolute', left: `${layout.model3_logo.x}px`, top: `${layout.model3_logo.y}px`, width: `${layout.model3_logo.width}px`, height: `${layout.model3_logo.height}px`, backgroundColor: 'white' }}
           className="flex items-center justify-center p-2"

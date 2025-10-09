@@ -96,16 +96,16 @@ const defaultLayout: ScoreboardLayout = {
   model2_time: { x: 407, y: 153, width: 233, height: 79, fontSize: 72, visible: true },
   model2_half: { x: 407, y: 243, width: 233, height: 48, fontSize: 36, visible: true },
 
-  // Model 3 Defaults
-  model3_logo: { x: 0, y: 0, width: 149, height: 154, visible: true },
-  model3_teamAName: { x: 149, y: 0, width: 100, height: 51, fontSize: 18, visible: true },
-  model3_teamAScore: { x: 249, y: 0, width: 100, height: 51, fontSize: 36, visible: true },
-  model3_teamAFouls: { x: 349, y: 0, width: 99, height: 51, fontSize: 36, visible: true },
-  model3_teamBName: { x: 149, y: 51, width: 100, height: 52, fontSize: 18, visible: true },
-  model3_teamBScore: { x: 249, y: 51, width: 100, height: 52, fontSize: 36, visible: true },
-  model3_teamBFouls: { x: 349, y: 51, width: 99, height: 52, fontSize: 36, visible: true },
-  model3_half: { x: 149, y: 103, width: 100, height: 51, fontSize: 24, visible: true },
-  model3_time: { x: 249, y: 103, width: 199, height: 51, fontSize: 30, visible: true },
+  // Model 3 Defaults with 5px gap
+  model3_logo: { x: 0, y: 0, width: 145, height: 162, visible: true },
+  model3_teamAName: { x: 150, y: 0, width: 95, height: 50, fontSize: 18, visible: true },
+  model3_teamAScore: { x: 250, y: 0, width: 95, height: 50, fontSize: 36, visible: true },
+  model3_teamAFouls: { x: 350, y: 0, width: 95, height: 50, fontSize: 36, visible: true },
+  model3_teamBName: { x: 150, y: 55, width: 95, height: 50, fontSize: 18, visible: true },
+  model3_teamBScore: { x: 250, y: 55, width: 95, height: 50, fontSize: 36, visible: true },
+  model3_teamBFouls: { x: 350, y: 55, width: 95, height: 50, fontSize: 36, visible: true },
+  model3_half: { x: 150, y: 110, width: 95, height: 52, fontSize: 24, visible: true },
+  model3_time: { x: 250, y: 110, width: 195, height: 52, fontSize: 30, visible: true },
 };
 
 
@@ -153,7 +153,7 @@ export function useScoreboardData() {
           mergedLayout[modelKey] = { ...defaultLayout[modelKey], ...(val.layout?.[modelKey] || {}) };
         }
         
-        data = { ...val, layout: mergedLayout };
+        data = { ...defaultScoreboard, ...val, layout: mergedLayout };
         
         // Ensure colorSuggestions exist
         if (!data.colorSuggestions) {
@@ -231,7 +231,7 @@ export function useScoreboardData() {
   const resetScoreboard = useCallback(() => {
     if (!database || !scoreboard) return;
     
-    const resetData = {
+    const resetData: Partial<Scoreboard> = {
       teamAScore: 0,
       teamBScore: 0,
       teamAFouls: 0,
