@@ -43,7 +43,7 @@ const ScoreboardVoli2 = () => {
             </div>
 
             {/* Team B Set History */}
-            <div className="h-28 left-[727px] top-[146px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-10 overflow-hidden px-4">
+            <div className="h-28 left-[727px] top-[146px] absolute rounded-[5px] inline-flex justify-center items-center gap-10 overflow-hidden px-4">
                 {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[24px] absolute" style={{backgroundColor: teamBColor}}></div>
@@ -53,7 +53,7 @@ const ScoreboardVoli2 = () => {
             </div>
 
             {/* Team A Set History */}
-            <div className="h-28 left-0 top-[146px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-10 overflow-hidden px-4">
+            <div className="h-28 left-0 top-[146px] absolute rounded-[5px] inline-flex justify-center items-center gap-10 overflow-hidden px-4">
                  {displayHistory.slice(0, 3).map((set, index) => (
                     <div key={index} className="w-20 h-28 relative">
                         <div className="w-20 h-20 left-0 top-[21px] absolute" style={{backgroundColor: teamAColor}}></div>

@@ -10,6 +10,8 @@ const FUTSAL_PATH = 'scoreboard'; // Path to the futsal data for logo sharing
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
 const MAX_SETS = 5;
+const INITIAL_COLOR_SUGGESTIONS = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FFFFFF', '#000000'];
+
 
 export interface VolleyballScoreboard {
   teamAName: string;
@@ -24,6 +26,7 @@ export interface VolleyballScoreboard {
   logoSrc: string | null;
   matchTitle: string;
   setHistory: Array<{ teamAScore: number; teamBScore: number }>;
+  colorSuggestions: string[];
 }
 
 const defaultVolleyballScoreboard: VolleyballScoreboard = {
@@ -39,6 +42,7 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
   logoSrc: null,
   matchTitle: "FINAL",
   setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
+  colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
 };
 
 export function useVolleyballData() {
@@ -61,9 +65,12 @@ export function useVolleyballData() {
         const history = val.setHistory || [];
         const newHistory = Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 });
         for(let i=0; i < history.length && i < MAX_SETS; i++) {
-          newHistory[i] = history[i];
+          newHistory[i] = history[i] || { teamAScore: 0, teamBScore: 0 };
         }
         data = { ...defaultVolleyballScoreboard, ...val, setHistory: newHistory };
+         if (!data.colorSuggestions) {
+          data.colorSuggestions = INITIAL_COLOR_SUGGESTIONS;
+        }
       } else {
         data = defaultVolleyballScoreboard;
         set(scoreboardRef, data);
@@ -141,6 +148,27 @@ export function useVolleyballData() {
       setHistory: newSetHistory,
     });
   };
+  
+  const updateSetHistoryScore = useCallback((setIndex: number, team: 'A' | 'B', score: number) => {
+    if (!database || !scoreboard || setIndex >= scoreboard.setHistory.length) return;
+
+    const newHistory = [...scoreboard.setHistory];
+    const updatedSet = { ...newHistory[setIndex] };
+    
+    if (team === 'A') {
+      updatedSet.teamAScore = score;
+    } else {
+      updatedSet.teamBScore = score;
+    }
+    newHistory[setIndex] = updatedSet;
+    
+    // Recalculate total sets won
+    const teamASets = newHistory.reduce((acc, set) => acc + (set.teamAScore > set.teamBScore ? 1 : 0), 0);
+    const teamBSets = newHistory.reduce((acc, set) => acc + (set.teamBScore > set.teamAScore ? 1 : 0), 0);
+
+    update(ref(database, VOLLEYBALL_PATH), { setHistory: newHistory, teamASets, teamBSets });
+  }, [database, scoreboard]);
+
 
   const resetSet = () => {
     updateScoreboard({ teamAPoints: 0, teamBPoints: 0 });
@@ -161,6 +189,11 @@ export function useVolleyballData() {
   
   const swapTeams = () => {
     if (!scoreboard) return;
+    const newHistory = scoreboard.setHistory.map(set => ({
+      teamAScore: set.teamBScore,
+      teamBScore: set.teamAScore
+    }));
+
     updateScoreboard({
       teamAName: scoreboard.teamBName,
       teamBName: scoreboard.teamAName,
@@ -170,10 +203,17 @@ export function useVolleyballData() {
       teamBSets: scoreboard.teamASets,
       teamAPoints: scoreboard.teamBPoints,
       teamBPoints: scoreboard.teamAPoints,
-      // We don't swap set history as it's tied to the set number
+      setHistory: newHistory,
     });
   };
 
+  const deleteColorSuggestion = useCallback((colorToDelete: string) => {
+    if (!database || !scoreboard) return;
+    const currentSuggestions = scoreboard.colorSuggestions || [];
+    const newSuggestions = currentSuggestions.filter(color => color !== colorToDelete);
+    update(ref(database, VOLLEYBALL_PATH), { colorSuggestions: newSuggestions });
+  }, [database, scoreboard]);
 
-  return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams };
+
+  return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion };
 }
