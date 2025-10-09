@@ -70,7 +70,7 @@ const Scoreboard3 = () => {
 
   if (loading || !scoreboard || !scoreboard.layout) {
     return (
-         <div className="bg-green-500 p-2 rounded-lg w-full h-full font-display text-white shadow-2xl flex items-center justify-center">
+         <div className="w-full h-full font-display text-white shadow-2xl flex items-center justify-center">
             <OsisCupLogo className="w-24 h-24 text-primary animate-pulse" />
         </div>
     );
@@ -97,7 +97,7 @@ const Scoreboard3 = () => {
   }
 
   return (
-    <div className="bg-green-500 w-[448px] h-[154px] font-display text-white shadow-2xl relative">
+    <div className="w-[448px] h-[154px] font-display text-white shadow-2xl relative">
         {/* Logo Section */}
         <div style={{ position: 'absolute', left: `${layout.model3_logo.x}px`, top: `${layout.model3_logo.y}px`, width: `${layout.model3_logo.width}px`, height: `${layout.model3_logo.height}px`, backgroundColor: 'white' }}
           className="flex items-center justify-center p-2"
