@@ -13,7 +13,7 @@ import { useDatabase } from '@/firebase';
 import { Switch } from '@/components/ui/switch';
 
 const VolleyballLayoutEditor = () => {
-  const { scoreboard, updateScoreboard } = useVolleyballData();
+  const { scoreboard } = useVolleyballData();
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof VolleyballLayout>('model1_teamAName');
   const [currentStyle, setCurrentStyle] = useState<VolleyballLayoutStyle | null>(null);
@@ -25,26 +25,21 @@ const VolleyballLayoutEditor = () => {
   }, [selectedElement, scoreboard]);
 
   const handleStyleChange = (key: keyof VolleyballLayoutStyle, value: number) => {
-    if (!currentStyle || !scoreboard) return;
+    if (!currentStyle || !database) return;
     const newStyle = { ...currentStyle, [key]: value };
+    setCurrentStyle(newStyle);
     
-    const newLayout = {
-        ...scoreboard.layout,
-        [selectedElement]: newStyle
-    };
-    
-    updateScoreboard({ layout: newLayout });
+    const path = `volleyball/layout/${selectedElement}`;
+    update(ref(database), { [path]: newStyle });
   };
   
   const handleVisibilityChange = (visible: boolean) => {
-    if (!currentStyle || !scoreboard) return;
+    if (!currentStyle || !database) return;
     const newStyle = { ...currentStyle, visible };
-     const newLayout = {
-        ...scoreboard.layout,
-        [selectedElement]: newStyle
-    };
-    
-    updateScoreboard({ layout: newLayout });
+    setCurrentStyle(newStyle);
+
+    const path = `volleyball/layout/${selectedElement}`;
+    update(ref(database), { [path]: newStyle });
   };
 
 
