@@ -27,8 +27,6 @@ export default function VolleyballController() {
   const { scoreboard: volleyballScoreboard, loading: volleyballLoading, updateScoreboard: updateVolleyballScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion: deleteVolleyballColorSuggestion } = useVolleyballData();
   const { scoreboard: futsalScoreboard, updateScoreboard: updateFutsalScoreboard } = useScoreboardData();
   
-  const eventTitle = futsalScoreboard?.eventTitle;
-
   const [localTeamAName, setLocalTeamAName] = useState('');
   const [localTeamBName, setLocalTeamBName] = useState('');
   const [localMatchTitle, setLocalMatchTitle] = useState('');
@@ -40,12 +38,18 @@ export default function VolleyballController() {
         setLocalTeamBName(volleyballScoreboard.teamBName || '');
         setLocalMatchTitle(volleyballScoreboard.matchTitle || '');
     }
+  }, [volleyballScoreboard?.teamAName, volleyballScoreboard?.teamBName, volleyballScoreboard?.matchTitle]);
+
+  useEffect(() => {
     if (futsalScoreboard) {
         setLocalEventTitle(futsalScoreboard.eventTitle || '');
     }
-  }, [volleyballScoreboard, futsalScoreboard]);
+  }, [futsalScoreboard?.eventTitle]);
 
-
+  const handleUpdate = (field: string, value: any) => {
+    updateVolleyballScoreboard({ [field]: value });
+  };
+  
   const handleFutsalUpdate = (field: string, value: any) => {
     updateFutsalScoreboard({ [field]: value });
   };
@@ -62,10 +66,6 @@ export default function VolleyballController() {
 
   const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, setHistory, colorSuggestions } = volleyballScoreboard;
   
-  const handleUpdate = (field: string, value: any) => {
-    updateVolleyballScoreboard({ [field]: value });
-  };
-
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
     const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
     return (
