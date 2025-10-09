@@ -6,7 +6,7 @@ import { OsisCupLogo } from "@/components/icons/OsisCupLogo";
 import AnimatedNumber from "@/components/shared/AnimatedNumber";
 import Image from 'next/image';
 
-const DynamicElement = ({ style, color, children, text, isVisible }: { style: LayoutStyle, color?: string, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
@@ -16,7 +16,6 @@ const DynamicElement = ({ style, color, children, text, isVisible }: { style: La
     width: `${style.width}px`,
     height: `${style.height}px`,
     fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
-    backgroundColor: color,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -36,6 +35,21 @@ const DynamicElement = ({ style, color, children, text, isVisible }: { style: La
   );
 };
 
+const BackgroundElement = ({ style, color }: { style: LayoutStyle, color?: string }) => {
+  if (style.visible === false) return null;
+  
+  const elementStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: `${style.x}px`,
+    top: `${style.y}px`,
+    width: `${style.width}px`,
+    height: `${style.height}px`,
+    backgroundColor: color,
+  };
+
+  return <div style={elementStyle} />;
+};
+
 
 const Scoreboard1 = () => {
   const { scoreboard, loading } = useScoreboardData();
@@ -49,14 +63,17 @@ const Scoreboard1 = () => {
   }
 
   const { layout, teamAName, teamBName, teamAScore, teamBScore, half, teamAColor, teamBColor, logoSrc } = scoreboard;
+  
+  const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
   return (
     <div className="w-[1048px] h-[227px] relative font-display text-white">
       {/* Backgrounds */}
-      <div style={{ position: 'absolute', left: `${layout.model1_teamAName.x}px`, top: `${layout.model1_teamAName.y}px`, width: `${layout.model1_teamAName.width}px`, height: `${layout.model1_teamAName.height}px`, backgroundColor: teamAColor || '#B62FCE' }} />
-      <div style={{ position: 'absolute', left: `${layout.model1_teamBName.x}px`, top: `${layout.model1_teamBName.y}px`, width: `${layout.model1_teamBName.width}px`, height: `${layout.model1_teamBName.height}px`, backgroundColor: teamBColor || '#EF7438' }} />
-      <div style={{ position: 'absolute', left: '320px', top: '41px', width: '408px', height: '105px', backgroundColor: '#05183B' }} />
-      <div style={{ position: 'absolute', left: `${layout.model1_half.x}px`, top: `${layout.model1_half.y}px`, width: `${layout.model1_half.width}px`, height: `${layout.model1_half.height}px`, backgroundColor: '#05183B' }} />
+      <BackgroundElement style={layout.model1_teamAName} color={teamAColor || '#B62FCE'} />
+      <BackgroundElement style={layout.model1_teamBName} color={teamBColor || '#EF7438'} />
+      <BackgroundElement style={layout.model1_teamAScore} color={'#05183B'} />
+      <BackgroundElement style={layout.model1_teamBScore} color={'#05183B'} />
+      <BackgroundElement style={layout.model1_half} color={'#05183B'} />
 
       {/* Team Names */}
       <DynamicElement style={layout.model1_teamAName} text={teamAName} isVisible={layout.model1_teamAName.visible} />
@@ -77,12 +94,17 @@ const Scoreboard1 = () => {
       <DynamicElement style={layout.model1_logo} isVisible={layout.model1_logo.visible}>
          {logoSrc ? (
             <div className="relative w-full h-full">
-              <Image 
-                src={logoSrc} 
-                alt="Uploaded Logo" 
-                fill
-                style={{objectFit: "contain"}}
-              />
+              {isSvg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoSrc} alt="Uploaded Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <Image 
+                  src={logoSrc} 
+                  alt="Uploaded Logo" 
+                  fill
+                  style={{objectFit: "contain"}}
+                />
+              )}
             </div>
           ) : (
             <OsisCupLogo className="w-full h-full text-white" />

@@ -78,6 +78,8 @@ const Scoreboard3 = () => {
   
   const { layout, teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, time, half, teamAColor, teamBColor, logoSrc } = scoreboard;
 
+  const isSvg = logoSrc?.startsWith('data:image/svg+xml');
+
   const formatTime = (seconds: number) => {
     if (isNaN(seconds)) return "00:00";
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -102,7 +104,17 @@ const Scoreboard3 = () => {
         >
           {logoSrc ? (
             <div className="relative w-full h-full">
-              <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}} />
+              {isSvg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoSrc} alt="Uploaded Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              ) : (
+                <Image 
+                  src={logoSrc} 
+                  alt="Uploaded Logo" 
+                  fill
+                  style={{objectFit: "contain"}}
+                />
+              )}
             </div>
           ) : (
             <OsisCupLogo className="w-full h-full text-primary" />
