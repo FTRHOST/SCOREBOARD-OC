@@ -50,38 +50,31 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
   const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
   // Define the render order: backgrounds first, then content, then logo on top
-  const backgroundKeys: (keyof ScoreboardLayout)[] = ['model1_scoreContainer', 'model1_teamAName', 'model1_teamBName'];
+  const backgroundKeys: (keyof ScoreboardLayout)[] = ['model1_teamAName', 'model1_teamBName'];
   const contentKeys: (keyof ScoreboardLayout)[] = ['model1_teamAScore', 'model1_teamBScore', 'model1_half'];
   const logoKey: keyof ScoreboardLayout = 'model1_logo';
   
   const allKeys = [...backgroundKeys, ...contentKeys, logoKey];
 
   return (
-    <div className="w-[1048px] h-[227px] relative font-display text-white">
+    <div className="w-[1048px] h-[227px] relative font-display text-white bg-[#05183B]">
       {allKeys.map((key) => {
         const elementKey = key as keyof ScoreboardLayout;
         const style = layout[elementKey];
         if (!style) return null;
 
         let content: React.ReactNode;
-        let isContainer = false;
         let bgColor: string | undefined;
 
         switch (elementKey) {
           // Containers with background color
           case 'model1_teamAName':
-            isContainer = true;
             bgColor = teamAColor || '#B62FCE';
-            content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />;
+            content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} backgroundColor={bgColor}/>;
             break;
           case 'model1_teamBName':
-            isContainer = true;
             bgColor = teamBColor || '#EF7438';
-            content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />;
-            break;
-          case 'model1_scoreContainer':
-            isContainer = true;
-            bgColor = '#05183B';
+            content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} backgroundColor={bgColor}/>;
             break;
 
           // Text/Content Elements
@@ -116,10 +109,6 @@ const Scoreboard1 = ({ selectedLayoutElement }: { selectedLayoutElement: keyof S
             return null;
         }
         
-        if (isContainer) {
-            content = <DynamicElement style={style} backgroundColor={bgColor} isVisible={style.visible}>{content}</DynamicElement>
-        }
-
         return (
           <DraggableElement 
             key={elementKey}
