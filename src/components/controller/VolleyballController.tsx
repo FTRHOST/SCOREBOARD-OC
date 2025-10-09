@@ -31,14 +31,18 @@ export default function VolleyballController() {
   const [localTeamBName, setLocalTeamBName] = useState('');
   const [localMatchTitle, setLocalMatchTitle] = useState('');
   const [localEventTitle, setLocalEventTitle] = useState('');
+  const [localSetHistory, setLocalSetHistory] = useState(Array(5).fill({ teamAScore: 0, teamBScore: 0 }));
 
   useEffect(() => {
     if (volleyballScoreboard) {
         setLocalTeamAName(volleyballScoreboard.teamAName || '');
         setLocalTeamBName(volleyballScoreboard.teamBName || '');
         setLocalMatchTitle(volleyballScoreboard.matchTitle || '');
+        if(volleyballScoreboard.setHistory) {
+          setLocalSetHistory(volleyballScoreboard.setHistory);
+        }
     }
-  }, [volleyballScoreboard?.teamAName, volleyballScoreboard?.teamBName, volleyballScoreboard?.matchTitle]);
+  }, [volleyballScoreboard]);
 
   useEffect(() => {
     if (futsalScoreboard) {
@@ -53,6 +57,24 @@ export default function VolleyballController() {
   const handleFutsalUpdate = (field: string, value: any) => {
     updateFutsalScoreboard({ [field]: value });
   };
+
+  const handleLocalHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
+    const newHistory = [...localSetHistory];
+    const score = parseInt(value, 10);
+    if (!isNaN(score)) {
+      if (team === 'A') {
+        newHistory[index] = { ...newHistory[index], teamAScore: score };
+      } else {
+        newHistory[index] = { ...newHistory[index], teamBScore: score };
+      }
+      setLocalSetHistory(newHistory);
+    }
+  };
+
+  const handleHistoryBlur = (index: number, team: 'A' | 'B') => {
+    const score = team === 'A' ? localSetHistory[index].teamAScore : localSetHistory[index].teamBScore;
+    updateSetHistoryScore(index, team, score);
+  };
   
   const loading = volleyballLoading || !futsalScoreboard;
 
@@ -64,7 +86,7 @@ export default function VolleyballController() {
     );
   }
 
-  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, setHistory, colorSuggestions } = volleyballScoreboard;
+  const { teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, colorSuggestions } = volleyballScoreboard;
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
     const [customColor, setCustomColor] = useState(team === 'A' ? teamAColor : teamBColor);
@@ -107,14 +129,15 @@ export default function VolleyballController() {
        <div className="space-y-2">
           <Label>Set Dimenangkan: {sets}</Label>
           <div className="grid grid-cols-3 gap-2">
-            {setHistory.slice(0, 5).map((set, index) => (
+            {localSetHistory.slice(0, 5).map((set, index) => (
               <div key={index} className="space-y-1">
                 <Label htmlFor={`set${index+1}Team${team}`} className="text-xs">Set {index+1}</Label>
                  <Input 
                     id={`set${index+1}Team${team}`}
                     type="number"
                     value={team === 'A' ? set.teamAScore : set.teamBScore}
-                    onChange={(e) => updateSetHistoryScore(index, team, parseInt(e.target.value) || 0)}
+                    onChange={(e) => handleLocalHistoryChange(index, team, e.target.value)}
+                    onBlur={() => handleHistoryBlur(index, team)}
                     className="text-center"
                  />
               </div>
@@ -272,3 +295,5 @@ export default function VolleyballController() {
     </Card>
   );
 }
+
+    
