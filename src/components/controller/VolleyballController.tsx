@@ -21,11 +21,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useScoreboardData } from "@/hooks/useScoreboardData";
 
 export default function VolleyballController() {
-  const { scoreboard, loading, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion } = useVolleyballData();
+  const { scoreboard: volleyballScoreboard, loading: volleyballLoading, updateScoreboard: updateVolleyballScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion: deleteVolleyballColorSuggestion } = useVolleyballData();
+  const { scoreboard: futsalScoreboard, updateScoreboard: updateFutsalScoreboard } = useScoreboardData();
+  
+  const eventTitle = futsalScoreboard?.eventTitle;
 
-  if (loading || !scoreboard) {
+  const handleFutsalUpdate = (field: string, value: any) => {
+    updateFutsalScoreboard({ [field]: value });
+  };
+  
+  const loading = volleyballLoading || !futsalScoreboard;
+
+  if (loading || !volleyballScoreboard) {
     return (
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
             <CardHeader><CardTitle>Loading Controller...</CardTitle></CardHeader>
@@ -33,10 +43,10 @@ export default function VolleyballController() {
     );
   }
 
-  const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, matchTitle, teamAColor, teamBColor, setHistory, colorSuggestions } = scoreboard;
+  const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, matchTitle, teamAColor, teamBColor, setHistory, colorSuggestions } = volleyballScoreboard;
   
   const handleUpdate = (field: string, value: any) => {
-    updateScoreboard({ [field]: value });
+    updateVolleyballScoreboard({ [field]: value });
   };
 
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
@@ -121,7 +131,7 @@ export default function VolleyballController() {
                     variant="destructive"
                     size="icon"
                     className="absolute -top-2 -right-2 w-5 h-5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => deleteColorSuggestion && deleteColorSuggestion(c)}
+                    onClick={() => deleteVolleyballColorSuggestion && deleteVolleyballColorSuggestion(c)}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -148,6 +158,10 @@ export default function VolleyballController() {
           {/* General Controls */}
           <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
+            <div className="space-y-2">
+                <Label htmlFor="eventTitle">Judul Acara</Label>
+                <Input id="eventTitle" value={eventTitle || ''} onChange={(e) => handleFutsalUpdate('eventTitle', e.target.value)} placeholder="e.g., OSIS CUP" />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="matchTitle">Judul Pertandingan</Label>
               <Input id="matchTitle" value={matchTitle} onChange={(e) => handleUpdate('matchTitle', e.target.value)} placeholder="e.g., FINAL" />
@@ -224,5 +238,3 @@ export default function VolleyballController() {
     </Card>
   );
 }
-
-    

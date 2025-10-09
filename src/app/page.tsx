@@ -14,6 +14,7 @@ export default function Home() {
   const router = useRouter();
   const { scoreboard, updateScoreboard } = useScoreboardData();
   const logoSrc = scoreboard?.logoSrc;
+  const eventTitle = scoreboard?.eventTitle;
 
   const navigateTo = (path: string) => {
     router.push(path);
@@ -45,25 +46,36 @@ export default function Home() {
         <Card className="w-full shadow-lg mb-8">
           <CardHeader>
             <CardTitle className="text-3xl font-bold text-center font-headline">
-              Pilih Mode Papan Skor
+              {eventTitle || "Papan Skor"}
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-4">
-            <div className="space-y-2 w-full max-w-md">
-              <Label htmlFor="logoUpload">Logo Acara</Label>
-              <div className="flex flex-col sm:flex-row gap-2 items-center">
-                <Input id="logoUpload" type="file" accept="image/*,.svg" onChange={handleLogoUpload} className="text-sm" />
-                {logoSrc && (
-                    <Button variant="outline" size="sm" onClick={handleRemoveLogo}>
-                        <X className="mr-2 h-4 w-4" /> Hapus Logo
-                    </Button>
-                )}
+          <CardContent className="flex flex-col items-center gap-6">
+            <div className="w-full max-w-md grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="eventTitle">Judul Acara</Label>
+                <Input 
+                  id="eventTitle" 
+                  value={eventTitle || ''} 
+                  onChange={(e) => updateScoreboard({ eventTitle: e.target.value })} 
+                  placeholder="e.g., OSIS Cup 2024"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logoUpload">Logo Acara</Label>
+                <div className="flex gap-2 items-center">
+                  <Input id="logoUpload" type="file" accept="image/*,.svg" onChange={handleLogoUpload} className="text-sm" />
+                  {logoSrc && (
+                      <Button variant="outline" size="icon" onClick={handleRemoveLogo}>
+                          <X className="h-4 w-4" />
+                      </Button>
+                  )}
+                </div>
               </div>
             </div>
             {logoSrc && (
-              <div className="mt-4 p-4 border rounded-lg bg-muted/50">
+              <div className="mt-2 p-4 border rounded-lg bg-muted/50">
                 <p className="text-sm font-medium mb-2 text-center">Pratinjau Logo</p>
-                <div className="relative w-32 h-32 mx-auto">
+                <div className="relative w-24 h-24 mx-auto">
                    <Image src={logoSrc} alt="Logo Preview" fill style={{objectFit: "contain"}} />
                 </div>
               </div>

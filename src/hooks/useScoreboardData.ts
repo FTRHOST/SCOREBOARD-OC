@@ -73,6 +73,7 @@ export interface Scoreboard {
   colorSuggestions: string[];
   animationTrigger?: number;
   layout: ScoreboardLayout;
+  eventTitle?: string;
 }
 
 const defaultLayout: ScoreboardLayout = {
@@ -127,6 +128,7 @@ const defaultScoreboard: Scoreboard = {
   pauseTime: INITIAL_TIME_SECONDS,
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultLayout,
+  eventTitle: 'Futsal Scoreboard Pro'
 };
 
 export function useScoreboardData() {

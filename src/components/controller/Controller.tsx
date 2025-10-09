@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Minus, Play, Pause, RotateCcw, Trash2, X, Palette, RefreshCw, Sparkles } from "lucide-react";
+import { Plus, Minus, Play, Pause, RotateCcw, Trash2, X, Palette, RefreshCw } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -37,7 +37,7 @@ export default function Controller() {
   }
 
   const {
-    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, half, teamAColor, teamBColor, colorSuggestions
+    teamAName, teamBName, teamAScore, teamBScore, teamAFouls, teamBFouls, isRunning, half, teamAColor, teamBColor, colorSuggestions, eventTitle
   } = scoreboard;
 
   const handleUpdate = (field: string, value: any) => {
@@ -192,6 +192,10 @@ export default function Controller() {
           <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
             <h3 className="font-bold text-lg text-center">Match Controls</h3>
             <div className="space-y-2">
+                <Label htmlFor="eventTitle">Event Title</Label>
+                <Input id="eventTitle" value={eventTitle || ''} onChange={(e) => handleUpdate('eventTitle', e.target.value)} placeholder="e.g., OSIS CUP" />
+              </div>
+            <div className="space-y-2">
               <Label htmlFor="timerSet">Set Timer (minutes)</Label>
               <div className="flex gap-2">
                 <Input id="timerSet" type="number" value={timeInput} onChange={(e) => setTimeInput(e.target.value)} placeholder="e.g., 20" />
@@ -297,5 +301,3 @@ export default function Controller() {
     </Card>
   );
 }
-
-    
