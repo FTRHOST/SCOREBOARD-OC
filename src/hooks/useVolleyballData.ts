@@ -69,7 +69,7 @@ export interface VolleyballLayout {
   model3_logoImage: VolleyballLayoutStyle;
 }
 
-const defaultVolleyballLayout: VolleyballLayout = {
+export const defaultVolleyballLayout: VolleyballLayout = {
   // Model 1
   model1_teamABox: { x: 0, y: 41, width: 320, height: 112, visible: true, fontSize: 0 },
   model1_teamBBox: { x: 728, y: 41, width: 320, height: 112, visible: true, fontSize: 0 },
@@ -337,3 +337,5 @@ export function useVolleyballData() {
 
   return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion };
 }
+
+    

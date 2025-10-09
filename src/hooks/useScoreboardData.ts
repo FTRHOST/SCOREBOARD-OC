@@ -76,7 +76,7 @@ export interface Scoreboard {
   eventTitle?: string;
 }
 
-const defaultLayout: ScoreboardLayout = {
+export const defaultLayout: ScoreboardLayout = {
   // Model 1 Defaults based on the new reference image
   model1_scoreContainer: { x: 320, y: 41, width: 408, height: 105, visible: true, fontSize: 0 },
   model1_teamAName: { x: 0, y: 41, width: 320, height: 105, fontSize: 88, visible: true },
@@ -301,3 +301,5 @@ export function useScoreboardData() {
 
   return { scoreboard, loading, error, updateScoreboard, resetScoreboard, swapTeams, addColorSuggestion, deleteColorSuggestion };
 }
+
+    
