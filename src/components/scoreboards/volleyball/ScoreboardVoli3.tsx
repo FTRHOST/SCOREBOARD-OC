@@ -1,3 +1,4 @@
+
 "use client";
 import React from 'react';
 import { useVolleyballData } from '@/hooks/useVolleyballData';
@@ -16,6 +17,7 @@ const ScoreboardVoli3 = () => {
     
     const displayHistory = [...setHistory];
     if (currentSet >= 1 && currentSet <= setHistory.length) {
+        // For the current set, display live points instead of history
         displayHistory[currentSet - 1] = {
             teamAScore: teamAPoints,
             teamBScore: teamBPoints,
@@ -24,14 +26,14 @@ const ScoreboardVoli3 = () => {
 
     return (
         <div className="w-[673px] h-52 relative font-display">
-            {/* Team A Point Box */}
-            <div className="w-40 h-16 left-[163px] top-[20px] absolute flex items-center justify-center" style={{backgroundColor: teamAColor}}>
-                <div className="text-center text-white text-6xl">{teamAPoints}</div>
+            {/* Team A Name Box */}
+            <div className="w-40 h-16 left-[163px] top-[20px] absolute flex items-center justify-center p-1" style={{backgroundColor: teamAColor}}>
+                <div className="text-center text-white text-4xl truncate">{teamAName}</div>
             </div>
 
-            {/* Team B Point Box */}
-            <div className="w-40 h-16 left-[163px] top-[90px] absolute flex items-center justify-center" style={{backgroundColor: teamBColor}}>
-                <div className="text-center text-white text-6xl">{teamBPoints}</div>
+            {/* Team B Name Box */}
+            <div className="w-40 h-16 left-[163px] top-[90px] absolute flex items-center justify-center p-1" style={{backgroundColor: teamBColor}}>
+                <div className="text-center text-white text-4xl truncate">{teamBName}</div>
             </div>
             
             {/* Team A Set Box */}
@@ -65,19 +67,19 @@ const ScoreboardVoli3 = () => {
                 )}
             </div>
 
-            {/* Team A Set History */}
+            {/* Team A Set History (includes current points) */}
             <div className="w-72 p-5 left-[385px] top-0 absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
                 {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative bg-fuchsia-600 flex justify-center items-center">
+                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamAColor}}>
                         <div className="text-center text-white text-6xl">{set.teamAScore}</div>
                     </div>
                 ))}
             </div>
 
-            {/* Team B Set History */}
+            {/* Team B Set History (includes current points) */}
             <div className="w-72 p-5 left-[385px] top-[73px] absolute rounded-[5px] border border-purple-500 inline-flex justify-center items-center gap-[3px] overflow-hidden">
                 {displayHistory.slice(0, 3).map((set, index) => (
-                     <div key={index} className="flex-1 h-16 relative bg-orange-400 flex justify-center items-center">
+                     <div key={index} className="flex-1 h-16 relative flex justify-center items-center" style={{backgroundColor: teamBColor}}>
                         <div className="text-center text-white text-6xl">{set.teamBScore}</div>
                     </div>
                 ))}
