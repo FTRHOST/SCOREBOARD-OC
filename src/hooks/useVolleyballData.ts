@@ -6,7 +6,7 @@ import { useDatabase } from '@/firebase';
 import { ref, onValue, update, set } from 'firebase/database';
 
 const VOLLEYBALL_PATH = 'volleyball';
-const SCOREBOARD_PATH = 'scoreboard'; // For shared data like eventTitle
+const SCOREBOARD_PATH = 'scoreboard'; // For shared data
 const TEAM_A_COLOR = '#B72FCE';
 const TEAM_B_COLOR = '#F97316'; // orange-400
 const MAX_SETS = 5;
@@ -141,7 +141,6 @@ export interface VolleyballScoreboard {
   setHistory: Array<{ teamAScore: number; teamBScore: number }>;
   colorSuggestions: string[];
   layout: VolleyballLayout;
-  eventTitle: string;
 }
 
 const defaultVolleyballScoreboard: VolleyballScoreboard = {
@@ -159,7 +158,6 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
   setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultVolleyballLayout,
-  eventTitle: 'SCOREBOARD'
 };
 
 export function useVolleyballData() {
@@ -198,7 +196,6 @@ export function useVolleyballData() {
           layout: mergedLayout, 
           setHistory: newHistory,
           logoSrc: sharedData.logoSrc,
-          eventTitle: sharedData.eventTitle,
         };
 
         if (!data.colorSuggestions) {
@@ -223,7 +220,7 @@ export function useVolleyballData() {
     const unsubscribeShared = onValue(scoreboardRef, (snapshot) => {
         if(snapshot.exists()) {
             const val = snapshot.val();
-            sharedData = { logoSrc: val.logoSrc, eventTitle: val.eventTitle };
+            sharedData = { logoSrc: val.logoSrc };
             checkAndSetData();
         } else {
             sharedData = {};
@@ -238,10 +235,9 @@ export function useVolleyballData() {
   }, [database]);
   
   
-  const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>, isShared: boolean = false) => {
+  const updateScoreboard = useCallback(async (data: Partial<VolleyballScoreboard>) => {
     if (!database) return;
-    const path = isShared ? SCOREBOARD_PATH : VOLLEYBALL_PATH;
-    const dataRef = ref(database, path);
+    const dataRef = ref(database, VOLLEYBALL_PATH);
     await update(dataRef, data);
   }, [database]);
 
@@ -279,32 +275,6 @@ export function useVolleyballData() {
       setHistory: newSetHistory,
     });
   };
-  
-  const updateSetHistoryScore = useCallback((setIndex: number, team: 'A' | 'B', score: number) => {
-    if (!database || !scoreboard || setIndex >= scoreboard.setHistory.length) return;
-
-    const newHistory = [...scoreboard.setHistory];
-    const updatedSet = { ...newHistory[setIndex] };
-    
-    if (team === 'A') {
-      updatedSet.teamAScore = score;
-    } else {
-      updatedSet.teamBScore = score;
-    }
-    newHistory[setIndex] = updatedSet;
-    
-    const teamASets = newHistory.reduce((acc, set, index) => {
-        if (index < MAX_SETS && set.teamAScore > set.teamBScore) return acc + 1;
-        return acc;
-    }, 0);
-    const teamBSets = newHistory.reduce((acc, set, index) => {
-        if (index < MAX_SETS && set.teamBScore > set.teamAScore) return acc + 1;
-        return acc;
-    }, 0);
-
-    update(ref(database, VOLLEYBALL_PATH), { setHistory: newHistory, teamASets, teamBSets });
-  }, [database, scoreboard]);
-
 
   const resetSet = () => {
     updateScoreboard({ teamAPoints: 0, teamBPoints: 0 });
@@ -350,7 +320,7 @@ export function useVolleyballData() {
   }, [database, scoreboard]);
 
 
-  return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion };
+  return { scoreboard, loading, error, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, deleteColorSuggestion };
 }
 
     

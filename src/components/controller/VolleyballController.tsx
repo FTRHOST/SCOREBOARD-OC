@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, RotateCcw, Palette, RefreshCw, Award, Trash2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,14 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function VolleyballController() {
-  const { scoreboard, loading, updateScoreboard, updatePoints, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion } = useVolleyballData();
-  const [localSetHistory, setLocalSetHistory] = useState(scoreboard?.setHistory || []);
-
-  useEffect(() => {
-    if (scoreboard) {
-      setLocalSetHistory(scoreboard.setHistory);
-    }
-  }, [scoreboard]);
+  const { scoreboard, loading, updateScoreboard, updatePoints, winSet, resetSet, resetMatch, swapTeams, deleteColorSuggestion } = useVolleyballData();
 
   if (loading || !scoreboard) {
     return (
@@ -55,22 +48,6 @@ export default function VolleyballController() {
   
   const handleUpdate = (field: string, value: any) => {
     updateScoreboard({ [field]: value });
-  };
-  
-  const handleHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
-    const newHistory = [...localSetHistory];
-    const score = parseInt(value, 10);
-    if(team === 'A') {
-      newHistory[index] = { ...newHistory[index], teamAScore: isNaN(score) ? 0 : score };
-    } else {
-      newHistory[index] = { ...newHistory[index], teamBScore: isNaN(score) ? 0 : score };
-    }
-    setLocalSetHistory(newHistory);
-  };
-
-  const handleHistoryBlur = (index: number, team: 'A' | 'B') => {
-    const value = team === 'A' ? localSetHistory[index].teamAScore : localSetHistory[index].teamBScore;
-    updateSetHistoryScore(index, team, value);
   };
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
@@ -119,17 +96,15 @@ export default function VolleyballController() {
            <div className="space-y-2">
               <Label>Set Dimenangkan: {sets}</Label>
               <div className="grid grid-cols-3 gap-2">
-                {localSetHistory.slice(0, 5).map((set: any, index: number) => (
+                {scoreboard.setHistory.slice(0, 5).map((set, index) => (
                   <div key={index} className="space-y-1">
                     <Label htmlFor={`set${index+1}Team${team}`} className="text-xs">Set {index+1}</Label>
-                     <Input 
+                     <div 
                         id={`set${index+1}Team${team}`}
-                        type="number"
-                        value={team === 'A' ? set.teamAScore : set.teamBScore}
-                        onChange={(e) => handleHistoryChange(index, team, e.target.value)}
-                        onBlur={() => handleHistoryBlur(index, team)}
-                        className="text-center"
-                     />
+                        className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background/50 px-3 py-2 text-center font-bold text-sm text-muted-foreground"
+                     >
+                       {team === 'A' ? set.teamAScore : set.teamBScore}
+                     </div>
                   </div>
                 ))}
               </div>
@@ -193,22 +168,14 @@ export default function VolleyballController() {
             {/* General Controls */}
             <div className="flex-shrink-0 w-[300px] md:w-auto flex flex-col gap-4 p-4 rounded-lg border bg-card">
                 <h3 className="font-bold text-lg text-center">Kontrol Pertandingan</h3>
-                <div className="space-y-2">
-                    <Label htmlFor="eventTitle">Judul Acara</Label>
+                 <div className="space-y-2">
+                    <Label htmlFor="matchTitle">Judul Pertandingan</Label>
                     <Input 
-                        id="eventTitle" 
-                        value={scoreboard.eventTitle || ''} 
-                        onChange={(e) => updateScoreboard({ eventTitle: e.target.value }, true)}
+                        id="matchTitle" 
+                        value={scoreboard.matchTitle} 
+                        onChange={(e) => handleUpdate('matchTitle', e.target.value)} 
+                        placeholder="e.g., FINAL" 
                     />
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="matchTitle">Judul Pertandingan</Label>
-                <Input 
-                    id="matchTitle" 
-                    value={scoreboard.matchTitle} 
-                    onChange={(e) => handleUpdate('matchTitle', e.target.value)} 
-                    placeholder="e.g., FINAL" 
-                />
                 </div>
                 
                 <Separator />
@@ -281,3 +248,4 @@ export default function VolleyballController() {
     </Card>
   );
 }
+
