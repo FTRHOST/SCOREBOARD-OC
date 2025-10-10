@@ -55,7 +55,7 @@ const ScoreboardVoli1 = ({ selectedLayoutElement }: ScoreboardProps) => {
         return <div className="w-[1048px] h-56 flex items-center justify-center bg-black/20 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, layout } = scoreboard;
+    const { teamAName, teamBName, teamAPoints, teamBPoints, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, layout } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
     return (
@@ -86,16 +86,30 @@ const ScoreboardVoli1 = ({ selectedLayoutElement }: ScoreboardProps) => {
                         isBackground = true;
                         bgColor = '#0F172A';
                         break;
+                    case 'model1_teamASetScoreBox':
+                        isBackground = true;
+                        bgColor = teamAColor;
+                        break;
+                    case 'model1_teamBSetScoreBox':
+                        isBackground = true;
+                        bgColor = teamBColor;
+                        break;
                     case 'model1_teamAName':
                         content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />;
                         break;
                     case 'model1_teamBName':
                         content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />;
                         break;
-                    case 'model1_teamASets':
+                    case 'model1_teamAPoints':
+                        content = <DynamicElement style={style} text={teamAPoints.toString()} isVisible={style.visible} />;
+                        break;
+                    case 'model1_teamBPoints':
+                        content = <DynamicElement style={style} text={teamBPoints.toString()} isVisible={style.visible} />;
+                        break;
+                    case 'model1_teamASetScoreText':
                         content = <DynamicElement style={style} text={teamASets.toString()} isVisible={style.visible} />;
                         break;
-                    case 'model1_teamBSets':
+                    case 'model1_teamBSetScoreText':
                         content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />;
                         break;
                     case 'model1_matchTitleText':

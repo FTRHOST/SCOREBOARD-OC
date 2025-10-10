@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, RotateCcw, Palette, RefreshCw, Award, Trash2, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +25,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 
 export default function VolleyballController() {
-  const { scoreboard, loading, updateScoreboard, updatePoints, updateSets, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion } = useVolleyballData();
+  const { scoreboard, loading, updateScoreboard, updatePoints, winSet, resetSet, resetMatch, swapTeams, updateSetHistoryScore, deleteColorSuggestion } = useVolleyballData();
+  const [localSetHistory, setLocalSetHistory] = useState(scoreboard?.setHistory || []);
+
+  useEffect(() => {
+    if (scoreboard) {
+      setLocalSetHistory(scoreboard.setHistory);
+    }
+  }, [scoreboard]);
 
   if (loading || !scoreboard) {
     return (
@@ -51,13 +58,20 @@ export default function VolleyballController() {
   };
   
   const handleHistoryChange = (index: number, team: 'A' | 'B', value: string) => {
+    const newHistory = [...localSetHistory];
     const score = parseInt(value, 10);
-    if (!isNaN(score) || value === '') {
-        const scoreValue = value === '' ? 0 : score;
-        updateSetHistoryScore(index, team, scoreValue);
+    if(team === 'A') {
+      newHistory[index] = { ...newHistory[index], teamAScore: isNaN(score) ? 0 : score };
+    } else {
+      newHistory[index] = { ...newHistory[index], teamBScore: isNaN(score) ? 0 : score };
     }
+    setLocalSetHistory(newHistory);
   };
 
+  const handleHistoryBlur = (index: number, team: 'A' | 'B') => {
+    const value = team === 'A' ? localSetHistory[index].teamAScore : localSetHistory[index].teamBScore;
+    updateSetHistoryScore(index, team, value);
+  };
   
   const CustomColorPopover = ({ team }: { team: 'A' | 'B' }) => {
     const [customColor, setCustomColor] = useState(team === 'A' ? scoreboard.teamAColor : scoreboard.teamBColor);
@@ -105,14 +119,15 @@ export default function VolleyballController() {
            <div className="space-y-2">
               <Label>Set Dimenangkan: {sets}</Label>
               <div className="grid grid-cols-3 gap-2">
-                {scoreboard.setHistory.slice(0, 5).map((set: any, index: number) => (
+                {localSetHistory.slice(0, 5).map((set: any, index: number) => (
                   <div key={index} className="space-y-1">
                     <Label htmlFor={`set${index+1}Team${team}`} className="text-xs">Set {index+1}</Label>
                      <Input 
                         id={`set${index+1}Team${team}`}
                         type="number"
-                        value={team === 'A' ? (set?.teamAScore ?? 0) : (set?.teamBScore ?? 0)}
+                        value={team === 'A' ? set.teamAScore : set.teamBScore}
                         onChange={(e) => handleHistoryChange(index, team, e.target.value)}
+                        onBlur={() => handleHistoryBlur(index, team)}
                         className="text-center"
                      />
                   </div>
@@ -121,7 +136,7 @@ export default function VolleyballController() {
             </div>
 
             <div className="space-y-2">
-              <Label>Poin Saat Ini (Round Score)</Label>
+              <Label>Poin Saat Ini</Label>
               <div className="flex items-center gap-2">
                 <Button size="icon" onClick={() => updatePoints(team, -1)} variant="outline"><Minus /></Button>
                 <div className="flex h-10 w-full items-center justify-center rounded-md border border-input bg-background px-3 py-2 text-center font-bold text-base">

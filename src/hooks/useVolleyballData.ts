@@ -29,8 +29,12 @@ export interface VolleyballLayout {
   model1_matchTitleBox: VolleyballLayoutStyle;
   model1_teamAName: VolleyballLayoutStyle;
   model1_teamBName: VolleyballLayoutStyle;
-  model1_teamASets: VolleyballLayoutStyle;
-  model1_teamBSets: VolleyballLayoutStyle;
+  model1_teamAPoints: VolleyballLayoutStyle;
+  model1_teamBPoints: VolleyballLayoutStyle;
+  model1_teamASetScoreBox: VolleyballLayoutStyle;
+  model1_teamBSetScoreBox: VolleyballLayoutStyle;
+  model1_teamASetScoreText: VolleyballLayoutStyle;
+  model1_teamBSetScoreText: VolleyballLayoutStyle;
   model1_matchTitleText: VolleyballLayoutStyle;
   model1_logo: VolleyballLayoutStyle;
   // Model 2
@@ -77,8 +81,12 @@ export const defaultVolleyballLayout: VolleyballLayout = {
   model1_matchTitleBox: { x: 407, y: 178, width: 240, height: 48, visible: true, fontSize: 0 },
   model1_teamAName: { x: 0, y: 41, width: 320, height: 112, visible: true, fontSize: 88 },
   model1_teamBName: { x: 728, y: 41, width: 320, height: 112, visible: true, fontSize: 88 },
-  model1_teamASets: { x: 351, y: 20, width: 96, height: 96, visible: true, fontSize: 96 },
-  model1_teamBSets: { x: 602, y: 20, width: 96, height: 96, visible: true, fontSize: 96 },
+  model1_teamAPoints: { x: 351, y: 20, width: 96, height: 96, visible: true, fontSize: 96 },
+  model1_teamBPoints: { x: 602, y: 20, width: 96, height: 96, visible: true, fontSize: 96 },
+  model1_teamASetScoreBox: { x: 112, y: 160, width: 96, height: 64, visible: true, fontSize: 0 },
+  model1_teamBSetScoreBox: { x: 840, y: 160, width: 96, height: 64, visible: true, fontSize: 0 },
+  model1_teamASetScoreText: { x: 112, y: 160, width: 96, height: 64, visible: true, fontSize: 64 },
+  model1_teamBSetScoreText: { x: 840, y: 160, width: 96, height: 64, visible: true, fontSize: 64 },
   model1_matchTitleText: { x: 407, y: 178, width: 240, height: 48, visible: true, fontSize: 48 },
   model1_logo: { x: 405, y: 0, width: 238, height: 188, visible: true, fontSize: 0 },
   // Model 2
@@ -214,7 +222,8 @@ export function useVolleyballData() {
     
     const unsubscribeShared = onValue(scoreboardRef, (snapshot) => {
         if(snapshot.exists()) {
-            sharedData = snapshot.val();
+            const val = snapshot.val();
+            sharedData = { logoSrc: val.logoSrc, eventTitle: val.eventTitle };
             checkAndSetData();
         } else {
             sharedData = {};
