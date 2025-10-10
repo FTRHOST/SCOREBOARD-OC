@@ -91,271 +91,319 @@ const ConfigManager = () => {
       return;
     }
     const defaultDatabaseState = {
-      "scoreboard": {
-        "colorSuggestions": [
-          "#FF0000",
-          "#00FF00",
-          "#0000FF",
-          "#FFFF00",
-          "#EF7438",
-          "#B72FCE"
-        ],
-        "eventTitle": "OSIS CUP 2025",
-        "half": "Babak 1",
-        "initialTime": 1200,
-        "isRunning": false,
-        "layout": {
-          "model1_half": {
-            "fontSize": 42,
-            "height": 48,
-            "visible": true,
-            "width": 233,
-            "x": 405,
-            "y": 165
-          },
-          "model1_logo": {
-            "height": 188,
-            "visible": true,
-            "width": 238,
-            "x": 412,
-            "y": -10
-          },
-          "model1_teamAName": {
-            "fontSize": 88,
-            "height": 105,
-            "visible": true,
-            "width": 320,
-            "x": 0,
-            "y": 41
-          },
-          "model1_teamAScore": {
-            "fontSize": 92,
-            "height": 105,
-            "visible": true,
-            "width": 85,
-            "x": 331,
-            "y": 41
-          },
-          "model1_teamBScore": {
-            "fontSize": 92,
-            "height": 105,
-            "visible": true,
-            "width": 106,
-            "x": 625,
-            "y": 41
-          },
-          "model2_teamAName": {
-            "fontSize": 82,
-            "height": 105,
-            "visible": true,
-            "width": 320,
-            "x": 0,
-            "y": 41
-          },
-          "model2_teamAScore": {
-            "fontSize": 96,
-            "height": 105,
-            "visible": true,
-            "width": 160,
-            "x": 290,
-            "y": 41
-          },
-          "model2_teamBScore": {
-            "fontSize": 96,
-            "height": 105,
-            "visible": true,
-            "width": 144,
-            "x": 593,
-            "y": 41
-          }
-        },
-        "pauseTime": 746,
-        "startTime": 1760027621321,
-        "teamAColor": "#EF7438",
-        "teamAFouls": 0,
-        "teamAName": "10.1",
-        "teamAScore": 0,
-        "teamBColor": "#B72FCE",
-        "teamBFouls": 0,
-        "teamBName": "10.2",
-        "teamBScore": 0,
-        "time": 1200
+  "scoreboard": {
+    "colorSuggestions": [
+      "#FF0000",
+      "#00FF00",
+      "#0000FF",
+      "#FFFF00",
+      "#EF7438",
+      "#B72FCE"
+    ],
+    "eventTitle": "OSIS CUP 2025",
+    "half": "Babak 1",
+    "initialTime": 900,
+    "isRunning": false,
+    "layout": {
+      "model1_half": {
+        "fontSize": 42,
+        "height": 48,
+        "visible": true,
+        "width": 233,
+        "x": 405,
+        "y": 165
       },
-      "volleyball": {
-        "currentSet": 1,
-        "layout": {
-          "model1_matchTitleBox": {
-            "fontSize": 0,
-            "height": 48,
-            "visible": true,
-            "width": 254,
-            "x": 398,
-            "y": 178
-          },
-          "model1_matchTitleText": {
-            "fontSize": 48,
-            "height": 48,
-            "visible": true,
-            "width": 255,
-            "x": 397,
-            "y": 178
-          },
-          "model1_teamASets": {
-            "fontSize": 96,
-            "height": 96,
-            "visible": true,
-            "width": 96,
-            "x": 333,
-            "y": 41
-          },
-          "model1_teamBSets": {
-            "fontSize": 96,
-            "height": 96,
-            "visible": true,
-            "width": 96,
-            "x": 622,
-            "y": 41
-          },
-          "model2_teamASet1Score": {
-            "fontSize": 72,
-            "height": 96,
-            "visible": true,
-            "width": 112,
-            "x": -6,
-            "y": 156
-          },
-          "model2_teamASet2Score": {
-            "fontSize": 72,
-            "height": 525,
-            "visible": true,
-            "width": 89,
-            "x": 118,
-            "y": -59
-          },
-          "model2_teamASet3Score": {
-            "fontSize": 72,
-            "height": 96,
-            "visible": true,
-            "width": 130,
-            "x": 203,
-            "y": 153
-          },
-          "model2_teamASetHistoryBox": {
-            "fontSize": 0,
-            "height": 112,
-            "visible": true,
-            "width": 320,
-            "x": -6,
-            "y": 146
-          },
-          "model2_teamASets": {
-            "fontSize": 96,
-            "height": 96,
-            "visible": true,
-            "width": 96,
-            "x": 327,
-            "y": 39
-          },
-          "model2_teamBSet1Score": {
-            "fontSize": 72,
-            "height": 96,
-            "visible": true,
-            "width": 118,
-            "x": 723,
-            "y": 158
-          },
-          "model2_teamBSet2Score": {
-            "fontSize": 72,
-            "height": 96,
-            "visible": true,
-            "width": 144,
-            "x": 818,
-            "y": 158
-          },
-          "model2_teamBSet3Score": {
-            "fontSize": 72,
-            "height": 96,
-            "visible": true,
-            "width": 133,
-            "x": 931,
-            "y": 154
-          },
-          "model2_teamBSetHistoryBox": {
-            "fontSize": 0,
-            "height": 112,
-            "visible": true,
-            "width": 320,
-            "x": 726,
-            "y": 146
-          },
-          "model2_teamBSets": {
-            "fontSize": 96,
-            "height": 96,
-            "visible": true,
-            "width": 96,
-            "x": 625,
-            "y": 38
-          },
-          "model3_matchTitleBox": {
-            "fontSize": 0,
-            "height": 48,
-            "visible": true,
-            "width": 655,
-            "x": 0,
-            "y": 164
-          },
-          "model3_teamASetHistoryBox": {
-            "fontSize": 0,
-            "height": 80,
-            "visible": true,
-            "width": 288,
-            "x": 385,
-            "y": 12
-          },
-          "model3_teamBSetBox": {
-            "fontSize": 0,
-            "height": 64,
-            "visible": true,
-            "width": 80,
-            "x": 321,
-            "y": 90
-          },
-          "model3_teamBSetHistoryBox": {
-            "fontSize": 0,
-            "height": 80,
-            "visible": true,
-            "width": 288,
-            "x": 385,
-            "y": 83
-          },
-          "model3_teamBSetsText": {
-            "fontSize": 72,
-            "height": 64,
-            "visible": true,
-            "width": 80,
-            "x": 321,
-            "y": 88
-          }
-        },
-        "logoSrc": "https://placehold.co/238x188",
-        "matchTitle": "FINAL",
-        "setHistory": [
-          { "teamAScore": 0, "teamBScore": 0 },
-          { "teamAScore": 0, "teamBScore": 0 },
-          { "teamAScore": 0, "teamBScore": 0 },
-          { "teamAScore": 0, "teamBScore": 0 },
-          { "teamAScore": 0, "teamBScore": 0 }
-        ],
-        "teamAColor": "#B72FCE",
-        "teamAName": "10.3",
-        "teamAPoints": 0,
-        "teamASets": 0,
-        "teamBColor": "#F97316",
-        "teamBName": "10.2",
-        "teamBPoints": 0,
-        "teamBSets": 0
+      "model1_logo": {
+        "height": 188,
+        "visible": true,
+        "width": 238,
+        "x": 412,
+        "y": -10
+      },
+      "model1_teamAName": {
+        "fontSize": 88,
+        "height": 105,
+        "visible": true,
+        "width": 320,
+        "x": 0,
+        "y": 41
+      },
+      "model1_teamAScore": {
+        "fontSize": 92,
+        "height": 105,
+        "visible": true,
+        "width": 85,
+        "x": 331,
+        "y": 41
+      },
+      "model1_teamBScore": {
+        "fontSize": 92,
+        "height": 105,
+        "visible": true,
+        "width": 106,
+        "x": 625,
+        "y": 41
+      },
+      "model2_teamAName": {
+        "fontSize": 82,
+        "height": 105,
+        "visible": true,
+        "width": 320,
+        "x": 0,
+        "y": 41
+      },
+      "model2_teamAScore": {
+        "fontSize": 96,
+        "height": 105,
+        "visible": true,
+        "width": 160,
+        "x": 290,
+        "y": 41
+      },
+      "model2_teamBScore": {
+        "fontSize": 96,
+        "height": 105,
+        "visible": true,
+        "width": 144,
+        "x": 593,
+        "y": 41
       }
-    };
+    },
+    "pauseTime": 900,
+    "startTime": 1760059901502,
+    "teamAColor": "#EF7438",
+    "teamAFouls": 0,
+    "teamAName": "10.1",
+    "teamAScore": 0,
+    "teamBColor": "#B72FCE",
+    "teamBFouls": 0,
+    "teamBName": "10.2",
+    "teamBScore": 0,
+    "time": 900
+  },
+  "volleyball": {
+    "currentSet": 1,
+    "layout": {
+      "model1_matchTitleBox": {
+        "fontSize": 0,
+        "height": 48,
+        "visible": true,
+        "width": 296,
+        "x": 379,
+        "y": 178
+      },
+      "model1_matchTitleText": {
+        "fontSize": 42,
+        "height": 48,
+        "visible": true,
+        "width": 297,
+        "x": 379,
+        "y": 178
+      },
+      "model1_teamAPoints": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 126,
+        "x": 313,
+        "y": 41
+      },
+      "model1_teamASetScoreText": {
+        "fontSize": 64,
+        "height": 64,
+        "visible": true,
+        "width": 95,
+        "x": 112,
+        "y": 159
+      },
+      "model1_teamASets": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 96,
+        "x": 333,
+        "y": 41
+      },
+      "model1_teamBPoints": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 120,
+        "x": 615,
+        "y": 40
+      },
+      "model1_teamBSets": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 96,
+        "x": 622,
+        "y": 41
+      },
+      "model2_matchTitleBox": {
+        "width": 296,
+        "x": 379
+      },
+      "model2_matchTitleText": {
+        "fontSize": 37,
+        "width": 297,
+        "x": 378
+      },
+      "model2_teamASet1Score": {
+        "fontSize": 72,
+        "height": 96,
+        "visible": true,
+        "width": 112,
+        "x": -6,
+        "y": 156
+      },
+      "model2_teamASet2Score": {
+        "fontSize": 72,
+        "height": 517,
+        "visible": true,
+        "width": 127,
+        "x": 95,
+        "y": -59
+      },
+      "model2_teamASet3Score": {
+        "fontSize": 72,
+        "height": 96,
+        "visible": true,
+        "width": 130,
+        "x": 203,
+        "y": 153
+      },
+      "model2_teamASetHistoryBox": {
+        "fontSize": 0,
+        "height": 112,
+        "visible": true,
+        "width": 320,
+        "x": -6,
+        "y": 146
+      },
+      "model2_teamASets": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 96,
+        "x": 327,
+        "y": 39
+      },
+      "model2_teamBSet1Score": {
+        "fontSize": 72,
+        "height": 96,
+        "visible": true,
+        "width": 118,
+        "x": 723,
+        "y": 158
+      },
+      "model2_teamBSet2Score": {
+        "fontSize": 72,
+        "height": 96,
+        "visible": true,
+        "width": 144,
+        "x": 818,
+        "y": 158
+      },
+      "model2_teamBSet3Score": {
+        "fontSize": 72,
+        "height": 96,
+        "visible": true,
+        "width": 133,
+        "x": 931,
+        "y": 154
+      },
+      "model2_teamBSetHistoryBox": {
+        "fontSize": 0,
+        "height": 112,
+        "visible": true,
+        "width": 320,
+        "x": 726,
+        "y": 146
+      },
+      "model2_teamBSets": {
+        "fontSize": 96,
+        "height": 96,
+        "visible": true,
+        "width": 96,
+        "x": 625,
+        "y": 38
+      },
+      "model3_matchTitleBox": {
+        "fontSize": 0,
+        "height": 48,
+        "visible": true,
+        "width": 655,
+        "x": 0,
+        "y": 164
+      },
+      "model3_teamASetHistoryBox": {
+        "fontSize": 0,
+        "height": 80,
+        "visible": true,
+        "width": 288,
+        "x": 385,
+        "y": 12
+      },
+      "model3_teamBSetBox": {
+        "fontSize": 0,
+        "height": 64,
+        "visible": true,
+        "width": 80,
+        "x": 321,
+        "y": 90
+      },
+      "model3_teamBSetHistoryBox": {
+        "fontSize": 0,
+        "height": 80,
+        "visible": true,
+        "width": 288,
+        "x": 385,
+        "y": 83
+      },
+      "model3_teamBSetsText": {
+        "fontSize": 72,
+        "height": 64,
+        "visible": true,
+        "width": 80,
+        "x": 321,
+        "y": 88
+      }
+    },
+    "logoSrc": "https://placehold.co/238x188",
+    "matchTitle": "SEMI FINAL",
+    "setHistory": [
+      {
+        "teamAScore": 0,
+        "teamBScore": 0
+      },
+      {
+        "teamAScore": 0,
+        "teamBScore": 0
+      },
+      {
+        "teamAScore": 0,
+        "teamBScore": 0
+      },
+      {
+        "teamAScore": 0,
+        "teamBScore": 0
+      },
+      {
+        "teamAScore": 0,
+        "teamBScore": 0
+      }
+    ],
+    "teamAColor": "#F97316",
+    "teamAName": "10.2",
+    "teamAPoints": 0,
+    "teamASets": 0,
+    "teamBColor": "#B72FCE",
+    "teamBName": "10.3",
+    "teamBPoints": 0,
+    "teamBSets": 0
+  }
+};
     
     try {
         await set(ref(database), defaultDatabaseState);
@@ -492,5 +540,4 @@ const ConfigManager = () => {
 
 export default ConfigManager;
 
-    
     
