@@ -3,7 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, X, Settings } from "lucide-react";
 import { useScoreboardData } from "@/hooks/useScoreboardData";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +82,7 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <Card
             className="cursor-pointer hover:shadow-xl hover:border-primary transition-all duration-300"
             onClick={() => navigateTo("/futsal/kontrol")}
@@ -116,6 +116,24 @@ export default function Home() {
               </p>
               <div className="flex justify-end items-center mt-4 text-primary font-semibold">
                 Buka Kontroler <ArrowRight className="ml-2 h-5 w-5" />
+              </div>
+            </CardContent>
+          </Card>
+           <Card
+            className="cursor-pointer hover:shadow-xl hover:border-primary transition-all duration-300 md:col-span-1"
+            onClick={() => navigateTo("/konfig")}
+          >
+            <CardHeader>
+              <CardTitle className="text-2xl font-bold font-headline">
+                <Settings className="inline-block mr-2" /> Konfigurasi
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Atur pencadangan, ekspor/impor data, dan reset papan skor.
+              </p>
+              <div className="flex justify-end items-center mt-4 text-primary font-semibold">
+                Buka Pengaturan <ArrowRight className="ml-2 h-5 w-5" />
               </div>
             </CardContent>
           </Card>
