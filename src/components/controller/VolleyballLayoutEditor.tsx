@@ -30,14 +30,18 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
   }, [selectedElement, scoreboard, onElementSelect]);
 
   const handleStyleChange = (key: keyof VolleyballLayoutStyle, value: number) => {
-    if (!currentStyle || !database) return;
+    if (!currentStyle) return;
     const newStyle = { ...currentStyle, [key]: value };
     setCurrentStyle(newStyle);
-    
-    const path = `volleyball/layout/${selectedElement}`;
-    update(ref(database), { [path]: newStyle });
   };
   
+  const handleValueCommit = (key: keyof VolleyballLayoutStyle, value: number) => {
+    if (!database || !currentStyle) return;
+    const path = `volleyball/layout/${selectedElement}/${key}`;
+    update(ref(database), { [path]: value });
+  };
+
+
   const handleVisibilityChange = (visible: boolean) => {
     if (!currentStyle || !database) return;
     const newStyle = { ...currentStyle, visible };
@@ -104,6 +108,7 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
               min={-200}
               step={1}
               onValueChange={(value) => handleStyleChange('x', value[0])}
+              onValueCommit={(value) => handleValueCommit('x', value[0])}
             />
           </div>
           <div>
@@ -114,6 +119,7 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
               min={-200}
               step={1}
               onValueChange={(value) => handleStyleChange('y', value[0])}
+              onValueCommit={(value) => handleValueCommit('y', value[0])}
             />
           </div>
           <div>
@@ -123,6 +129,7 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
               max={1200}
               step={1}
               onValueChange={(value) => handleStyleChange('width', value[0])}
+              onValueCommit={(value) => handleValueCommit('width', value[0])}
             />
           </div>
           <div>
@@ -132,6 +139,7 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
               max={800}
               step={1}
               onValueChange={(value) => handleStyleChange('height', value[0])}
+              onValueCommit={(value) => handleValueCommit('height', value[0])}
             />
           </div>
           <div>
@@ -141,6 +149,7 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
               max={200}
               step={1}
               onValueChange={(value) => handleStyleChange('fontSize', value[0])}
+              onValueCommit={(value) => handleValueCommit('fontSize', value[0])}
             />
           </div>
         </div>
