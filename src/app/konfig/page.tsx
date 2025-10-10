@@ -2,6 +2,7 @@
 "use client";
 
 import ConfigManager from "@/components/controller/ConfigManager";
+import CloudBackupManager from "@/components/controller/CloudBackupManager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -21,10 +22,11 @@ export default function ConfigPage() {
       </header>
 
       <main className="flex flex-col gap-8 items-center pt-10">
+        <CloudBackupManager />
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl font-bold font-headline text-center">
-              Pusat Konfigurasi
+              Pusat Konfigurasi File
             </CardTitle>
           </CardHeader>
           <CardContent>
