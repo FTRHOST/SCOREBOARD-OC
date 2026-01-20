@@ -1,4 +1,3 @@
-
 "use client";
 import React from 'react';
 import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
@@ -27,10 +26,11 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
 
   return (
     <div style={elementStyle}>
-      <div className="truncate px-2">
-        {text}
-        {children}
-      </div>
+      {children ? children : (
+        <div className="truncate px-2">
+          {text}
+        </div>
+      )}
     </div>
   );
 };
@@ -68,10 +68,33 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const teamAScoreKeys: (keyof VolleyballLayout)[] = ['model2_teamASet1Score', 'model2_teamASet2Score', 'model2_teamASet3Score'];
     const teamBScoreKeys: (keyof VolleyballLayout)[] = ['model2_teamBSet1Score', 'model2_teamBSet2Score', 'model2_teamBSet3Score'];
 
+    const renderOrder: (keyof VolleyballLayout)[] = [
+        'model2_teamABox',
+        'model2_teamBBox',
+        'model2_centerScoreBox',
+        'model2_matchTitleBox',
+        'model2_teamASetHistoryBox',
+        'model2_teamBSetHistoryBox',
+        'model2_teamAName',
+        'model2_teamBName',
+        'model2_teamASets',
+        'model2_teamBSets',
+        'model2_matchTitleText',
+        'model2_teamASet1Score',
+        'model2_teamASet2Score',
+        'model2_teamASet3Score',
+        'model2_teamBSet1Score',
+        'model2_teamBSet2Score',
+        'model2_teamBSet3Score',
+        'model2_logo',
+    ];
+
     return (
         <div className="w-[1049px] h-[256px] relative font-display">
-             {Object.keys(layout).filter(k => k.startsWith('model2')).map((key) => {
+             {renderOrder.map((key) => {
                 const elementKey = key as keyof VolleyballLayout;
+                if (!key.startsWith('model2')) return null;
+
                 const style = layout[elementKey];
                 if (!style) return null;
 

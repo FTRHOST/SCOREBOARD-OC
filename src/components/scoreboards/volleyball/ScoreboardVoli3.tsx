@@ -1,4 +1,3 @@
-
 "use client";
 import React from 'react';
 import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
@@ -27,10 +26,11 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
 
   return (
     <div style={elementStyle}>
-      <div className="truncate px-2">
-        {text}
-        {children}
-      </div>
+      {children ? children : (
+        <div className="truncate px-2">
+          {text}
+        </div>
+      )}
     </div>
   );
 };
@@ -65,10 +65,29 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
         };
     }
 
+    const renderOrder: (keyof VolleyballLayout)[] = [
+        'model3_teamANameBox',
+        'model3_teamBNameBox',
+        'model3_teamASetBox',
+        'model3_teamBSetBox',
+        'model3_logoBox',
+        'model3_teamASetHistoryBox',
+        'model3_teamBSetHistoryBox',
+        'model3_matchTitleBox',
+        'model3_teamANameText',
+        'model3_teamBNameText',
+        'model3_teamASetsText',
+        'model3_teamBSetsText',
+        'model3_matchTitleText',
+        'model3_logoImage',
+    ];
+
     return (
         <div className="w-[673px] h-[208px] relative font-display">
-            {Object.keys(layout).filter(k => k.startsWith('model3')).map((key) => {
+            {renderOrder.map((key) => {
                 const elementKey = key as keyof VolleyballLayout;
+                if (!key.startsWith('model3')) return null;
+
                 const style = layout[elementKey];
                 if (!style) return null;
 
@@ -107,17 +126,19 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
                     case 'model3_teamBSetsText': content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />; break;
                     case 'model3_matchTitleText': content = <DynamicElement style={style} text={matchTitle} isVisible={style.visible} />; break;
                     case 'model3_logoImage':
-                        content = <div className="relative w-full h-full">
-                            {logoSrc ? (
-                                isSvg ? (
-                                    <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
+                        content = <DynamicElement style={style} isVisible={style.visible}>
+                            <div className="relative w-full h-full">
+                                {logoSrc ? (
+                                    isSvg ? (
+                                        <img src={logoSrc} alt="Uploaded Logo" className="w-full h-full object-contain" />
+                                    ) : (
+                                        <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}}/>
+                                    )
                                 ) : (
-                                    <Image src={logoSrc} alt="Uploaded Logo" fill style={{objectFit: "contain"}}/>
-                                )
-                            ) : (
-                                <OsisCupLogo className="w-full h-full text-black" />
-                            )}
-                        </div>;
+                                    <OsisCupLogo className="w-full h-full text-black" />
+                                )}
+                            </div>
+                        </DynamicElement>;
                         break;
                     default:
                         return null;

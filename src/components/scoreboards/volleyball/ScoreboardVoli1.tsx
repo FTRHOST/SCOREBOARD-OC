@@ -1,4 +1,3 @@
-
 "use client";
 import React from 'react';
 import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
@@ -27,10 +26,11 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
 
   return (
     <div style={elementStyle}>
-      <div className="truncate px-2">
-        {text}
-        {children}
-      </div>
+      {children ? children : (
+        <div className="truncate px-2">
+          {text}
+        </div>
+      )}
     </div>
   );
 };
@@ -58,10 +58,29 @@ const ScoreboardVoli1 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const { teamAName, teamBName, teamAPoints, teamBPoints, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, layout } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
+    const renderOrder: (keyof VolleyballLayout)[] = [
+        'model1_teamABox',
+        'model1_teamBBox',
+        'model1_centerScoreBox',
+        'model1_matchTitleBox',
+        'model1_teamASetScoreBox',
+        'model1_teamBSetScoreBox',
+        'model1_teamAName',
+        'model1_teamBName',
+        'model1_teamAPoints',
+        'model1_teamBPoints',
+        'model1_teamASetScoreText',
+        'model1_teamBSetScoreText',
+        'model1_matchTitleText',
+        'model1_logo',
+    ];
+
     return (
         <div className="w-[1048px] h-[224px] relative font-display">
-            {Object.keys(layout).filter(k => k.startsWith('model1')).map((key) => {
+            {renderOrder.map((key) => {
                 const elementKey = key as keyof VolleyballLayout;
+                if (!key.startsWith('model1')) return null;
+                
                 const style = layout[elementKey];
                 if (!style) return null;
 
