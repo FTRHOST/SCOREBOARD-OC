@@ -141,6 +141,7 @@ export interface VolleyballScoreboard {
   setHistory: Array<{ teamAScore: number; teamBScore: number }>;
   colorSuggestions: string[];
   layout: VolleyballLayout;
+  zoomScale: number;
 }
 
 const defaultVolleyballScoreboard: VolleyballScoreboard = {
@@ -158,6 +159,7 @@ const defaultVolleyballScoreboard: VolleyballScoreboard = {
   setHistory: Array(MAX_SETS).fill({ teamAScore: 0, teamBScore: 0 }),
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultVolleyballLayout,
+  zoomScale: 100,
 };
 
 export function useVolleyballData() {
@@ -221,14 +223,21 @@ export function useVolleyballData() {
         if(snapshot.exists()) {
             const val = snapshot.val();
             sharedData = { logoSrc: val.logoSrc };
-            checkAndSetData();
         } else {
-            sharedData = {};
-            checkAndSetData();
+            sharedData = { logoSrc: null }; // Default empty if not found
         }
+        checkAndSetData();
     });
 
+    // Fallback timeout
+    const timeoutId = setTimeout(() => {
+        console.log("useVolleyballData: Timeout waiting for RTDB, loading defaults");
+        setScoreboard(defaultVolleyballScoreboard);
+        setLoading(false);
+    }, 2000);
+
     return () => {
+        clearTimeout(timeoutId);
         unsubscribeVoli();
         unsubscribeShared();
     }

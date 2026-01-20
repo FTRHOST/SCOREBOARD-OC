@@ -74,6 +74,7 @@ export interface Scoreboard {
   animationTrigger?: number;
   layout: ScoreboardLayout;
   eventTitle?: string;
+  zoomScale: number;
 }
 
 export const defaultLayout: ScoreboardLayout = {
@@ -128,7 +129,8 @@ const defaultScoreboard: Scoreboard = {
   pauseTime: INITIAL_TIME_SECONDS,
   colorSuggestions: INITIAL_COLOR_SUGGESTIONS,
   layout: defaultLayout,
-  eventTitle: 'SCOREBOARD'
+  eventTitle: 'SCOREBOARD',
+  zoomScale: 100
 };
 
 export function useScoreboardData() {
@@ -144,7 +146,14 @@ export function useScoreboardData() {
   useEffect(() => {
     if (!database) return;
 
+    // Fallback timeout
+    const timeoutId = setTimeout(() => {
+        setScoreboard(defaultScoreboard);
+        setLoading(false);
+    }, 2000);
+
     const unsubscribe = onValue(scoreboardRef, (snapshot) => {
+      clearTimeout(timeoutId); // Clear timeout on success
       let data: Scoreboard;
       if (snapshot.exists()) {
         const val = snapshot.val();
@@ -168,12 +177,17 @@ export function useScoreboardData() {
       setScoreboard(data);
       setLoading(false);
     }, (err) => {
+      clearTimeout(timeoutId);
       console.error("RTDB read failed:", err);
-      setError(err);
+      // Fallback on error
+      setScoreboard(defaultScoreboard);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+        clearTimeout(timeoutId);
+        unsubscribe();
+    }
   }, [database]);
   
   const updateScoreboard = useCallback(async (data: Partial<Scoreboard>) => {

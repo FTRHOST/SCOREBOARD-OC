@@ -32,12 +32,22 @@ export default function VolleyballControllerPage() {
   const [zoomLevel, setZoomLevel] = useState(100);
   const isMobile = useIsMobile();
   const [selectedLayoutElement, setSelectedLayoutElement] = useState<keyof VolleyballLayout | null>(null);
-  const { scoreboard, loading } = useVolleyballData();
+  const { scoreboard, loading, updateScoreboard } = useVolleyballData();
 
 
   useEffect(() => {
-    setZoomLevel(isMobile ? 30 : 85);
-  }, [isMobile]);
+    if (scoreboard?.zoomScale) {
+        setZoomLevel(scoreboard.zoomScale);
+    } else {
+        setZoomLevel(isMobile ? 30 : 85);
+    }
+  }, [isMobile, scoreboard?.zoomScale]);
+
+  const handleZoomChange = (value: number[]) => {
+      const newZoom = value[0];
+      setZoomLevel(newZoom);
+      updateScoreboard({ zoomScale: newZoom });
+  };
 
   const renderScoreboard = () => {
     const props = { selectedLayoutElement };
@@ -128,11 +138,11 @@ export default function VolleyballControllerPage() {
                       max={150}
                       step={5}
                       value={[zoomLevel]}
-                      onValueChange={(value) => setZoomLevel(value[0])}
+                      onValueChange={handleZoomChange}
                     />
                     <ZoomIn />
                     <span className="text-sm font-medium w-16 text-center">{zoomLevel}%</span>
-                    <Button variant="outline" size="icon" onClick={() => setZoomLevel(isMobile ? 30 : 85)} className="h-8 w-8">
+                    <Button variant="outline" size="icon" onClick={() => handleZoomChange([isMobile ? 30 : 85])} className="h-8 w-8">
                       <RotateCcw className="h-4 w-4" />
                     </Button>
                   </div>
@@ -159,7 +169,7 @@ export default function VolleyballControllerPage() {
                         <h3 className="text-lg font-semibold flex items-center gap-2"><LayoutTemplate /> Dynamic Layout Editor</h3>
                     </AccordionTrigger>
                     <AccordionContent className="pt-4">
-                       <VolleyballLayoutEditor onElementSelect={setSelectedLayoutElement} />
+                       <VolleyballLayoutEditor onElementSelect={setSelectedLayoutElement} selectedModel={selectedScoreboard} />
                     </AccordionContent>
                 </AccordionItem>
             </Accordion>

@@ -7,9 +7,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   
   // Define paths where the header should be hidden (the overlay/scoreboard views)
-  const overlayPaths = ['/futsal', '/voli'];
-  
-  const isOverlay = overlayPaths.includes(pathname);
+  const isOverlay = pathname.startsWith('/futsal') || pathname.startsWith('/voli');
 
   return (
     <>

@@ -14,9 +14,10 @@ import { Switch } from '@/components/ui/switch';
 
 interface LayoutEditorProps {
   onElementSelect: (elementKey: keyof ScoreboardLayout | null) => void;
+  selectedModel: string;
 }
 
-const LayoutEditor = ({ onElementSelect }: LayoutEditorProps) => {
+const LayoutEditor = ({ onElementSelect, selectedModel }: LayoutEditorProps) => {
   const { scoreboard } = useScoreboardData();
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof ScoreboardLayout>('model1_teamAScore');
@@ -28,6 +29,16 @@ const LayoutEditor = ({ onElementSelect }: LayoutEditorProps) => {
     height: '0',
     fontSize: '0',
   });
+
+  useEffect(() => {
+    if (selectedModel) {
+        // Set a default element when model changes, finding the first one that matches the model
+        const firstElement = (Object.keys(scoreboard?.layout || {}) as Array<keyof ScoreboardLayout>).find(key => key.startsWith(`model${selectedModel}_`));
+        if (firstElement) {
+            setSelectedElement(firstElement);
+        }
+    }
+  }, [selectedModel, scoreboard]);
 
   useEffect(() => {
     if (scoreboard?.layout) {
@@ -103,7 +114,9 @@ const LayoutEditor = ({ onElementSelect }: LayoutEditorProps) => {
     );
   }
 
-  const elementOptions = Object.keys(scoreboard.layout) as Array<keyof ScoreboardLayout>;
+  const elementOptions = (Object.keys(scoreboard.layout) as Array<keyof ScoreboardLayout>).filter(key => 
+    key.startsWith(`model${selectedModel}_`)
+  );
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">

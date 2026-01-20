@@ -14,9 +14,10 @@ import { Switch } from '@/components/ui/switch';
 
 interface VolleyballLayoutEditorProps {
   onElementSelect: (elementKey: keyof VolleyballLayout | null) => void;
+  selectedModel: string;
 }
 
-const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps) => {
+const VolleyballLayoutEditor = ({ onElementSelect, selectedModel }: VolleyballLayoutEditorProps) => {
   const { scoreboard } = useVolleyballData();
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof VolleyballLayout>('model1_teamAName');
@@ -28,6 +29,15 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
     height: '0',
     fontSize: '0',
   });
+
+  useEffect(() => {
+    if (selectedModel) {
+        const firstElement = (Object.keys(scoreboard?.layout || {}) as Array<keyof VolleyballLayout>).find(key => key.startsWith(`model${selectedModel}_`));
+        if (firstElement) {
+            setSelectedElement(firstElement);
+        }
+    }
+  }, [selectedModel, scoreboard]);
 
   useEffect(() => {
     if (scoreboard?.layout) {
@@ -101,7 +111,9 @@ const VolleyballLayoutEditor = ({ onElementSelect }: VolleyballLayoutEditorProps
     );
   }
 
-  const elementOptions = Object.keys(scoreboard.layout) as Array<keyof VolleyballLayout>;
+  const elementOptions = (Object.keys(scoreboard.layout) as Array<keyof VolleyballLayout>).filter(key => 
+    key.startsWith(`model${selectedModel}_`)
+  );
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">

@@ -4,10 +4,13 @@ import { useParams } from 'next/navigation';
 import ScoreboardVoli1 from '@/components/scoreboards/volleyball/ScoreboardVoli1';
 import ScoreboardVoli2 from '@/components/scoreboards/volleyball/ScoreboardVoli2';
 import ScoreboardVoli3 from '@/components/scoreboards/volleyball/ScoreboardVoli3';
+import { useVolleyballData } from '@/hooks/useVolleyballData';
 
 export default function VolleyballScoreboardPage() {
   const params = useParams();
   const model = params.model;
+  const { scoreboard } = useVolleyballData();
+  const zoomScale = scoreboard?.zoomScale ? scoreboard.zoomScale / 100 : 1;
 
   const renderScoreboard = () => {
     switch (model) {
@@ -23,8 +26,10 @@ export default function VolleyballScoreboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#00ff00] flex items-center justify-center">
-      {renderScoreboard()}
+    <div className="min-h-screen bg-[#00ff00] flex items-center justify-center overflow-hidden">
+      <div style={{ transform: `scale(${zoomScale})`, transformOrigin: 'center' }}>
+        {renderScoreboard()}
+      </div>
     </div>
   );
 }
