@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, KeyboardEvent } from 'react';
@@ -22,28 +21,41 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import teamsData from '@/lib/teams.json'; // Import the teams data
+import { TeamSelector, Team } from '@/components/shared/TeamSelector';
+import { useDatabase } from '@/firebase';
+import { ref, onValue } from 'firebase/database';
 
 export default function Controller() {
   const { scoreboard, loading, updateScoreboard, resetScoreboard, swapTeams, deleteColorSuggestion } = useScoreboardData();
   const { toast } = useToast();
+  const database = useDatabase();
   const [timeInput, setTimeInput] = useState('20');
   const [localTeamAName, setLocalTeamAName] = useState('');
   const [localTeamBName, setLocalTeamBName] = useState('');
   const [localEventTitle, setLocalEventTitle] = useState('');
   const [localHalf, setLocalHalf] = useState('');
-  const [teams, setTeams] = useState<string[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   useEffect(() => {
-    setTeams(teamsData);
-  }, []);
+    if (!database) return;
+    const teamsRef = ref(database, 'teams');
+    const unsubscribe = onValue(teamsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            let loadedTeams: Team[] = [];
+            if (Array.isArray(data)) {
+                loadedTeams = data.map((item: any) => typeof item === 'string' ? { name: item, type: 'both' as const } : item);
+            } else if (typeof data === 'object') {
+                loadedTeams = Object.values(data).map((item: any) => typeof item === 'string' ? { name: item, type: 'both' as const } : item);
+            }
+            // Filter for Futsal controller
+            setTeams(loadedTeams.filter(t => t.type === 'futsal' || t.type === 'both'));
+        } else {
+            setTeams([]);
+        }
+    });
+    return () => unsubscribe();
+  }, [database]);
 
   const [isTeamANameFocused, setIsTeamANameFocused] = useState(false);
   const [isTeamBNameFocused, setIsTeamBNameFocused] = useState(false);
@@ -213,12 +225,8 @@ export default function Controller() {
     const setFocused = team === 'A' ? setIsTeamANameFocused : setIsTeamBNameFocused;
 
     const handleTeamSelect = (value: string) => {
-      if (value === 'custom') {
-        setName('');
-      } else {
         setName(value);
         handleUpdate(fieldName, value);
-      }
     };
 
     return (
@@ -226,34 +234,13 @@ export default function Controller() {
             <h3 className="font-bold text-lg text-center" style={{ color: color }}>{team === 'A' ? 'Team A' : 'Team B'}</h3>
             <div className="space-y-2">
               <Label htmlFor={fieldName}>Team Name</Label>
-            <Select onValueChange={handleTeamSelect} value={teams.includes(name) ? name : 'custom'}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Tim" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((teamName) => (
-                  <SelectItem key={teamName} value={teamName}>
-                    {teamName}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Lainnya...</SelectItem>
-              </SelectContent>
-            </Select>
-            {(!teams.includes(name) || name === '') && (
-              <Input
-                id={fieldName}
+              <TeamSelector 
+                teams={teams}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, fieldName, name)}
-                 onFocus={() => setFocused(true)}
-                onBlur={() => {
-                  setFocused(false);
-                  handleInputCommit(fieldName, name);
-                }}
-                placeholder="Nama Tim Kustom"
-                className="mt-2"
+                onChange={handleTeamSelect}
+                placeholder="Pilih Tim"
+                onCustomInput={handleTeamSelect}
               />
-            )}
             </div>
             <div className="space-y-2">
               <Label>Score</Label>

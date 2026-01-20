@@ -21,26 +21,39 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import teamsData from '@/lib/teams.json'; // Import the teams data
+import { TeamSelector, Team } from "@/components/shared/TeamSelector";
+import { useDatabase } from "@/firebase";
+import { ref, onValue } from "firebase/database";
 
 export default function VolleyballController() {
   const { scoreboard, loading, updateScoreboard, updatePoints, winSet, resetSet, resetMatch, swapTeams, deleteColorSuggestion } = useVolleyballData();
+  const database = useDatabase();
   const [localTeamAName, setLocalTeamAName] = useState('');
   const [localTeamBName, setLocalTeamBName] = useState('');
   const [localMatchTitle, setLocalMatchTitle] = useState('');
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
-  const [teams, setTeams] = useState<string[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
 
   useEffect(() => {
-    setTeams(teamsData);
-  }, []);
+    if (!database) return;
+    const teamsRef = ref(database, 'teams');
+    const unsubscribe = onValue(teamsRef, (snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            let loadedTeams: Team[] = [];
+            if (Array.isArray(data)) {
+                loadedTeams = data.map((item: any) => typeof item === 'string' ? { name: item, type: 'both' as const } : item);
+            } else if (typeof data === 'object') {
+                loadedTeams = Object.values(data).map((item: any) => typeof item === 'string' ? { name: item, type: 'both' as const } : item);
+            }
+            // Filter for Volleyball controller
+            setTeams(loadedTeams.filter(t => t.type === 'volleyball' || t.type === 'both'));
+        } else {
+            setTeams([]);
+        }
+    });
+    return () => unsubscribe();
+  }, [database]);
 
   useEffect(() => {
     if (scoreboard && !loading && !initialDataLoaded) {
@@ -119,12 +132,8 @@ export default function VolleyballController() {
     const fieldName = team === 'A' ? 'teamAName' : 'teamBName';
 
     const handleTeamSelect = (value: string) => {
-      if (value === 'custom') {
-        setName('');
-      } else {
         setName(value);
         handleUpdate(fieldName, value);
-      }
     };
 
     return (
@@ -132,30 +141,13 @@ export default function VolleyballController() {
           <h3 className="font-bold text-lg text-center" style={{ color: color }}>{team === 'A' ? 'Tim A' : 'Tim B'}</h3>
           <div className="space-y-2">
             <Label htmlFor={fieldName}>Nama Tim</Label>
-            <Select onValueChange={handleTeamSelect} value={teams.includes(name) ? name : 'custom'}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Tim" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((teamName) => (
-                  <SelectItem key={teamName} value={teamName}>
-                    {teamName}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Lainnya...</SelectItem>
-              </SelectContent>
-            </Select>
-            {(!teams.includes(name) || name === '') && (
-              <Input
-                id={fieldName}
+            <TeamSelector 
+                teams={teams}
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, fieldName, name)}
-                onBlur={() => handleInputCommit(fieldName, name)}
-                placeholder="Nama Tim Kustom"
-                className="mt-2"
-              />
-            )}
+                onChange={handleTeamSelect}
+                placeholder="Pilih Tim"
+                onCustomInput={handleTeamSelect}
+            />
           </div>
 
            <div className="space-y-2">
