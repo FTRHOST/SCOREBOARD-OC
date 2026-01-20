@@ -38,10 +38,11 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutSty
 
   return (
     <div style={elementStyle}>
-      <div className="truncate px-2">
-        {text}
-        {children}
-      </div>
+      {children ? children : (
+        <div className="truncate px-2">
+          {text}
+        </div>
+      )}
     </div>
   );
 };
@@ -100,7 +101,6 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     return `${mins}:${secs}`;
   };
 
-  // Dummy background elements for non-text components to establish a base layer
   const staticBackgrounds = {
       model2_teamANameBG: { style: layout.model2_teamAName, color: teamAColor || '#B62FCE' },
       model2_teamBNameBG: { style: layout.model2_teamBName, color: teamBColor || '#EF7438' },
@@ -111,13 +111,25 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
       model2_halfBG: { style: layout.model2_half, color: '#05183B' },
   };
 
+  const renderOrder: (keyof ScoreboardLayout)[] = [
+    'model2_teamAName',
+    'model2_teamBName',
+    'model2_teamAScore',
+    'model2_teamBScore',
+    'model2_teamAFouls',
+    'model2_teamBFouls',
+    'model2_time',
+    'model2_half',
+    'model2_logo',
+  ];
+
   return (
     <div className="w-[1048px] h-[291px] relative font-display text-white">
       {Object.entries(staticBackgrounds).map(([key, {style, color, flash}]) => (
           <div key={key} style={{position: 'absolute', left: `${style.x}px`, top: `${style.y}px`, width: `${style.width}px`, height: `${style.height}px`, backgroundColor: color}} className={cn(flash && "animate-flash")} />
       ))}
 
-      {Object.keys(layout).filter(k => k.startsWith('model2')).map((key) => {
+      {renderOrder.map((key) => {
         const elementKey = key as keyof ScoreboardLayout;
         const style = layout[elementKey];
         if (!style) return null;

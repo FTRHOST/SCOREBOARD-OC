@@ -25,10 +25,11 @@ const DynamicElement = ({ style, children, text, isVisible, backgroundColor, cla
 
   return (
     <div style={elementStyle} className={className}>
-      <div className="truncate px-2">
-        {text}
-        {children}
-      </div>
+      {children ? children : (
+        <div className="truncate px-2">
+          {text}
+        </div>
+      )}
     </div>
   );
 };
