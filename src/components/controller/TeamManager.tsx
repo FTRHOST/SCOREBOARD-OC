@@ -4,59 +4,61 @@ import { useState, useEffect } from "react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Upload, Download, Plus, Save } from "lucide-react";
+import { Trash2, Upload, Download, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useDatabase } from "@/firebase";
+import { ref, onValue, set } from "firebase/database";
+
+const TEAMS_PATH = 'teams';
 
 const TeamManager = () => {
   const [teams, setTeams] = useState<string[]>([]);
   const [newTeam, setNewTeam] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const database = useDatabase();
 
   useEffect(() => {
-    fetchTeams();
-  }, []);
+    if (!database) return;
 
-  const fetchTeams = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/teams');
-      if (!response.ok) {
-        throw new Error('Failed to fetch teams');
+    const teamsRef = ref(database, TEAMS_PATH);
+    const unsubscribe = onValue(teamsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        if (Array.isArray(data)) {
+            setTeams(data);
+        } else {
+            // Handle case where data might not be an array (e.g. object with keys)
+            setTeams(Object.values(data)); 
+        }
+      } else {
+        setTeams([]);
       }
-      const data = await response.json();
-      setTeams(data);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Gagal memuat daftar tim.",
-        variant: "destructive",
-      });
-    } finally {
       setIsLoading(false);
-    }
-  };
+    }, (error) => {
+        console.error("Firebase read error:", error);
+        toast({
+            title: "Error",
+            description: "Gagal memuat daftar tim dari database.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
+    });
 
-  const saveTeams = async (updatedTeams: string[]) => {
+    return () => unsubscribe();
+  }, [database, toast]);
+
+  const saveTeamsToFirebase = async (updatedTeams: string[]) => {
+    if (!database) return;
     try {
-      const response = await fetch('/api/teams', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ teams: updatedTeams }),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to save teams');
-      }
-      setTeams(updatedTeams);
+      const teamsRef = ref(database, TEAMS_PATH);
+      await set(teamsRef, updatedTeams);
       toast({
         title: "Sukses",
         description: "Daftar tim berhasil disimpan.",
       });
     } catch (error) {
-      console.error(error);
+      console.error("Firebase write error:", error);
       toast({
         title: "Error",
         description: "Gagal menyimpan daftar tim.",
@@ -68,14 +70,14 @@ const TeamManager = () => {
   const addTeam = () => {
     if (newTeam.trim() !== "") {
       const updatedTeams = [...teams, newTeam.trim()];
-      saveTeams(updatedTeams);
+      saveTeamsToFirebase(updatedTeams);
       setNewTeam("");
     }
   };
 
   const deleteTeam = (index: number) => {
     const updatedTeams = teams.filter((_, i) => i !== index);
-    saveTeams(updatedTeams);
+    saveTeamsToFirebase(updatedTeams);
   };
 
   const exportToExcel = () => {
@@ -112,7 +114,7 @@ const TeamManager = () => {
             }
 
             const updatedTeams = [...new Set([...teams, ...importedTeams])];
-            saveTeams(updatedTeams);
+            saveTeamsToFirebase(updatedTeams);
             toast({
                 title: "Sukses",
                 description: `${importedTeams.length} tim berhasil di-import.`,
