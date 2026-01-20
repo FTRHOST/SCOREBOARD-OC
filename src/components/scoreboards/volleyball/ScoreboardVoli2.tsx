@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
 import Image from 'next/image';
 import { OsisCupLogo } from '@/components/icons/OsisCupLogo';
@@ -9,7 +9,7 @@ interface ScoreboardProps {
   selectedLayoutElement: keyof VolleyballLayout | null;
 }
 
-const DynamicElement = ({ style, children, text, isVisible }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+const DynamicElement = ({ style, children, text, isVisible, backgroundColor }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean, backgroundColor?: string }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
@@ -19,15 +19,18 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
-    overflow: 'hidden',
+    // overflow: 'hidden', // Removed
     textAlign: 'center',
     lineHeight: 1.1,
+    backgroundColor: backgroundColor,
+    whiteSpace: 'nowrap',
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
   };
 
   return (
     <div style={elementStyle}>
       {children ? children : (
-        <div className="truncate px-2">
+        <div className="px-2">
           {text}
         </div>
       )}
@@ -49,12 +52,36 @@ const BackgroundElement = ({ style, color, children, className, isVisible }: { s
 
 const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const { scoreboard, loading } = useVolleyballData();
+    const [maxNameWidth, setMaxNameWidth] = useState(0);
+    const [fontSizeScale, setFontSizeScale] = useState(1);
+    const measureRefA = useRef<HTMLDivElement>(null);
+    const measureRefB = useRef<HTMLDivElement>(null);
 
-    if (loading || !scoreboard || !scoreboard.layout) {
+    const { teamAName, teamBName, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, teamAPoints, teamBPoints, currentSet, layout } = scoreboard || {};
+
+    // Measure text widths
+    useEffect(() => {
+        if (measureRefA.current && measureRefB.current && layout) {
+            const widthA = measureRefA.current.scrollWidth;
+            const widthB = measureRefB.current.scrollWidth;
+            const calculatedWidth = Math.max(widthA, widthB) + 40; 
+            
+            const MAX_BOX_WIDTH = 511;
+
+            if (calculatedWidth > MAX_BOX_WIDTH) {
+                setMaxNameWidth(MAX_BOX_WIDTH);
+                setFontSizeScale(MAX_BOX_WIDTH / calculatedWidth);
+            } else {
+                setMaxNameWidth(calculatedWidth);
+                setFontSizeScale(1);
+            }
+        }
+    }, [teamAName, teamBName, layout?.model2_teamAName.fontSize, layout?.model2_teamBName.fontSize]);
+
+    if (loading || !scoreboard || !layout) {
         return <div className="w-[1049px] h-64 flex items-center justify-center bg-gray-800 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, teamAPoints, teamBPoints, currentSet, layout } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
 
     const displayHistory = [...setHistory];
@@ -69,8 +96,6 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const teamBScoreKeys: (keyof VolleyballLayout)[] = ['model2_teamBSet1Score', 'model2_teamBSet2Score', 'model2_teamBSet3Score'];
 
     const renderOrder: (keyof VolleyballLayout)[] = [
-        'model2_teamABox',
-        'model2_teamBBox',
         'model2_centerScoreBox',
         'model2_matchTitleBox',
         'model2_teamASetHistoryBox',
@@ -91,6 +116,10 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
 
     return (
         <div className="w-[1049px] h-[256px] relative font-display">
+             {/* Hidden measurement elements */}
+            <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamAName.fontSize}px` }} ref={measureRefA}>{teamAName}</div>
+            <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamBName.fontSize}px` }} ref={measureRefB}>{teamBName}</div>
+
              {renderOrder.map((key) => {
                 const elementKey = key as keyof VolleyballLayout;
                 if (!key.startsWith('model2')) return null;
@@ -102,10 +131,10 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
                 let isBackground = false;
                 let bgColor;
                 let isSetScore = false;
+                let overrideStyle: React.CSSProperties | undefined;
 
                 switch (elementKey) {
-                    case 'model2_teamABox': isBackground = true; bgColor = teamAColor; break;
-                    case 'model2_teamBBox': isBackground = true; bgColor = teamBColor; break;
+                    // Merged boxes into names
                     case 'model2_centerScoreBox': isBackground = true; bgColor = '#0F172A'; break;
                     case 'model2_matchTitleBox': isBackground = true; bgColor = '#0F172A'; break;
                     case 'model2_teamASetHistoryBox': isBackground = true; bgColor = undefined; 
@@ -126,8 +155,31 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
                             ))}
                         </div>;
                         break;
-                    case 'model2_teamAName': content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />; break;
-                    case 'model2_teamBName': content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />; break;
+                    case 'model2_teamAName':
+                        // Anchor Right
+                        const finalWidthA = Math.max(style.width, maxNameWidth);
+                        const anchorRight = style.x + style.width;
+                        const scaledFontSizeA = (style.fontSize || 88) * fontSizeScale;
+                        overrideStyle = {
+                            left: 'auto',
+                            right: `${1049 - anchorRight}px`, // Width is 1049 for Voli 2
+                            width: `${finalWidthA}px`,
+                            justifyContent: 'flex-end',
+                            paddingRight: '10px', 
+                        };
+                        content = <DynamicElement style={{...style, fontSize: scaledFontSizeA}} text={teamAName} isVisible={style.visible} backgroundColor={teamAColor} />;
+                        break;
+                    case 'model2_teamBName':
+                        // Anchor Left
+                        const finalWidthB = Math.max(style.width, maxNameWidth);
+                        const scaledFontSizeB = (style.fontSize || 88) * fontSizeScale;
+                        overrideStyle = {
+                            width: `${finalWidthB}px`,
+                            justifyContent: 'flex-start',
+                            paddingLeft: '10px',
+                        };
+                        content = <DynamicElement style={{...style, fontSize: scaledFontSizeB}} text={teamBName} isVisible={style.visible} backgroundColor={teamBColor} />;
+                        break;
                     case 'model2_teamASets': content = <DynamicElement style={style} text={teamASets.toString()} isVisible={style.visible} />; break;
                     case 'model2_teamBSets': content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />; break;
                     case 'model2_matchTitleText': content = <DynamicElement style={style} text={matchTitle} isVisible={style.visible} />; break;
@@ -170,6 +222,7 @@ const ScoreboardVoli2 = ({ selectedLayoutElement }: ScoreboardProps) => {
                         style={style}
                         selectedElement={selectedLayoutElement}
                         layoutType="volleyball"
+                        overrideStyle={overrideStyle}
                     >
                         {content}
                     </DraggableElement>

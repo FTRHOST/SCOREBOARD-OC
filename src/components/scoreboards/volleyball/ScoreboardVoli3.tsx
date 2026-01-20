@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useVolleyballData, VolleyballLayoutStyle, VolleyballLayout } from '@/hooks/useVolleyballData';
 import Image from 'next/image';
 import { OsisCupLogo } from '@/components/icons/OsisCupLogo';
@@ -9,7 +9,7 @@ interface ScoreboardProps {
   selectedLayoutElement: keyof VolleyballLayout | null;
 }
 
-const DynamicElement = ({ style, children, text, isVisible }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+const DynamicElement = ({ style, children, text, isVisible, backgroundColor }: { style: VolleyballLayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean, backgroundColor?: string }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
@@ -19,15 +19,18 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: Volleybal
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
-    overflow: 'hidden',
+    // overflow: 'hidden', // Removed
     textAlign: 'center',
     lineHeight: 1.1,
+    backgroundColor: backgroundColor,
+    whiteSpace: 'nowrap',
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
   };
 
   return (
     <div style={elementStyle}>
       {children ? children : (
-        <div className="truncate px-2">
+        <div className="px-2">
           {text}
         </div>
       )}
@@ -49,12 +52,38 @@ const BackgroundElement = ({ style, color, children, className, isVisible }: { s
 
 const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
     const { scoreboard, loading } = useVolleyballData();
+    const [maxNameWidth, setMaxNameWidth] = useState(0);
+    const [fontSizeScale, setFontSizeScale] = useState(1);
+    const measureRefA = useRef<HTMLDivElement>(null);
+    const measureRefB = useRef<HTMLDivElement>(null);
 
-    if (loading || !scoreboard || !scoreboard.layout) {
+    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, currentSet, layout } = scoreboard || {};
+
+    // Measure text widths
+    useEffect(() => {
+        if (measureRefA.current && measureRefB.current && layout) {
+            const widthA = measureRefA.current.scrollWidth;
+            const widthB = measureRefB.current.scrollWidth;
+            const calculatedWidth = Math.max(widthA, widthB) + 40; 
+            
+            // Allow larger width for Model 3 if needed, or stick to 511. 
+            // Given the layout is compact, 511 might be too wide, but consistency is key.
+            const MAX_BOX_WIDTH = 511;
+
+            if (calculatedWidth > MAX_BOX_WIDTH) {
+                setMaxNameWidth(MAX_BOX_WIDTH);
+                setFontSizeScale(MAX_BOX_WIDTH / calculatedWidth);
+            } else {
+                setMaxNameWidth(calculatedWidth);
+                setFontSizeScale(1);
+            }
+        }
+    }, [teamAName, teamBName, layout?.model3_teamANameText.fontSize, layout?.model3_teamBNameText.fontSize]);
+
+    if (loading || !scoreboard || !layout) {
         return <div className="w-[673px] h-52 flex items-center justify-center bg-gray-800 text-white">Loading...</div>;
     }
 
-    const { teamAName, teamBName, teamASets, teamBSets, teamAPoints, teamBPoints, teamAColor, teamBColor, logoSrc, matchTitle, setHistory, currentSet, layout } = scoreboard;
     const isSvg = logoSrc?.startsWith('data:image/svg+xml');
     
     const displayHistory = [...setHistory];
@@ -66,8 +95,6 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
     }
 
     const renderOrder: (keyof VolleyballLayout)[] = [
-        'model3_teamANameBox',
-        'model3_teamBNameBox',
         'model3_teamASetBox',
         'model3_teamBSetBox',
         'model3_logoBox',
@@ -84,6 +111,10 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
 
     return (
         <div className="w-[673px] h-[208px] relative font-display">
+             {/* Hidden measurement elements */}
+            <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model3_teamANameText.fontSize}px` }} ref={measureRefA}>{teamAName}</div>
+            <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model3_teamBNameText.fontSize}px` }} ref={measureRefB}>{teamBName}</div>
+
             {renderOrder.map((key) => {
                 const elementKey = key as keyof VolleyballLayout;
                 if (!key.startsWith('model3')) return null;
@@ -94,10 +125,17 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
                 let content;
                 let isBackground = false;
                 let bgColor;
+                let overrideStyle: React.CSSProperties | undefined;
 
                 switch (elementKey) {
-                    case 'model3_teamANameBox': isBackground = true; bgColor = teamAColor; break;
-                    case 'model3_teamBNameBox': isBackground = true; bgColor = teamBColor; break;
+                    // Merged Name Boxes into Text
+                    case 'model3_teamANameBox': isBackground = true; bgColor = teamAColor; break; // Still render if needed? No, merge.
+                    // Wait, if I skip this case, it won't render. 
+                    // I will remove it from switch and rely on text rendering.
+                    // But I need to ensure it's not rendered via default or other means.
+                    // The renderOrder includes it. If I remove case, it hits default -> null. Good.
+                    // Same for BBox.
+                    
                     case 'model3_teamASetBox': isBackground = true; bgColor = '#0F172A'; break;
                     case 'model3_teamBSetBox': isBackground = true; bgColor = '#0F172A'; break;
                     case 'model3_logoBox': isBackground = true; bgColor = 'white'; break;
@@ -120,8 +158,27 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
                            ))}
                        </div>;
                        break;
-                    case 'model3_teamANameText': content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />; break;
-                    case 'model3_teamBNameText': content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />; break;
+                    case 'model3_teamANameText':
+                        // Anchor Left (default x position) or Right?
+                        // In default layout, it's x=163.
+                        // I will keep x anchor and grow Width.
+                        const finalWidthA = Math.max(style.width, maxNameWidth);
+                        const scaledFontSizeA = (style.fontSize || 48) * fontSizeScale;
+                        overrideStyle = {
+                            width: `${finalWidthA}px`,
+                            fontSize: `${scaledFontSizeA}px`
+                        };
+                        content = <DynamicElement style={{...style, fontSize: scaledFontSizeA}} text={teamAName} isVisible={style.visible} backgroundColor={teamAColor} />; 
+                        break;
+                    case 'model3_teamBNameText': 
+                        const finalWidthB = Math.max(style.width, maxNameWidth);
+                        const scaledFontSizeB = (style.fontSize || 48) * fontSizeScale;
+                        overrideStyle = {
+                            width: `${finalWidthB}px`,
+                            fontSize: `${scaledFontSizeB}px`
+                        };
+                        content = <DynamicElement style={{...style, fontSize: scaledFontSizeB}} text={teamBName} isVisible={style.visible} backgroundColor={teamBColor} />; 
+                        break;
                     case 'model3_teamASetsText': content = <DynamicElement style={style} text={teamASets.toString()} isVisible={style.visible} />; break;
                     case 'model3_teamBSetsText': content = <DynamicElement style={style} text={teamBSets.toString()} isVisible={style.visible} />; break;
                     case 'model3_matchTitleText': content = <DynamicElement style={style} text={matchTitle} isVisible={style.visible} />; break;
@@ -155,6 +212,7 @@ const ScoreboardVoli3 = ({ selectedLayoutElement }: ScoreboardProps) => {
                         style={style}
                         selectedElement={selectedLayoutElement}
                         layoutType="volleyball"
+                        overrideStyle={overrideStyle}
                     >
                         {content}
                     </DraggableElement>

@@ -177,8 +177,16 @@ export function useVolleyballData() {
     let volleyballData: any = null;
     let sharedData: any = null;
 
+    // Fallback timeout
+    const timeoutId = setTimeout(() => {
+        console.log("useVolleyballData: Timeout waiting for RTDB, loading defaults");
+        setScoreboard(defaultVolleyballScoreboard);
+        setLoading(false);
+    }, 2000);
+
     const checkAndSetData = () => {
       if (volleyballData && sharedData) {
+        clearTimeout(timeoutId); // Data loaded, cancel fallback
         
         const mergedLayout = { ...defaultVolleyballLayout };
         for (const modelKey in defaultVolleyballLayout) {
@@ -228,13 +236,6 @@ export function useVolleyballData() {
         }
         checkAndSetData();
     });
-
-    // Fallback timeout
-    const timeoutId = setTimeout(() => {
-        console.log("useVolleyballData: Timeout waiting for RTDB, loading defaults");
-        setScoreboard(defaultVolleyballScoreboard);
-        setLoading(false);
-    }, 2000);
 
     return () => {
         clearTimeout(timeoutId);

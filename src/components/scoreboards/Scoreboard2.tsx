@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -35,6 +36,7 @@ const DynamicElement = ({ style, children, text, isVisible, backgroundColor }: {
     lineHeight: 1.1,
     backgroundColor: backgroundColor,
     whiteSpace: 'nowrap', // Keep text on one line
+    fontSize: style.fontSize ? `${style.fontSize}px` : undefined,
   };
 
   return (
@@ -67,6 +69,7 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
   const [flashB, setFlashB] = useState(false);
   
   const [maxNameWidth, setMaxNameWidth] = useState(0);
+  const [fontSizeScale, setFontSizeScale] = useState(1);
   const measureRefA = React.useRef<HTMLDivElement>(null);
   const measureRefB = React.useRef<HTMLDivElement>(null);
   
@@ -87,15 +90,25 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     }
   }, [scoreboard?.teamBFouls, prevFoulsB]);
 
-  // Measure text widths for symmetry
+  // Measure text widths for symmetry and max width logic
   useEffect(() => {
     if (measureRefA.current && measureRefB.current) {
         const widthA = measureRefA.current.scrollWidth;
         const widthB = measureRefB.current.scrollWidth;
         // Add padding/buffer
-        const maxWidth = Math.max(widthA, widthB) + 40; 
+        const calculatedWidth = Math.max(widthA, widthB) + 40; 
         
-        setMaxNameWidth(maxWidth); 
+        const MAX_BOX_WIDTH = 511;
+
+        if (calculatedWidth > MAX_BOX_WIDTH) {
+            setMaxNameWidth(MAX_BOX_WIDTH);
+            // Calculate scale to fit
+            // Use slightly less than 1 to ensure it fits with padding
+            setFontSizeScale(MAX_BOX_WIDTH / calculatedWidth);
+        } else {
+            setMaxNameWidth(calculatedWidth);
+            setFontSizeScale(1);
+        }
     }
   }, [scoreboard?.teamAName, scoreboard?.teamBName, scoreboard?.layout.model2_teamAName.fontSize, scoreboard?.layout.model2_teamBName.fontSize]);
   
@@ -145,7 +158,7 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
 
   return (
     <div className="w-[1048px] h-[291px] relative font-display text-white">
-      {/* Hidden measurement elements */}
+      {/* Hidden measurement elements with base font size */}
       <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamAName.fontSize}px` }} ref={measureRefA}>{teamAName}</div>
       <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamBName.fontSize}px` }} ref={measureRefB}>{teamBName}</div>
 
@@ -166,6 +179,7 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
             // Anchor Right
             const finalWidthA = Math.max(style.width, maxNameWidth);
             const anchorRight = style.x + style.width;
+            const scaledFontSizeA = (style.fontSize || 82) * fontSizeScale;
             overrideStyle = {
                 left: 'auto',
                 right: `${1048 - anchorRight}px`,
@@ -173,17 +187,18 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
                 justifyContent: 'flex-end',
                 paddingRight: '10px', 
             };
-            content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} backgroundColor={teamAColor || '#B62FCE'} />;
+            content = <DynamicElement style={{...style, fontSize: scaledFontSizeA}} text={teamAName} isVisible={style.visible} backgroundColor={teamAColor || '#B62FCE'} />;
             break;
           case 'model2_teamBName':
             // Anchor Left
             const finalWidthB = Math.max(style.width, maxNameWidth);
+            const scaledFontSizeB = (style.fontSize || 82) * fontSizeScale;
             overrideStyle = {
                 width: `${finalWidthB}px`,
                 justifyContent: 'flex-start',
                 paddingLeft: '10px',
             };
-            content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} backgroundColor={teamBColor || '#EF7438'} />;
+            content = <DynamicElement style={{...style, fontSize: scaledFontSizeB}} text={teamBName} isVisible={style.visible} backgroundColor={teamBColor || '#EF7438'} />;
             break;
           case 'model2_teamAScore':
             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>;
