@@ -37,6 +37,8 @@ export interface ScoreboardLayout {
   model2_teamBScore: LayoutStyle;
   model2_teamAFouls: LayoutStyle;
   model2_teamBFouls: LayoutStyle;
+  model2_foulsALabel: LayoutStyle;
+  model2_foulsBLabel: LayoutStyle;
   model2_logo: LayoutStyle;
   model2_time: LayoutStyle;
   model2_half: LayoutStyle;
@@ -92,6 +94,8 @@ export const defaultLayout: ScoreboardLayout = {
   model2_teamBName: { x: 728, y: 41, width: 320, height: 105, fontSize: 82, visible: true },
   model2_teamAScore: { x: 249, y: 41, width: 160, height: 105, fontSize: 96, visible: true },
   model2_teamBScore: { x: 584, y: 41, width: 144, height: 105, fontSize: 96, visible: true },
+  model2_foulsALabel: { x: 248, y: 153, width: 72, height: 79, fontSize: 18, visible: true },
+  model2_foulsBLabel: { x: 728, y: 153, width: 72, height: 79, fontSize: 18, visible: true },
   model2_teamAFouls: { x: 320, y: 153, width: 72, height: 79, fontSize: 88, visible: true },
   model2_teamBFouls: { x: 656, y: 153, width: 72, height: 79, fontSize: 88, visible: true },
   model2_logo: { x: 400, y: 0, width: 238, height: 188, visible: true },

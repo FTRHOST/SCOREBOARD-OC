@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, KeyboardEvent } from 'react';
+import { useState, useEffect, KeyboardEvent, useRef } from 'react';
 import { useVolleyballData, VolleyballLayout, VolleyballLayoutStyle } from '@/hooks/useVolleyballData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +22,7 @@ const VolleyballLayoutEditor = ({ onElementSelect, selectedModel }: VolleyballLa
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof VolleyballLayout>('model1_teamAName');
   const [currentStyle, setCurrentStyle] = useState<VolleyballLayoutStyle | null>(null);
+  const prevSelectedModel = useRef<string | null>(null);
   const [inputValues, setInputValues] = useState({
     x: '0',
     y: '0',
@@ -31,7 +32,8 @@ const VolleyballLayoutEditor = ({ onElementSelect, selectedModel }: VolleyballLa
   });
 
   useEffect(() => {
-    if (selectedModel) {
+    if (selectedModel && selectedModel !== prevSelectedModel.current) {
+        prevSelectedModel.current = selectedModel;
         const firstElement = (Object.keys(scoreboard?.layout || {}) as Array<keyof VolleyballLayout>).find(key => key.startsWith(`model${selectedModel}_`));
         if (firstElement) {
             setSelectedElement(firstElement);

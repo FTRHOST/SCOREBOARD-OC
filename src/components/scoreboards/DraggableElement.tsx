@@ -12,6 +12,7 @@ interface DraggableElementProps {
   children: React.ReactNode;
   selectedElement: string | null;
   layoutType: 'futsal' | 'volleyball';
+  overrideStyle?: React.CSSProperties;
 }
 
 const DraggableElement: React.FC<DraggableElementProps> = ({
@@ -20,6 +21,7 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
   children,
   selectedElement,
   layoutType,
+  overrideStyle,
 }) => {
   const database = useDatabase();
   const isSelected = selectedElement === elementKey;
@@ -113,6 +115,7 @@ const DraggableElement: React.FC<DraggableElementProps> = ({
     border: isSelected ? `2px dashed ${isDragging ? 'hsl(var(--primary))' : 'hsl(var(--ring))'}` : 'none',
     zIndex: isSelected ? 1000 : 100, // Ensure selected is on top
     transition: isDragging ? 'none' : 'border-color 0.2s',
+    ...overrideStyle, // Apply override styles last
   };
 
   return (

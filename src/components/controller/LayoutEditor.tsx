@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, KeyboardEvent } from 'react';
+import { useState, useEffect, KeyboardEvent, useRef } from 'react';
 import { useScoreboardData, ScoreboardLayout, LayoutStyle } from '@/hooks/useScoreboardData';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,6 +22,7 @@ const LayoutEditor = ({ onElementSelect, selectedModel }: LayoutEditorProps) => 
   const database = useDatabase();
   const [selectedElement, setSelectedElement] = useState<keyof ScoreboardLayout>('model1_teamAScore');
   const [currentStyle, setCurrentStyle] = useState<LayoutStyle | null>(null);
+  const prevSelectedModel = useRef<string | null>(null);
   const [inputValues, setInputValues] = useState({
     x: '0',
     y: '0',
@@ -31,7 +32,8 @@ const LayoutEditor = ({ onElementSelect, selectedModel }: LayoutEditorProps) => 
   });
 
   useEffect(() => {
-    if (selectedModel) {
+    if (selectedModel && selectedModel !== prevSelectedModel.current) {
+        prevSelectedModel.current = selectedModel;
         // Set a default element when model changes, finding the first one that matches the model
         const firstElement = (Object.keys(scoreboard?.layout || {}) as Array<keyof ScoreboardLayout>).find(key => key.startsWith(`model${selectedModel}_`));
         if (firstElement) {

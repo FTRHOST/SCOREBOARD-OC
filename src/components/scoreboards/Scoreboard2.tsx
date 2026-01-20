@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -21,7 +20,7 @@ interface ScoreboardProps {
   selectedLayoutElement: keyof ScoreboardLayout | null;
 }
 
-const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean }) => {
+const DynamicElement = ({ style, children, text, isVisible, backgroundColor }: { style: LayoutStyle, children?: React.ReactNode, text?: string, isVisible?: boolean, backgroundColor?: string }) => {
   if (isVisible === false) return null;
   
   const elementStyle: React.CSSProperties = {
@@ -31,15 +30,17 @@ const DynamicElement = ({ style, children, text, isVisible }: { style: LayoutSty
     alignItems: 'center',
     justifyContent: 'center',
     color: 'white',
-    overflow: 'hidden',
+    // overflow: 'hidden', // Removed to allow expansion
     textAlign: 'center',
     lineHeight: 1.1,
+    backgroundColor: backgroundColor,
+    whiteSpace: 'nowrap', // Keep text on one line
   };
 
   return (
     <div style={elementStyle}>
       {children ? children : (
-        <div className="truncate px-2">
+        <div className="px-2"> {/* Removed truncate class */}
           {text}
         </div>
       )}
@@ -65,6 +66,10 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
   const [flashA, setFlashA] = useState(false);
   const [flashB, setFlashB] = useState(false);
   
+  const [maxNameWidth, setMaxNameWidth] = useState(0);
+  const measureRefA = React.useRef<HTMLDivElement>(null);
+  const measureRefB = React.useRef<HTMLDivElement>(null);
+  
   const prevFoulsA = usePrevious(scoreboard?.teamAFouls);
   const prevFoulsB = usePrevious(scoreboard?.teamBFouls);
 
@@ -81,6 +86,18 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
       setTimeout(() => setFlashB(false), 400);
     }
   }, [scoreboard?.teamBFouls, prevFoulsB]);
+
+  // Measure text widths for symmetry
+  useEffect(() => {
+    if (measureRefA.current && measureRefB.current) {
+        const widthA = measureRefA.current.scrollWidth;
+        const widthB = measureRefB.current.scrollWidth;
+        // Add padding/buffer
+        const maxWidth = Math.max(widthA, widthB) + 40; 
+        
+        setMaxNameWidth(maxWidth); 
+    }
+  }, [scoreboard?.teamAName, scoreboard?.teamBName, scoreboard?.layout.model2_teamAName.fontSize, scoreboard?.layout.model2_teamBName.fontSize]);
   
   if (loading || !scoreboard || !scoreboard.layout) {
     return (
@@ -102,11 +119,12 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
   };
 
   const staticBackgrounds = {
-      model2_teamANameBG: { style: layout.model2_teamAName, color: teamAColor || '#B62FCE' },
-      model2_teamBNameBG: { style: layout.model2_teamBName, color: teamBColor || '#EF7438' },
+      // Name backgrounds removed to allow dynamic sizing
       model2_teamAScoreBG: { style: { ...layout.model2_teamAScore, x: 320, y: 41, width: 408, height: 105 }, color: '#05183B'},
       model2_teamAFoulsBG: { style: layout.model2_teamAFouls, color: teamAColor || '#B62FCE', flash: flashA },
       model2_teamBFoulsBG: { style: layout.model2_teamBFouls, color: teamBColor || '#EF7438', flash: flashB },
+      model2_foulsALabelBG: { style: layout.model2_foulsALabel, color: teamAColor || '#B62FCE' },
+      model2_foulsBLabelBG: { style: layout.model2_foulsBLabel, color: teamBColor || '#EF7438' },
       model2_timeBG: { style: layout.model2_time, color: '#05183B' },
       model2_halfBG: { style: layout.model2_half, color: '#05183B' },
   };
@@ -118,6 +136,8 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
     'model2_teamBScore',
     'model2_teamAFouls',
     'model2_teamBFouls',
+    'model2_foulsALabel',
+    'model2_foulsBLabel',
     'model2_time',
     'model2_half',
     'model2_logo',
@@ -125,8 +145,12 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
 
   return (
     <div className="w-[1048px] h-[291px] relative font-display text-white">
+      {/* Hidden measurement elements */}
+      <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamAName.fontSize}px` }} ref={measureRefA}>{teamAName}</div>
+      <div style={{ position: 'absolute', visibility: 'hidden', height: 0, whiteSpace: 'nowrap', fontSize: `${layout.model2_teamBName.fontSize}px` }} ref={measureRefB}>{teamBName}</div>
+
       {Object.entries(staticBackgrounds).map(([key, {style, color, flash}]) => (
-          <div key={key} style={{position: 'absolute', left: `${style.x}px`, top: `${style.y}px`, width: `${style.width}px`, height: `${style.height}px`, backgroundColor: color}} className={cn(flash && "animate-flash")} />
+          style ? <div key={key} style={{position: 'absolute', left: `${style.x}px`, top: `${style.y}px`, width: `${style.width}px`, height: `${style.height}px`, backgroundColor: color}} className={cn(flash && "animate-flash")} /> : null
       ))}
 
       {renderOrder.map((key) => {
@@ -135,12 +159,31 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
         if (!style) return null;
 
         let content: React.ReactNode;
+        let overrideStyle: React.CSSProperties | undefined;
+
         switch (elementKey) {
           case 'model2_teamAName':
-            content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} />;
+            // Anchor Right
+            const finalWidthA = Math.max(style.width, maxNameWidth);
+            const anchorRight = style.x + style.width;
+            overrideStyle = {
+                left: 'auto',
+                right: `${1048 - anchorRight}px`,
+                width: `${finalWidthA}px`,
+                justifyContent: 'flex-end',
+                paddingRight: '10px', 
+            };
+            content = <DynamicElement style={style} text={teamAName} isVisible={style.visible} backgroundColor={teamAColor || '#B62FCE'} />;
             break;
           case 'model2_teamBName':
-            content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} />;
+            // Anchor Left
+            const finalWidthB = Math.max(style.width, maxNameWidth);
+            overrideStyle = {
+                width: `${finalWidthB}px`,
+                justifyContent: 'flex-start',
+                paddingLeft: '10px',
+            };
+            content = <DynamicElement style={style} text={teamBName} isVisible={style.visible} backgroundColor={teamBColor || '#EF7438'} />;
             break;
           case 'model2_teamAScore':
             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamAScore} /></DynamicElement>;
@@ -153,6 +196,12 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
             break;
           case 'model2_teamBFouls':
             content = <DynamicElement style={style} isVisible={style.visible}><AnimatedNumber value={teamBFouls} /></DynamicElement>;
+            break;
+          case 'model2_foulsALabel':
+            content = <DynamicElement style={style} text="FOULS" isVisible={style.visible} />;
+            break;
+          case 'model2_foulsBLabel':
+            content = <DynamicElement style={style} text="FOULS" isVisible={style.visible} />;
             break;
           case 'model2_time':
             content = <DynamicElement style={style} text={formatTime(time)} isVisible={style.visible} />;
@@ -186,6 +235,7 @@ const Scoreboard2 = ({ selectedLayoutElement }: ScoreboardProps) => {
             style={style}
             selectedElement={selectedLayoutElement}
             layoutType="futsal"
+            overrideStyle={overrideStyle}
           >
             {content}
           </DraggableElement>
