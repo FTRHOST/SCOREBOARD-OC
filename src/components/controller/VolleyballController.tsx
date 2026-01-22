@@ -64,6 +64,14 @@ export default function VolleyballController() {
     }
   }, [scoreboard, loading, initialDataLoaded]);
 
+  // Keep team names in sync with scoreboard (e.g. for Swap Teams)
+  useEffect(() => {
+    if (scoreboard && !loading) {
+       setLocalTeamAName(scoreboard.teamAName || '');
+       setLocalTeamBName(scoreboard.teamBName || '');
+    }
+  }, [scoreboard?.teamAName, scoreboard?.teamBName]);
+
   if (loading || !scoreboard) {
     return (
         <Card className="w-full max-w-4xl mx-auto shadow-lg">
